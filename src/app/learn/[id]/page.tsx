@@ -5,24 +5,20 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import RatingModal from "@/components/RatingModal";
+import VideoRoom from "@/components/VideoRoom";
 import { useSkillSwap } from "@/context/SkillSwapContext";
 import {
   Mic,
-  MicOff,
   Video as VideoIcon,
-  VideoOff,
-  MonitorUp,
-  PhoneOff,
-  MessageSquare,
-  FileText,
   Clock,
   CheckCircle2,
   ShieldCheck,
   Sparkles,
   ArrowLeft,
-  ChevronRight,
   Send,
   Edit3,
+  Play,
+  MonitorUp,
 } from "lucide-react";
 
 export default function SessionRoomPage() {
@@ -35,9 +31,6 @@ export default function SessionRoomPage() {
 
   // In-session control states
   const [isJoined, setIsJoined] = useState(false);
-  const [isMicOn, setIsMicOn] = useState(true);
-  const [isVideoOn, setIsVideoOn] = useState(true);
-  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [activeTab, setActiveTab] = useState<"notes" | "agenda" | "chat">("notes");
 
   // Countdown simulation: starts at 12:34
@@ -157,7 +150,7 @@ export default function SessionRoomPage() {
             <Clock className="w-3.5 h-3.5 text-amber-600" />
             <span>
               {isJoined
-                ? "Live in Session"
+                ? "Live WebRTC P2P Active"
                 : `Session starting in ${formatCountdown(secondsRemaining)}`}
             </span>
           </div>
@@ -179,118 +172,24 @@ export default function SessionRoomPage() {
         <div className="lg:col-span-8 flex flex-col gap-5">
           {/* Video Stream Stage */}
           <div className="relative aspect-video sm:aspect-[16/9] w-full bg-gray-950 rounded-3xl overflow-hidden shadow-lg border border-gray-800 flex items-center justify-center">
-            {isJoined ? (
-              /* Simulated Dual Video Feed */
-              <div className="absolute inset-0 grid grid-cols-1 sm:grid-cols-2 gap-2 p-2 sm:p-3 bg-gray-950">
-                {/* Teacher Camera Frame */}
-                <div className="relative rounded-2xl overflow-hidden bg-gray-900 border border-gray-800 flex items-center justify-center group">
-                  <img
-                    src={session.teacherAvatar}
-                    alt={session.teacherName}
-                    className="w-full h-full object-cover opacity-90"
-                  />
-                  <div className="absolute bottom-3 left-3 bg-gray-950/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-white text-xs font-medium flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>{session.teacherName} (Teacher)</span>
-                  </div>
-                </div>
-
-                {/* Student Camera Frame */}
-                <div className="relative rounded-2xl overflow-hidden bg-gray-900 border border-gray-800 flex items-center justify-center">
-                  {isVideoOn ? (
-                    <img
-                      src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=600&auto=format&fit=crop&q=80"
-                      alt="Student"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center text-gray-500 text-xs">
-                      <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm mb-2">
-                        S
-                      </div>
-                      <span>Camera Off</span>
-                    </div>
-                  )}
-                  <div className="absolute bottom-3 left-3 bg-gray-950/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-white text-xs font-medium flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <span>You (Student)</span>
-                  </div>
-                </div>
+            {/* Pre-join or Active Preview State */}
+            <div className="text-center p-6 max-w-md">
+              <div className="w-16 h-16 rounded-full bg-gray-900 text-indigo-400 border border-gray-800 flex items-center justify-center mx-auto mb-4">
+                <VideoIcon className="w-8 h-8" />
               </div>
-            ) : (
-              /* Pre-join State Card */
-              <div className="text-center p-6 max-w-md">
-                <div className="w-16 h-16 rounded-full bg-gray-900 text-indigo-400 border border-gray-800 flex items-center justify-center mx-auto mb-4">
-                  <VideoIcon className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg font-bold text-white">Ready for your swap session?</h3>
-                <p className="text-xs text-gray-400 mt-1">
-                  1-on-1 audio, video, and collaborative scratchpad enabled. 10 credits held in escrow.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setIsJoined(true)}
-                  className="mt-6 px-7 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 mx-auto"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Join Session Now</span>
-                </button>
-              </div>
-            )}
-
-            {/* Bottom Call Controls (Shown when joined) */}
-            {isJoined && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-gray-900/80 backdrop-blur-md p-2 rounded-2xl border border-gray-700/80 shadow-2xl z-20">
-                <button
-                  type="button"
-                  onClick={() => setIsMicOn(!isMicOn)}
-                  className={`p-2.5 rounded-xl text-white transition-colors ${
-                    isMicOn ? "bg-gray-800 hover:bg-gray-700" : "bg-red-600 hover:bg-red-700"
-                  }`}
-                  title={isMicOn ? "Mute Microphone" : "Unmute Microphone"}
-                >
-                  {isMicOn ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsVideoOn(!isVideoOn)}
-                  className={`p-2.5 rounded-xl text-white transition-colors ${
-                    isVideoOn ? "bg-gray-800 hover:bg-gray-700" : "bg-red-600 hover:bg-red-700"
-                  }`}
-                  title={isVideoOn ? "Turn Camera Off" : "Turn Camera On"}
-                >
-                  {isVideoOn ? <VideoIcon className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsScreenSharing(!isScreenSharing);
-                    showToast(
-                      isScreenSharing ? "Screen Share Stopped" : "Screen Share Active",
-                      "",
-                      "info"
-                    );
-                  }}
-                  className={`p-2.5 rounded-xl text-white transition-colors ${
-                    isScreenSharing ? "bg-indigo-600" : "bg-gray-800 hover:bg-gray-700"
-                  }`}
-                  title="Share Screen"
-                >
-                  <MonitorUp className="w-4 h-4" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsJoined(false)}
-                  className="p-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white transition-colors"
-                  title="Leave Call"
-                >
-                  <PhoneOff className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+              <h3 className="text-lg font-bold text-white">Ready for your swap session?</h3>
+              <p className="text-xs text-gray-400 mt-1">
+                Direct WebRTC audio, video, screen-sharing, collaborative whiteboard, and real-time live captions.
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsJoined(true)}
+                className="mt-6 px-7 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 mx-auto"
+              >
+                <Play className="w-4 h-4 fill-white" />
+                <span>Launch WebRTC Session</span>
+              </button>
+            </div>
           </div>
 
           {/* Interactive Collaborative Scratchpad & Notes */}
@@ -355,7 +254,9 @@ export default function SessionRoomPage() {
                 type="button"
                 onClick={() => setActiveTab("notes")}
                 className={`pb-1 transition-colors ${
-                  activeTab === "notes" ? "text-indigo-600 border-b-2 border-indigo-600" : "text-gray-400 hover:text-gray-700"
+                  activeTab === "notes"
+                    ? "text-indigo-600 border-b-2 border-indigo-600"
+                    : "text-gray-400 hover:text-gray-700"
                 }`}
               >
                 Agenda Checklist
@@ -364,7 +265,9 @@ export default function SessionRoomPage() {
                 type="button"
                 onClick={() => setActiveTab("chat")}
                 className={`pb-1 transition-colors ${
-                  activeTab === "chat" ? "text-indigo-600 border-b-2 border-indigo-600" : "text-gray-400 hover:text-gray-700"
+                  activeTab === "chat"
+                    ? "text-indigo-600 border-b-2 border-indigo-600"
+                    : "text-gray-400 hover:text-gray-700"
                 }`}
               >
                 Session Chat ({chatMessages.length})
@@ -414,7 +317,10 @@ export default function SessionRoomPage() {
                   ))}
                 </div>
 
-                <form onSubmit={handleSendMessage} className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
+                <form
+                  onSubmit={handleSendMessage}
+                  className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2"
+                >
                   <input
                     type="text"
                     value={newMessage}
@@ -434,6 +340,19 @@ export default function SessionRoomPage() {
           </div>
         </div>
       </main>
+
+      {/* Native WebRTC VideoRoom Component */}
+      {isJoined && (
+        <VideoRoom
+          sessionId={sessionId}
+          currentUserId="user-sabareesh"
+          onClose={() => setIsJoined(false)}
+          onComplete={() => {
+            setIsJoined(false);
+            handleMarkComplete();
+          }}
+        />
+      )}
 
       {/* Post-Session Rating & Escrow Release Modal */}
       <RatingModal
