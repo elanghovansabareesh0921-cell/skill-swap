@@ -34,7 +34,7 @@ export default function CreditsWalletPage() {
       id: "starter",
       name: "Starter",
       credits: 50,
-      price: "$19",
+      price: "₹499",
       description: "Ideal for trying out 4–5 swap sessions",
       popular: false,
     },
@@ -42,7 +42,7 @@ export default function CreditsWalletPage() {
       id: "popular",
       name: "Popular",
       credits: 100,
-      price: "$35",
+      price: "₹899",
       description: "Best value for active learners and switchers",
       popular: true,
     },
@@ -50,7 +50,7 @@ export default function CreditsWalletPage() {
       id: "pro",
       name: "Pro",
       credits: 250,
-      price: "$79",
+      price: "₹1,999",
       description: "For deep mastery across multiple domains",
       popular: false,
     },
@@ -107,7 +107,7 @@ export default function CreditsWalletPage() {
           <div className="text-center max-w-md mx-auto mb-6">
             <h2 className="text-xl font-bold text-gray-900">Need credits to learn?</h2>
             <p className="text-xs sm:text-sm text-gray-500 mt-1">
-              Buy credits and start learning from skilled members.
+              Top up your balance in Indian Rupees (₹ INR) to book sessions instantly, or earn by teaching.
             </p>
           </div>
 
@@ -131,6 +131,7 @@ export default function CreditsWalletPage() {
                   <h3 className="text-sm font-bold text-gray-900">{pkg.name}</h3>
                   <div className="mt-2 flex items-baseline gap-1">
                     <span className="text-3xl font-extrabold text-gray-900">{pkg.price}</span>
+                    <span className="text-xs font-semibold text-gray-400">INR</span>
                   </div>
                   <div className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-indigo-600 font-mono">
                     <span>🪙 {pkg.credits} Credits</span>
@@ -144,17 +145,34 @@ export default function CreditsWalletPage() {
                   <button
                     type="button"
                     onClick={() => buyCredits(pkg.credits, pkg.price)}
-                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold transition-all ${
+                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
                       pkg.popular
                         ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
                         : "bg-gray-900 hover:bg-gray-800 text-white"
                     }`}
                   >
-                    Get {pkg.credits} Credits
+                    <span>Pay {pkg.price}</span>
+                    <span className="opacity-80">({pkg.credits} Credits)</span>
                   </button>
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Payment Trust Badges */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-gray-500">
+            <div className="flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>Instant credit via UPI, Cards & Net Banking</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Check className="w-4 h-4 text-indigo-600" />
+              <span>All prices in Indian Rupees (₹ INR)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <span>Credits never expire</span>
+            </div>
           </div>
         </div>
 

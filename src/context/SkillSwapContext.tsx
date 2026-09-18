@@ -463,7 +463,7 @@ const INITIAL_COMMUNITY_POSTS: CommunityPost[] = [
     authorAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80",
     authorRole: "Frontend Developer",
     title: "Swapped React knowledge for Spanish — here is what surprised me most",
-    content: "Last week I completed 3 sessions teaching React Hooks to a Spanish teacher from Madrid. In exchange, he gave me 3 conversational Spanish sessions. The credit exchange felt so much more human than paying $80/hr on commercial tutoring sites. Both of us were genuinely invested in each other's growth!",
+    content: "Last week I completed 3 sessions teaching React Hooks to a Spanish teacher from Madrid. In exchange, he gave me 3 conversational Spanish sessions. The credit exchange felt so much more human than paying ₹2,500/hr on commercial tutoring sites. Both of us were genuinely invested in each other's growth!",
     tag: "Discussion",
     upvotes: 42,
     replyCount: 14,
