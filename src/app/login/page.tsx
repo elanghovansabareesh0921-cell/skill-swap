@@ -25,7 +25,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const redirectTarget = searchParams.get("redirect") || "/dashboard";
 
-  const { loginWithDemo, loginWithGoogle, showToast } = useSkillSwap();
+  const { loginWithGoogle, showToast } = useSkillSwap();
   const supabase = createClient();
 
   const [email, setEmail] = useState("");
@@ -33,7 +33,7 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [demoLoading, setDemoLoading] = useState(false);
+
   const [googleLoading, setGoogleLoading] = useState(false);
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -113,20 +113,7 @@ function LoginForm() {
     }
   };
 
-  const handleDemoLogin = async () => {
-    setDemoLoading(true);
-    setErrorMsg("");
-    try {
-      const res = await loginWithDemo();
-      if (res.success) {
-        router.push(redirectTarget);
-      }
-    } catch (e: any) {
-      setErrorMsg("Failed to start demo session.");
-    } finally {
-      setDemoLoading(false);
-    }
-  };
+
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
@@ -258,33 +245,7 @@ function LoginForm() {
             </p>
           </div>
 
-          {/* Quick 1-Click Demo Login Banner (Presentation Highlight) */}
-          <div className="p-4 rounded-2xl bg-[#EDE9FE]/70 dark:bg-[#231C3D]/60 border border-[#DDD6FE] dark:border-[#3B2D66] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-1.5 text-xs font-bold text-[#7C3AED] dark:text-[#A78BFA]">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Instant Evaluation Access</span>
-              </div>
-              <p className="text-[11px] text-[#71717A] dark:text-zinc-400 mt-0.5">
-                Sign in instantly as Alex Demo with 50 credits
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleDemoLogin}
-              disabled={demoLoading || loading}
-              className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm transition-all flex items-center justify-center gap-1.5 shrink-0"
-            >
-              {demoLoading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <>
-                  <span>One-Click Demo</span>
-                  <ArrowRight className="w-3 h-3" />
-                </>
-              )}
-            </button>
-          </div>
+
 
           {/* General Error Message */}
           {errorMsg && (
@@ -386,7 +347,7 @@ function LoginForm() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || demoLoading}
+              disabled={loading}
               className="w-full py-3 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold text-sm transition-all shadow-sm hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (

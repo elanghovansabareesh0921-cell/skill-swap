@@ -193,7 +193,7 @@ interface SkillSwapContextType {
   messages: ChatMessage[];
 
   // Auth actions
-  loginWithDemo: () => Promise<{ success: boolean; error?: string }>;
+
   loginWithGoogle: () => Promise<{ success: boolean; error?: string; requiresConfig?: boolean }>;
   loginWithGoogleEmail: (email: string, name?: string, avatar?: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogleCredential: (credentialToken: string) => Promise<{ success: boolean; error?: string }>;
@@ -245,496 +245,32 @@ interface SkillSwapContextType {
   createPost: (post: Omit<CommunityPost, "id" | "upvotes" | "replyCount" | "timeAgo" | "hasUpvoted">) => void;
 }
 
-const INITIAL_SKILLS: SkillListing[] = [
-  {
-    id: "skill-1",
-    title: "Python Programming & Data Structures",
-    category: "Programming",
-    description: "Hands-on coding, algorithms, OOP patterns, and clean Pythonic architecture for beginners to intermediate learners.",
-    level: "Beginner",
-    creditsPerSession: 10,
-    durationMinutes: 60,
-    rating: 4.9,
-    reviewCount: 48,
-    availability: "Available today",
-    mode: "Online",
-    teacher: {
-      id: "arun-kumar",
-      name: "Arun Kumar",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-      role: "Senior Full-Stack Engineer",
-      location: "San Francisco, CA • Remote",
-      bio: "Full-stack developer helping beginners and career switchers build real-world software projects.",
-      rating: 4.9,
-      sessionsTaught: 127,
-      creditsEarned: 340,
-      verified: true,
-    },
-  },
-  {
-    id: "skill-2",
-    title: "UI/UX Design Systems in Figma",
-    category: "Design",
-    description: "Learn token systems, auto-layout 5.0, responsive components, and scalable handoff workflows for high-growth startups.",
-    level: "Intermediate",
-    creditsPerSession: 12,
-    durationMinutes: 60,
-    rating: 5.0,
-    reviewCount: 39,
-    availability: "Available today",
-    mode: "Online",
-    teacher: {
-      id: "elena-rostova",
-      name: "Elena Rostova",
-      avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
-      role: "Lead Product Designer at Scale",
-      location: "Berlin, Germany • Remote",
-      bio: "Design lead obsessed with typography, micro-interactions, and systematic Figma architectures.",
-      rating: 5.0,
-      sessionsTaught: 84,
-      creditsEarned: 260,
-      verified: true,
-    },
-  },
-  {
-    id: "skill-3",
-    title: "Machine Learning & LLM Fine-tuning",
-    category: "AI & ML",
-    description: "Practical generative AI: fine-tuning small open-source models, RAG pipelines, and deploying with FastAPI.",
-    level: "Advanced",
-    creditsPerSession: 15,
-    durationMinutes: 60,
-    rating: 4.8,
-    reviewCount: 27,
-    availability: "Available this week",
-    mode: "Online",
-    teacher: {
-      id: "arun-kumar",
-      name: "Arun Kumar",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-      role: "Senior Full-Stack Engineer",
-      location: "San Francisco, CA • Remote",
-      bio: "Full-stack developer helping beginners and career switchers build real-world software projects.",
-      rating: 4.9,
-      sessionsTaught: 127,
-      creditsEarned: 340,
-      verified: true,
-    },
-  },
-  {
-    id: "skill-4",
-    title: "Conversational Spanish & Fluency Practice",
-    category: "Languages",
-    description: "High-yield natural dialogue, accent softening, idioms, and confidence-building conversation practice.",
-    level: "Beginner",
-    creditsPerSession: 8,
-    durationMinutes: 45,
-    rating: 4.9,
-    reviewCount: 62,
-    availability: "Available today",
-    mode: "Online",
-    teacher: {
-      id: "sophia-rivera",
-      name: "Sophia Rivera",
-      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80",
-      role: "Bilingual Educator & Translator",
-      location: "Barcelona, Spain • Remote",
-      bio: "Passionate polyglot teaching practical conversational Spanish tailored for travelers and remote professionals.",
-      rating: 4.9,
-      sessionsTaught: 145,
-      creditsEarned: 410,
-      verified: true,
-    },
-  },
-  {
-    id: "skill-5",
-    title: "Product Strategy & Zero-to-One Launching",
-    category: "Business",
-    description: "Discovery frameworks, user interviews, validating MVPs without code, and tracking key north-star metrics.",
-    level: "Intermediate",
-    creditsPerSession: 14,
-    durationMinutes: 60,
-    rating: 4.9,
-    reviewCount: 31,
-    availability: "Available this week",
-    mode: "Online",
-    teacher: {
-      id: "marcus-vance",
-      name: "Marcus Vance",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-      role: "Ex-Stripe Product Manager",
-      location: "New York, NY • Remote",
-      bio: "Angel investor and PM helping early founders find product-market fit and execute ruthlessly.",
-      rating: 4.9,
-      sessionsTaught: 92,
-      creditsEarned: 310,
-      verified: true,
-    },
-  },
-  {
-    id: "skill-6",
-    title: "Video Editing & Storytelling in Premiere",
-    category: "Video Editing",
-    description: "Pacing, dynamic cuts, color grading, sound design, and creating viral social video narratives.",
-    level: "Intermediate",
-    creditsPerSession: 10,
-    durationMinutes: 60,
-    rating: 4.8,
-    reviewCount: 22,
-    availability: "Available today",
-    mode: "Online",
-    teacher: {
-      id: "kenji-tanaka",
-      name: "Kenji Tanaka",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
-      role: "Content Creator & Video Producer",
-      location: "Tokyo, Japan • Remote",
-      bio: "Producer with 10M+ views sharing real editing techniques and workflows.",
-      rating: 4.8,
-      sessionsTaught: 58,
-      creditsEarned: 180,
-      verified: true,
-    },
-  },
-  {
-    id: "skill-7",
-    title: "Portrait & Street Photography Composition",
-    category: "Photography",
-    description: "Mastering natural lighting, manual camera settings, framing geometry, and Lightroom grading.",
-    level: "Beginner",
-    creditsPerSession: 10,
-    durationMinutes: 60,
-    rating: 4.9,
-    reviewCount: 19,
-    availability: "Available this week",
-    mode: "Both",
-    teacher: {
-      id: "chloe-bennett",
-      name: "Chloe Bennett",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
-      role: "Visual Storyteller & Editorial Shooter",
-      location: "Austin, TX • Hybrid",
-      bio: "Editorial photographer sharing composition principles that make everyday scenes cinematic.",
-      rating: 4.9,
-      sessionsTaught: 41,
-      creditsEarned: 140,
-      verified: true,
-    },
-  },
-  {
-    id: "skill-8",
-    title: "Modern Web Development with Next.js & React",
-    category: "Web Development",
-    description: "Modern SSR, server actions, Tailwind CSS architecture, and deployment pipelines for startups.",
-    level: "Intermediate",
-    creditsPerSession: 10,
-    durationMinutes: 60,
-    rating: 5.0,
-    reviewCount: 35,
-    availability: "Available today",
-    mode: "Online",
-    teacher: {
-      id: "james-oconnor",
-      name: "James O'Connor",
-      avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80",
-      role: "Staff Frontend Architect",
-      location: "Toronto, Canada • Remote",
-      bio: "Specializing in clean component architectures and high performance web apps.",
-      rating: 5.0,
-      sessionsTaught: 76,
-      creditsEarned: 220,
-      verified: true,
-    },
-  },
-  {
-    id: "skill-9",
-    title: "C++ Systems Programming & Memory Safety",
-    category: "Programming",
-    description: "Low-level algorithms, smart pointers, RAII idioms, and memory management for performance engineering.",
-    level: "Advanced",
-    creditsPerSession: 15,
-    durationMinutes: 60,
-    rating: 4.9,
-    reviewCount: 18,
-    availability: "Available this week",
-    mode: "Online",
-    teacher: {
-      id: "arun-kumar",
-      name: "Arun Kumar",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-      role: "Senior Full-Stack Engineer",
-      location: "San Francisco, CA • Remote",
-      bio: "Low-level enthusiast helping developers write blazing fast code.",
-      rating: 4.9,
-      sessionsTaught: 127,
-      creditsEarned: 340,
-      verified: true,
-    },
-  },
-  {
-    id: "skill-10",
-    title: "Public Speaking & Confident Presentations",
-    category: "Personal Development",
-    description: "Stage presence, vocal projection, slide deck storytelling, and eliminating filler words for impactful talks.",
-    level: "All Levels",
-    creditsPerSession: 10,
-    durationMinutes: 45,
-    rating: 4.9,
-    reviewCount: 24,
-    availability: "Available today",
-    mode: "Online",
-    teacher: {
-      id: "sophia-rivera",
-      name: "Sophia Rivera",
-      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80",
-      role: "Keynote Speaker & Communications Coach",
-      location: "Barcelona, Spain • Remote",
-      bio: "Helping founders, engineers, and students speak with conviction.",
-      rating: 4.9,
-      sessionsTaught: 145,
-      creditsEarned: 410,
-      verified: true,
-    },
-  },
-];
+const INITIAL_SKILLS: SkillListing[] = [];
 
-const INITIAL_SESSIONS: SessionItem[] = [
-  {
-    id: "session-python-arun",
-    skillTitle: "Python Programming & Data Structures",
-    teacherName: "Arun Kumar",
-    teacherAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-    teacherId: "arun-kumar",
-    date: "Today, Sep 22",
-    time: "6:00 PM – 7:00 PM",
-    duration: "60 mins",
-    credits: 10,
-    status: "upcoming",
-    roomUrl: "/learn/session-python-arun",
-    agenda: [
-      "Review dictionary comprehension and memory profiling",
-      "Live coding: implementing a LRU Cache with doubly-linked lists",
-      "Q&A and real-world micro-optimizations",
-    ],
-    notes: "Please have Python 3.11+ installed with pytest.",
-  },
-  {
-    id: "session-figma-elena",
-    skillTitle: "UI/UX Design Systems in Figma",
-    teacherName: "Elena Rostova",
-    teacherAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
-    teacherId: "elena-rostova",
-    date: "Tomorrow, Sep 23",
-    time: "4:30 PM – 5:30 PM",
-    duration: "60 mins",
-    credits: 12,
-    status: "upcoming",
-    roomUrl: "/learn/session-figma-elena",
-    agenda: [
-      "Audit of your existing Figma file tokens",
-      "Setting up mode-aware typography and surface scales",
-      "Component nesting and variant properties best practices",
-    ],
-  },
-];
+const INITIAL_SESSIONS: SessionItem[] = [];
 
-const INITIAL_TRANSACTIONS: Transaction[] = [
-  {
-    id: "tx-1",
-    type: "PURCHASED",
-    amount: 50,
-    title: "Welcome Bonus",
-    detail: "Initial registration balance credited to your wallet",
-    date: "Sep 22, 2026",
-    category: "purchase",
-  },
-  {
-    id: "tx-2",
-    type: "EARNED",
-    amount: 10,
-    title: "React Component Architecture Session",
-    detail: "Completed 1-on-1 teaching session with Maya Patel",
-    date: "Sep 20, 2026",
-    category: "teaching",
-  },
-  {
-    id: "tx-3",
-    type: "SPENT",
-    amount: -10,
-    title: "Python Concurrency Fundamentals",
-    detail: "Escrowed for session with Arun Kumar",
-    date: "Sep 19, 2026",
-    category: "learning",
-  },
-];
+const INITIAL_TRANSACTIONS: Transaction[] = [];
 
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: "notif-1",
-    title: "Skill Swap Request Received",
-    message: "Alex requested to learn Python in exchange for UI/UX Design.",
-    time: "10 mins ago",
-    read: false,
-    type: "swap",
-    link: "/matches",
-  },
-  {
-    id: "notif-2",
-    title: "Session Scheduled ⏰",
-    message: "Your upcoming session with Arun Kumar starts at 6:00 PM.",
-    time: "2h ago",
-    read: false,
-    type: "session",
-    link: "/learn/session-python-arun",
-  },
-  {
-    id: "notif-3",
-    title: "Credits Received 🪙",
-    message: "You earned 10 credits from completing your React session.",
-    time: "Yesterday",
-    read: true,
-    type: "credits",
-    link: "/credits",
-  },
-];
+const INITIAL_NOTIFICATIONS: NotificationItem[] = [];
 
-const INITIAL_SWAP_REQUESTS: SwapRequest[] = [
-  {
-    id: "swap-1",
-    fromUserId: "user-alex",
-    fromUserName: "Alex Rivera",
-    fromUserAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-    toUserId: "current-user",
-    toUserName: "You",
-    skillToLearn: "Python",
-    skillOffered: "UI/UX Design",
-    status: "Pending",
-    date: "Today, 10:15 AM",
-  },
-  {
-    id: "swap-2",
-    fromUserId: "current-user",
-    fromUserName: "You",
-    fromUserAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
-    toUserId: "elena-rostova",
-    toUserName: "Elena Rostova",
-    toUserAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
-    skillToLearn: "Design Systems in Figma",
-    skillOffered: "Next.js & TypeScript",
-    status: "Accepted",
-    date: "Yesterday",
-  },
-];
+const INITIAL_SWAP_REQUESTS: SwapRequest[] = [];
 
-const INITIAL_CONVERSATIONS: ChatConversation[] = [
-  {
-    id: "conv-1",
-    participantId: "arun-kumar",
-    participantName: "Arun Kumar",
-    participantAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-    participantRole: "Senior Full-Stack Engineer",
-    lastMessage: "Looking forward to our session! Have you cloned the starter repo?",
-    lastMessageTime: "5m ago",
-    unreadCount: 1,
-    online: true,
-  },
-  {
-    id: "conv-2",
-    participantId: "elena-rostova",
-    participantName: "Elena Rostova",
-    participantAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
-    participantRole: "Lead Product Designer",
-    lastMessage: "I just accepted your swap request! Let's lock in the time.",
-    lastMessageTime: "1h ago",
-    unreadCount: 0,
-    online: false,
-  },
-  {
-    id: "conv-3",
-    participantId: "sophia-rivera",
-    participantName: "Sophia Rivera",
-    participantAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80",
-    participantRole: "Bilingual Educator",
-    lastMessage: "¡Excelente! Gracias por la sesión de hoy.",
-    lastMessageTime: "Yesterday",
-    unreadCount: 0,
-    online: true,
-  },
-];
+const INITIAL_CONVERSATIONS: ChatConversation[] = [];
 
-const INITIAL_MESSAGES: ChatMessage[] = [
-  {
-    id: "msg-1",
-    senderId: "arun-kumar",
-    receiverId: "current-user",
-    senderName: "Arun Kumar",
-    senderAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-    content: "Hi! Looking forward to our Python architecture session today.",
-    timestamp: "5:30 PM",
-    read: true,
-  },
-  {
-    id: "msg-2",
-    senderId: "current-user",
-    receiverId: "arun-kumar",
-    senderName: "You",
-    senderAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
-    content: "Hey Arun! Same here, I reviewed the agenda and have VS Code ready.",
-    timestamp: "5:32 PM",
-    read: true,
-  },
-  {
-    id: "msg-3",
-    senderId: "arun-kumar",
-    receiverId: "current-user",
-    senderName: "Arun Kumar",
-    senderAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-    content: "Looking forward to our session! Have you cloned the starter repo?",
-    timestamp: "5:35 PM",
-    read: false,
-  },
-];
+const INITIAL_MESSAGES: ChatMessage[] = [];
 
 const DEFAULT_USER: CurrentUser = {
-  id: "user-alex",
-  name: "Alex Demo",
-  email: "demo@skillswap.com",
-  avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-  role: "Full-Stack Learner & Mentor",
-  location: "San Francisco, CA",
-  bio: "Software developer exploring AI systems and generative UI. Teaching Next.js & TypeScript, learning Machine Learning & Spanish.",
-  credits: 50,
-  learningCount: 4,
-  teachingCount: 6,
-  skillsCount: 4,
-  currentActivity: "Building Generative AI & Web Applications",
-  school: "UC Berkeley",
-  degree: "B.S. in Computer Science",
-  graduationYear: "2024",
-  gender: "Prefer not to say",
-  credentials: [
-    {
-      id: "cred-1",
-      title: "AWS Certified Solutions Architect",
-      issuer: "Amazon Web Services",
-      issueDate: "2023",
-      verificationUrl: "https://aws.amazon.com/verification",
-    },
-    {
-      id: "cred-2",
-      title: "Meta Frontend Developer Professional",
-      issuer: "Meta (Coursera)",
-      issueDate: "2023",
-      verificationUrl: "https://coursera.org/verify",
-    },
-    {
-      id: "cred-3",
-      title: "Google UX Design Professional Certificate",
-      issuer: "Google Career Certificates",
-      issueDate: "2024",
-      verificationUrl: "https://coursera.org/verify",
-    },
-  ],
+  id: "",
+  name: "",
+  email: "",
+  avatar: "",
+  role: "",
+  location: "",
+  bio: "",
+  credits: 0,
+  learningCount: 0,
+  teachingCount: 0,
+  skillsCount: 0,
 };
 
 const SkillSwapContext = createContext<SkillSwapContextType | undefined>(undefined);
@@ -759,16 +295,9 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
   const [conversations, setConversations] = useState<ChatConversation[]>(INITIAL_CONVERSATIONS);
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
 
-  const [userTaughtSkillsList, setUserTaughtSkillsList] = useState<UserSkillItem[]>([
-    { id: "uts-1", name: "Modern React & Next.js", level: "Advanced", category: "Programming" },
-    { id: "uts-2", name: "TypeScript Fundamentals", level: "Intermediate", category: "Programming" },
-    { id: "uts-3", name: "UI/UX Design Systems", level: "Intermediate", category: "Design" },
-  ]);
+  const [userTaughtSkillsList, setUserTaughtSkillsList] = useState<UserSkillItem[]>([]);
 
-  const [userLearningSkillsList, setUserLearningSkillsList] = useState<UserSkillItem[]>([
-    { id: "uls-1", name: "Python & Machine Learning", level: "Beginner", goal: "Build AI agents and fine-tune models" },
-    { id: "uls-2", name: "Conversational Spanish", level: "Beginner", goal: "Travel fluency and daily conversation" },
-  ]);
+  const [userLearningSkillsList, setUserLearningSkillsList] = useState<UserSkillItem[]>([]);
 
   const userTaughtSkills = userTaughtSkillsList.map((s) => s.name);
 
@@ -900,32 +429,6 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Auth Operations
-  const loginWithDemo = async () => {
-    setIsLoadingAuth(true);
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: "demo@skillswap.com",
-        password: "Password123!",
-      });
-
-      if (!error && data?.user) {
-        setIsAuthenticated(true);
-        await refreshUserProfile();
-        showToast("Welcome back, Alex! 👋", "Logged in with presentation demo credentials.", "success");
-        return { success: true };
-      }
-    } catch (e: any) {
-      console.warn("Supabase demo fallback:", e);
-    }
-
-    // Local resilient demo state fallback
-    setIsAuthenticated(true);
-    setCurrentUser(DEFAULT_USER);
-    setCredits(50);
-    showToast("Welcome to Skill Swap! 👋", "Demo session active with 50 credits.", "success");
-    setIsLoadingAuth(false);
-    return { success: true };
-  };
 
   const loginWithGoogle = async () => {
     try {
@@ -1568,7 +1071,7 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
         swapRequests,
         conversations,
         messages,
-        loginWithDemo,
+
         loginWithGoogle,
         loginWithGoogleEmail,
         loginWithGoogleCredential,

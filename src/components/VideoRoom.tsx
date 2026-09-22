@@ -45,89 +45,7 @@ const DEFAULT_ICE_SERVERS: RTCConfiguration = {
   iceCandidatePoolSize: 10,
 };
 
-// Generate a fallback camera stream if hardware is absent or blocked
-function createDummyStream(): MediaStream {
-  const canvas = document.createElement("canvas");
-  canvas.width = 640;
-  canvas.height = 480;
-  const ctx = canvas.getContext("2d");
-  if (ctx) {
-    ctx.fillStyle = "#161327";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#A78BFA";
-    ctx.font = "bold 20px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("📷 Camera Offline / Virtual Stream", canvas.width / 2, canvas.height / 2);
-  }
-  const stream = canvas.captureStream(10);
-  return stream;
-}
 
-// Generate an animated 720p virtual peer stream for local solo testing & presentation
-function createVirtualPeerStream(peerName = "Swap Partner"): MediaStream {
-  const canvas = document.createElement("canvas");
-  canvas.width = 1280;
-  canvas.height = 720;
-  const ctx = canvas.getContext("2d");
-  let frame = 0;
-
-  function draw() {
-    if (!ctx) return;
-    frame++;
-
-    // Gradient background
-    const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    grad.addColorStop(0, "#16112C");
-    grad.addColorStop(1, "#261547");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Dynamic wave mesh
-    ctx.strokeStyle = "rgba(124, 58, 237, 0.25)";
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 5; i++) {
-      ctx.beginPath();
-      for (let x = 0; x < canvas.width; x += 40) {
-        const y =
-          canvas.height / 2 +
-          Math.sin(x * 0.005 + frame * 0.03 + i) * 60 +
-          (i - 2) * 50;
-        if (x === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-    }
-
-    // Avatar Circle
-    const radius = 70 + Math.sin(frame * 0.04) * 8;
-    ctx.beginPath();
-    ctx.arc(canvas.width / 2, canvas.height / 2 - 30, radius, 0, Math.PI * 2);
-    ctx.fillStyle = "#7C3AED";
-    ctx.fill();
-    ctx.strokeStyle = "#C4B5FD";
-    ctx.lineWidth = 4;
-    ctx.stroke();
-
-    // Initial
-    ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 44px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(peerName.charAt(0).toUpperCase(), canvas.width / 2, canvas.height / 2 - 30);
-
-    // Name & Status
-    ctx.font = "bold 24px sans-serif";
-    ctx.fillText(peerName, canvas.width / 2, canvas.height / 2 + 75);
-
-    ctx.font = "16px sans-serif";
-    ctx.fillStyle = "#10B981";
-    ctx.fillText("● Live 720p HD Stream (Connected)", canvas.width / 2, canvas.height / 2 + 110);
-
-    requestAnimationFrame(draw);
-  }
-  draw();
-  return canvas.captureStream(30);
-}
 
 export default function VideoRoom({
   sessionId,
@@ -162,7 +80,7 @@ export default function VideoRoom({
   const [isSharingScreen, setIsSharingScreen] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [remotePeerActive, setRemotePeerActive] = useState(false);
-  const [isSimulatedPeer, setIsSimulatedPeer] = useState(false);
+
   const [copiedLink, setCopiedLink] = useState(false);
 
   // Timer
@@ -275,8 +193,8 @@ export default function VideoRoom({
               audio: true,
             });
           } catch (audioError) {
-            console.warn("No hardware accessible, using fallback canvas stream:", audioError);
-            stream = createDummyStream();
+            console.warn("No hardware accessible:", audioError);
+            throw new Error("No camera or microphone found.");
           }
         }
 
@@ -304,7 +222,7 @@ export default function VideoRoom({
           if (remoteVideoRef.current && event.streams[0]) {
             remoteVideoRef.current.srcObject = event.streams[0];
             setRemotePeerActive(true);
-            setIsSimulatedPeer(false);
+            setRemotePeerActive(true);
             setCallStatus("Connected (P2P Stream Active)");
             remoteVideoRef.current.play().catch((err) => {
               console.warn("Remote video auto-play note:", err);
@@ -555,26 +473,7 @@ export default function VideoRoom({
     };
   }, [sessionId, currentUserId, sendBroadcast, supabase, flushRemoteCandidates]);
 
-  // Simulate / Toggle Virtual Peer for solo development testing
-  const toggleVirtualPeerSimulation = () => {
-    if (isSimulatedPeer) {
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = null;
-      }
-      setRemotePeerActive(false);
-      setIsSimulatedPeer(false);
-      setCallStatus("Simulated peer disconnected. Waiting for real peer...");
-    } else {
-      const virtualStream = createVirtualPeerStream(peerName);
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = virtualStream;
-        remoteVideoRef.current.play().catch(() => {});
-      }
-      setRemotePeerActive(true);
-      setIsSimulatedPeer(true);
-      setCallStatus("Connected (Simulated 720p HD Stream)");
-    }
-  };
+
 
   // Toggle Mute
   const toggleMute = () => {
@@ -747,23 +646,7 @@ export default function VideoRoom({
             <span>{formatDuration(callSeconds)}</span>
           </div>
 
-          {/* Solo Test Simulator Button */}
-          <button
-            type="button"
-            onClick={toggleVirtualPeerSimulation}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 ${
-              isSimulatedPeer
-                ? "bg-emerald-600 text-white border-emerald-500"
-                : "border-[#2D264E] bg-[#161327] text-[#A78BFA] hover:bg-[#231C3D]"
-            }`}
-            title="Simulate a live peer video stream to test audio/video/tools solo"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">
-              {isSimulatedPeer ? "Stop Test Peer" : "Simulate Peer Video"}
-            </span>
-            <span className="md:hidden">Test Peer</span>
-          </button>
+
 
           {/* Copy Link Button */}
           <button
