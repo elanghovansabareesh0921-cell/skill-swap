@@ -717,14 +717,6 @@ export default function VideoRoom({
                   Open this link in another tab to test live peer-to-peer streaming, or click below:
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={toggleVirtualPeerSimulation}
-                className="px-4 py-2 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all"
-              >
-                <Play className="w-3.5 h-3.5 fill-current" />
-                <span>Simulate Peer Stream (Solo Test)</span>
-              </button>
             </div>
           )}
 
@@ -735,7 +727,7 @@ export default function VideoRoom({
               }`}
             />
             <span className="font-semibold">
-              {peerName} {isSimulatedPeer ? "(Simulated 720p)" : "(Peer Stream)"}
+              {peerName} (Peer Stream)
             </span>
           </div>
         </div>
