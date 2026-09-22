@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createClient } from "@/lib/supabase";
 
 export interface SkillListing {
   id: string;
@@ -60,7 +61,7 @@ export interface NotificationItem {
   message: string;
   time: string;
   read: boolean;
-  type: "session" | "booking" | "credits" | "system";
+  type: "session" | "booking" | "credits" | "system" | "swap";
   link?: string;
 }
 
@@ -85,10 +86,56 @@ export interface ToastMessage {
   type?: "success" | "info" | "warning" | "error";
 }
 
+export interface SwapRequest {
+  id: string;
+  fromUserId: string;
+  fromUserName: string;
+  fromUserAvatar: string;
+  toUserId: string;
+  toUserName: string;
+  toUserAvatar?: string;
+  skillToLearn: string;
+  skillOffered: string;
+  status: "Pending" | "Accepted" | "Declined" | "Completed";
+  date: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  senderName: string;
+  senderAvatar: string;
+  content: string;
+  timestamp: string;
+  read: boolean;
+}
+
+export interface ChatConversation {
+  id: string;
+  participantId: string;
+  participantName: string;
+  participantAvatar: string;
+  participantRole: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  unreadCount: number;
+  online: boolean;
+}
+
+export interface UserSkillItem {
+  id: string;
+  name: string;
+  level: "Beginner" | "Intermediate" | "Advanced" | "Expert";
+  category?: string;
+  goal?: string;
+}
+
 interface SkillSwapContextType {
   currentUser: {
     id: string;
     name: string;
+    email?: string;
     avatar: string;
     role: string;
     location: string;
@@ -98,18 +145,50 @@ interface SkillSwapContextType {
     teachingCount: number;
     skillsCount: number;
   };
+  isAuthenticated: boolean;
+  isLoadingAuth: boolean;
   credits: number;
   transactions: Transaction[];
   skills: SkillListing[];
   sessions: SessionItem[];
   userTaughtSkills: string[];
+  userTaughtSkillsList: UserSkillItem[];
+  userLearningSkillsList: UserSkillItem[];
   savedSkillIds: string[];
   notifications: NotificationItem[];
   communityPosts: CommunityPost[];
   toasts: ToastMessage[];
   unreadNotifsCount: number;
+  swapRequests: SwapRequest[];
+  conversations: ChatConversation[];
+  messages: ChatMessage[];
 
-  // Actions
+  // Auth actions
+  loginWithDemo: () => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  signOut: () => Promise<void>;
+  refreshUserProfile: () => Promise<void>;
+
+  // Swap Requests
+  sendSwapRequest: (data: {
+    toUserId: string;
+    toUserName: string;
+    toUserAvatar?: string;
+    skillToLearn: string;
+    skillOffered: string;
+  }) => { success: boolean; error?: string };
+  respondToSwapRequest: (requestId: string, action: "accept" | "decline") => void;
+
+  // Messaging
+  sendMessage: (receiverId: string, content: string) => void;
+
+  // My Skills actions
+  addTeachingSkill: (skill: { name: string; level: "Beginner" | "Intermediate" | "Advanced" | "Expert"; category?: string }) => void;
+  removeTeachingSkill: (skillIdOrName: string) => void;
+  addLearningSkill: (skill: { name: string; level: "Beginner" | "Intermediate" | "Advanced" | "Expert"; goal?: string }) => void;
+  removeLearningSkill: (skillIdOrName: string) => void;
+
+  // Existing Actions
   bookSession: (data: {
     skill: SkillListing;
     date: string;
@@ -262,9 +341,9 @@ const INITIAL_SKILLS: SkillListing[] = [
   },
   {
     id: "skill-6",
-    title: "Music Production & Sound Design in Ableton",
-    category: "Music",
-    description: "From blank project to finished master: synthesis, drum layering, mix compression, and vocal chains.",
+    title: "Video Editing & Storytelling in Premiere",
+    category: "Video Editing",
+    description: "Pacing, dynamic cuts, color grading, sound design, and creating viral social video narratives.",
     level: "Intermediate",
     creditsPerSession: 10,
     durationMinutes: 60,
@@ -276,9 +355,9 @@ const INITIAL_SKILLS: SkillListing[] = [
       id: "kenji-tanaka",
       name: "Kenji Tanaka",
       avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
-      role: "Electronic Producer & Audio Engineer",
+      role: "Content Creator & Video Producer",
       location: "Tokyo, Japan • Remote",
-      bio: "Producer with 10M+ streams sharing mixing techniques and creative audio workflows.",
+      bio: "Producer with 10M+ views sharing real editing techniques and workflows.",
       rating: 4.8,
       sessionsTaught: 58,
       creditsEarned: 180,
@@ -312,12 +391,12 @@ const INITIAL_SKILLS: SkillListing[] = [
   },
   {
     id: "skill-8",
-    title: "Functional Mobility & Bodyweight Strength",
-    category: "Fitness",
-    description: "Desk posture correction, shoulder & hip mobility routines, and progressive calisthenics training.",
-    level: "All Levels",
-    creditsPerSession: 8,
-    durationMinutes: 45,
+    title: "Modern Web Development with Next.js & React",
+    category: "Web Development",
+    description: "Modern SSR, server actions, Tailwind CSS architecture, and deployment pipelines for startups.",
+    level: "Intermediate",
+    creditsPerSession: 10,
+    durationMinutes: 60,
     rating: 5.0,
     reviewCount: 35,
     availability: "Available today",
@@ -326,12 +405,62 @@ const INITIAL_SKILLS: SkillListing[] = [
       id: "james-oconnor",
       name: "James O'Connor",
       avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80",
-      role: "Certified Physical Trainer & Kinesiologist",
+      role: "Staff Frontend Architect",
       location: "Toronto, Canada • Remote",
-      bio: "Specializing in longevity-focused mobility for software engineers and desk workers.",
+      bio: "Specializing in clean component architectures and high performance web apps.",
       rating: 5.0,
       sessionsTaught: 76,
       creditsEarned: 220,
+      verified: true,
+    },
+  },
+  {
+    id: "skill-9",
+    title: "C++ Systems Programming & Memory Safety",
+    category: "Programming",
+    description: "Low-level algorithms, smart pointers, RAII idioms, and memory management for performance engineering.",
+    level: "Advanced",
+    creditsPerSession: 15,
+    durationMinutes: 60,
+    rating: 4.9,
+    reviewCount: 18,
+    availability: "Available this week",
+    mode: "Online",
+    teacher: {
+      id: "arun-kumar",
+      name: "Arun Kumar",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      role: "Senior Full-Stack Engineer",
+      location: "San Francisco, CA • Remote",
+      bio: "Low-level enthusiast helping developers write blazing fast code.",
+      rating: 4.9,
+      sessionsTaught: 127,
+      creditsEarned: 340,
+      verified: true,
+    },
+  },
+  {
+    id: "skill-10",
+    title: "Public Speaking & Confident Presentations",
+    category: "Personal Development",
+    description: "Stage presence, vocal projection, slide deck storytelling, and eliminating filler words for impactful talks.",
+    level: "All Levels",
+    creditsPerSession: 10,
+    durationMinutes: 45,
+    rating: 4.9,
+    reviewCount: 24,
+    availability: "Available today",
+    mode: "Online",
+    teacher: {
+      id: "sophia-rivera",
+      name: "Sophia Rivera",
+      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80",
+      role: "Keynote Speaker & Communications Coach",
+      location: "Barcelona, Spain • Remote",
+      bio: "Helping founders, engineers, and students speak with conviction.",
+      rating: 4.9,
+      sessionsTaught: 145,
+      creditsEarned: 410,
       verified: true,
     },
   },
@@ -344,19 +473,18 @@ const INITIAL_SESSIONS: SessionItem[] = [
     teacherName: "Arun Kumar",
     teacherAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
     teacherId: "arun-kumar",
-    date: "Today, Sep 17",
+    date: "Today, Sep 22",
     time: "6:00 PM – 7:00 PM",
     duration: "60 mins",
     credits: 10,
     status: "upcoming",
     roomUrl: "/learn/session-python-arun",
     agenda: [
-      "Review list comprehensions vs generator expressions",
-      "Building a custom Iterator pattern",
-      "Live refactoring exercise on asynchronous I/O",
-      "Q&A and next steps roadmap",
+      "Review dictionary comprehension and memory profiling",
+      "Live coding: implementing a LRU Cache with doubly-linked lists",
+      "Q&A and real-world micro-optimizations",
     ],
-    notes: "Please have Python 3.12+ and VS Code installed beforehand. We will code together on the interactive scratchpad.",
+    notes: "Please have Python 3.11+ installed with pytest.",
   },
   {
     id: "session-figma-elena",
@@ -364,16 +492,16 @@ const INITIAL_SESSIONS: SessionItem[] = [
     teacherName: "Elena Rostova",
     teacherAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
     teacherId: "elena-rostova",
-    date: "Tomorrow, Sep 18",
-    time: "4:00 PM – 5:00 PM",
+    date: "Tomorrow, Sep 23",
+    time: "4:30 PM – 5:30 PM",
     duration: "60 mins",
     credits: 12,
     status: "upcoming",
     roomUrl: "/learn/session-figma-elena",
     agenda: [
-      "Auditing component consistency",
-      "Creating primitive vs semantic color tokens",
-      "Handling responsive component variants",
+      "Audit of your existing Figma file tokens",
+      "Setting up mode-aware typography and surface scales",
+      "Component nesting and variant properties best practices",
     ],
   },
 ];
@@ -381,149 +509,261 @@ const INITIAL_SESSIONS: SessionItem[] = [
 const INITIAL_TRANSACTIONS: Transaction[] = [
   {
     id: "tx-1",
-    type: "EARNED",
-    amount: 10,
-    title: "Teaching session",
-    detail: "React Performance Mentorship with Maya Patel",
-    date: "Today, 2:30 PM",
-    category: "teaching",
+    type: "PURCHASED",
+    amount: 50,
+    title: "Welcome Bonus",
+    detail: "Initial registration balance credited to your wallet",
+    date: "Sep 22, 2026",
+    category: "purchase",
   },
   {
     id: "tx-2",
-    type: "SPENT",
-    amount: -10,
-    title: "Python session",
-    detail: "Data Structures & Generators with Arun Kumar",
-    date: "Yesterday",
-    category: "learning",
-  },
-  {
-    id: "tx-3",
     type: "EARNED",
-    amount: 20,
-    title: "Teaching session",
-    detail: "Next.js App Architecture with Liam Chang",
-    date: "Sep 14, 2026",
+    amount: 10,
+    title: "React Component Architecture Session",
+    detail: "Completed 1-on-1 teaching session with Maya Patel",
+    date: "Sep 20, 2026",
     category: "teaching",
   },
   {
-    id: "tx-4",
-    type: "PURCHASED",
-    amount: 50,
-    title: "Starter Credit Package",
-    detail: "Account top-up via card",
-    date: "Sep 10, 2026",
-    category: "purchase",
+    id: "tx-3",
+    type: "SPENT",
+    amount: -10,
+    title: "Python Concurrency Fundamentals",
+    detail: "Escrowed for session with Arun Kumar",
+    date: "Sep 19, 2026",
+    category: "learning",
   },
 ];
 
 const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: "notif-1",
-    title: "Session starting soon",
-    message: "Your Python session with Arun Kumar starts in 30 minutes.",
-    time: "20m ago",
+    title: "Skill Swap Request Received",
+    message: "Alex requested to learn Python in exchange for UI/UX Design.",
+    time: "10 mins ago",
+    read: false,
+    type: "swap",
+    link: "/matches",
+  },
+  {
+    id: "notif-2",
+    title: "Session Scheduled ⏰",
+    message: "Your upcoming session with Arun Kumar starts at 6:00 PM.",
+    time: "2h ago",
     read: false,
     type: "session",
     link: "/learn/session-python-arun",
   },
   {
-    id: "notif-2",
-    title: "Session Request Accepted",
-    message: "Elena Rostova confirmed your UI/UX Design System booking for tomorrow.",
-    time: "2h ago",
-    read: false,
-    type: "booking",
-    link: "/dashboard",
-  },
-  {
     id: "notif-3",
-    title: "Credits Received",
-    message: "You earned 10 credits from your React Mentorship with Maya Patel.",
-    time: "4h ago",
-    read: false,
+    title: "Credits Received 🪙",
+    message: "You earned 10 credits from completing your React session.",
+    time: "Yesterday",
+    read: true,
     type: "credits",
     link: "/credits",
   },
+];
+
+const INITIAL_SWAP_REQUESTS: SwapRequest[] = [
   {
-    id: "notif-4",
-    title: "New Student Request",
-    message: "David requested to learn TypeScript Fundamentals from you.",
-    time: "Yesterday",
-    read: true,
-    type: "booking",
-    link: "/dashboard",
+    id: "swap-1",
+    fromUserId: "user-alex",
+    fromUserName: "Alex Rivera",
+    fromUserAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    toUserId: "current-user",
+    toUserName: "You",
+    skillToLearn: "Python",
+    skillOffered: "UI/UX Design",
+    status: "Pending",
+    date: "Today, 10:15 AM",
+  },
+  {
+    id: "swap-2",
+    fromUserId: "current-user",
+    fromUserName: "You",
+    fromUserAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+    toUserId: "elena-rostova",
+    toUserName: "Elena Rostova",
+    toUserAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
+    skillToLearn: "Design Systems in Figma",
+    skillOffered: "Next.js & TypeScript",
+    status: "Accepted",
+    date: "Yesterday",
   },
 ];
 
-const INITIAL_COMMUNITY_POSTS: CommunityPost[] = [
+const INITIAL_CONVERSATIONS: ChatConversation[] = [
   {
-    id: "post-1",
-    authorName: "Maya Patel",
-    authorAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80",
-    authorRole: "Frontend Developer",
-    title: "Swapped React knowledge for Spanish — here is what surprised me most",
-    content: "Last week I completed 3 sessions teaching React Hooks to a Spanish teacher from Madrid. In exchange, he gave me 3 conversational Spanish sessions. The credit exchange felt so much more human than paying ₹2,500/hr on commercial tutoring sites. Both of us were genuinely invested in each other's growth!",
-    tag: "Discussion",
-    upvotes: 42,
-    replyCount: 14,
-    timeAgo: "3h ago",
+    id: "conv-1",
+    participantId: "arun-kumar",
+    participantName: "Arun Kumar",
+    participantAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    participantRole: "Senior Full-Stack Engineer",
+    lastMessage: "Looking forward to our session! Have you cloned the starter repo?",
+    lastMessageTime: "5m ago",
+    unreadCount: 1,
+    online: true,
   },
   {
-    id: "post-2",
-    authorName: "Liam Chang",
-    authorAvatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80",
-    authorRole: "Full Stack Engineer",
-    title: "Looking for an AI / LLM mentor to pair on building an agentic pipeline",
-    content: "I have 6 years in Go and Kubernetes, willing to teach distributed backend architecture or spend 30 credits for someone with production LangGraph / Gemini tool-calling experience.",
-    tag: "Collaboration",
-    upvotes: 28,
-    replyCount: 9,
-    timeAgo: "6h ago",
+    id: "conv-2",
+    participantId: "elena-rostova",
+    participantName: "Elena Rostova",
+    participantAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
+    participantRole: "Lead Product Designer",
+    lastMessage: "I just accepted your swap request! Let's lock in the time.",
+    lastMessageTime: "1h ago",
+    unreadCount: 0,
+    online: false,
   },
   {
-    id: "post-3",
-    authorName: "Elena Rostova",
-    authorAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
-    authorRole: "Lead Product Designer",
-    title: "Figma Variables 101: A cheat sheet for engineers who want to understand tokens",
-    content: "I synthesized the core principles from 40+ SkillSwap sessions into a 1-page Figma token cheat sheet. You can use it before our design system session!",
-    tag: "Project",
-    upvotes: 89,
-    replyCount: 23,
-    timeAgo: "1d ago",
+    id: "conv-3",
+    participantId: "sophia-rivera",
+    participantName: "Sophia Rivera",
+    participantAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80",
+    participantRole: "Bilingual Educator",
+    lastMessage: "¡Excelente! Gracias por la sesión de hoy.",
+    lastMessageTime: "Yesterday",
+    unreadCount: 0,
+    online: true,
   },
 ];
+
+const INITIAL_MESSAGES: ChatMessage[] = [
+  {
+    id: "msg-1",
+    senderId: "arun-kumar",
+    receiverId: "current-user",
+    senderName: "Arun Kumar",
+    senderAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    content: "Hi! Looking forward to our Python architecture session today.",
+    timestamp: "5:30 PM",
+    read: true,
+  },
+  {
+    id: "msg-2",
+    senderId: "current-user",
+    receiverId: "arun-kumar",
+    senderName: "You",
+    senderAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+    content: "Hey Arun! Same here, I reviewed the agenda and have VS Code ready.",
+    timestamp: "5:32 PM",
+    read: true,
+  },
+  {
+    id: "msg-3",
+    senderId: "arun-kumar",
+    receiverId: "current-user",
+    senderName: "Arun Kumar",
+    senderAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    content: "Looking forward to our session! Have you cloned the starter repo?",
+    timestamp: "5:35 PM",
+    read: false,
+  },
+];
+
+const DEFAULT_USER = {
+  id: "user-alex",
+  name: "Alex Demo",
+  email: "demo@skillswap.com",
+  avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+  role: "Full-Stack Learner & Mentor",
+  location: "San Francisco, CA",
+  bio: "Software developer exploring AI systems and generative UI. Teaching Next.js & TypeScript, learning Machine Learning & Spanish.",
+  credits: 50,
+  learningCount: 4,
+  teachingCount: 6,
+  skillsCount: 4,
+};
 
 const SkillSwapContext = createContext<SkillSwapContextType | undefined>(undefined);
 
 export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
-  const [currentUser] = useState({
-    id: "user-sabareesh",
-    name: "Sabareesh",
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
-    role: "Learner & Teacher",
-    location: "San Francisco, CA",
-    bio: "Software developer exploring AI systems and generative UI. Teaching Next.js & TypeScript, learning Machine Learning & Spanish.",
-    credits: 120,
-    learningCount: 8,
-    teachingCount: 12,
-    skillsCount: 5,
-  });
+  const supabase = createClient();
 
-  const [credits, setCredits] = useState<number>(120);
+  const [currentUser, setCurrentUser] = useState(DEFAULT_USER);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(false);
+
+  const [credits, setCredits] = useState<number>(50);
   const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
   const [skills, setSkills] = useState<SkillListing[]>(INITIAL_SKILLS);
   const [sessions, setSessions] = useState<SessionItem[]>(INITIAL_SESSIONS);
-  const [userTaughtSkills, setUserTaughtSkills] = useState<string[]>([
-    "Modern React & Next.js",
-    "TypeScript Fundamentals",
-    "Tailwind CSS Architecture",
-  ]);
-  const [savedSkillIds, setSavedSkillIds] = useState<string[]>(["skill-1", "skill-3"]);
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
-  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(INITIAL_COMMUNITY_POSTS);
+  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [savedSkillIds, setSavedSkillIds] = useState<string[]>(["skill-1", "skill-2"]);
+
+  const [swapRequests, setSwapRequests] = useState<SwapRequest[]>(INITIAL_SWAP_REQUESTS);
+  const [conversations, setConversations] = useState<ChatConversation[]>(INITIAL_CONVERSATIONS);
+  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
+
+  const [userTaughtSkillsList, setUserTaughtSkillsList] = useState<UserSkillItem[]>([
+    { id: "uts-1", name: "Modern React & Next.js", level: "Advanced", category: "Programming" },
+    { id: "uts-2", name: "TypeScript Fundamentals", level: "Intermediate", category: "Programming" },
+    { id: "uts-3", name: "UI/UX Design Systems", level: "Intermediate", category: "Design" },
+  ]);
+
+  const [userLearningSkillsList, setUserLearningSkillsList] = useState<UserSkillItem[]>([
+    { id: "uls-1", name: "Python & Machine Learning", level: "Beginner", goal: "Build AI agents and fine-tune models" },
+    { id: "uls-2", name: "Conversational Spanish", level: "Beginner", goal: "Travel fluency and daily conversation" },
+  ]);
+
+  const userTaughtSkills = userTaughtSkillsList.map((s) => s.name);
+
+  // Sync Supabase Auth & Profile
+  const refreshUserProfile = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setIsAuthenticated(true);
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .maybeSingle();
+
+        if (profile) {
+          setCurrentUser((prev) => ({
+            ...prev,
+            id: profile.id,
+            name: profile.full_name || session.user.user_metadata?.full_name || "User",
+            email: profile.email || session.user.email || "",
+            credits: profile.credits ?? prev.credits,
+            bio: profile.bio || prev.bio,
+          }));
+          if (profile.credits !== undefined && profile.credits !== null) {
+            setCredits(profile.credits);
+          }
+        } else {
+          setCurrentUser((prev) => ({
+            ...prev,
+            id: session.user.id,
+            name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
+            email: session.user.email || "",
+          }));
+        }
+      }
+    } catch (err) {
+      console.warn("Auth sync check:", err);
+    }
+  }, [supabase]);
+
+  useEffect(() => {
+    refreshUserProfile();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        setIsAuthenticated(true);
+        await refreshUserProfile();
+      }
+    });
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
+  }, [refreshUserProfile, supabase]);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -534,16 +774,16 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
       const savedTx = localStorage.getItem("skillswap_txs");
       if (savedTx) setTransactions(JSON.parse(savedTx));
 
-      const savedSkills = localStorage.getItem("skillswap_skills");
-      if (savedSkills) setSkills(JSON.parse(savedSkills));
+      const savedRequests = localStorage.getItem("skillswap_requests");
+      if (savedRequests) setSwapRequests(JSON.parse(savedRequests));
 
-      const savedSess = localStorage.getItem("skillswap_sessions");
-      if (savedSess) setSessions(JSON.parse(savedSess));
+      const savedTaught = localStorage.getItem("skillswap_taught_skills");
+      if (savedTaught) setUserTaughtSkillsList(JSON.parse(savedTaught));
 
-      const savedFavs = localStorage.getItem("skillswap_saved");
-      if (savedFavs) setSavedSkillIds(JSON.parse(savedFavs));
+      const savedLearns = localStorage.getItem("skillswap_learn_skills");
+      if (savedLearns) setUserLearningSkillsList(JSON.parse(savedLearns));
     } catch {
-      // ignore storage errors
+      // Ignore
     }
   }, []);
 
@@ -552,14 +792,15 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem("skillswap_credits", String(credits));
       localStorage.setItem("skillswap_txs", JSON.stringify(transactions));
-      localStorage.setItem("skillswap_skills", JSON.stringify(skills));
-      localStorage.setItem("skillswap_sessions", JSON.stringify(sessions));
-      localStorage.setItem("skillswap_saved", JSON.stringify(savedSkillIds));
+      localStorage.setItem("skillswap_requests", JSON.stringify(swapRequests));
+      localStorage.setItem("skillswap_taught_skills", JSON.stringify(userTaughtSkillsList));
+      localStorage.setItem("skillswap_learn_skills", JSON.stringify(userLearningSkillsList));
     } catch {
-      // ignore
+      // Ignore
     }
-  }, [credits, transactions, skills, sessions, savedSkillIds]);
+  }, [credits, transactions, swapRequests, userTaughtSkillsList, userLearningSkillsList]);
 
+  // Toast Helper
   const showToast = (title: string, description?: string, type: "success" | "info" | "warning" | "error" = "success") => {
     const id = "toast-" + Date.now() + Math.random();
     setToasts((prev) => [...prev, { id, title, description, type }]);
@@ -572,6 +813,229 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
+  // Auth Operations
+  const loginWithDemo = async () => {
+    setIsLoadingAuth(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: "demo@skillswap.com",
+        password: "Password123!",
+      });
+
+      if (!error && data?.user) {
+        setIsAuthenticated(true);
+        await refreshUserProfile();
+        showToast("Welcome back, Alex! 👋", "Logged in with presentation demo credentials.", "success");
+        return { success: true };
+      }
+    } catch (e: any) {
+      console.warn("Supabase demo fallback:", e);
+    }
+
+    // Local resilient demo state fallback
+    setIsAuthenticated(true);
+    setCurrentUser(DEFAULT_USER);
+    setCredits(50);
+    showToast("Welcome to Skill Swap! 👋", "Demo session active with 50 credits.", "success");
+    setIsLoadingAuth(false);
+    return { success: true };
+  };
+
+  const loginWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined,
+        },
+      });
+      if (error) {
+        showToast("Google OAuth Setup", error.message || "Google Provider requires client credentials in Supabase.", "warning");
+        return { success: false, error: error.message };
+      }
+      return { success: true };
+    } catch (err: any) {
+      showToast("Google Login", err.message, "error");
+      return { success: false, error: err.message };
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn(err);
+    }
+    setIsAuthenticated(false);
+    showToast("Signed Out", "You have successfully logged out.", "info");
+  };
+
+  // Swap Request Management
+  const sendSwapRequest = ({
+    toUserId,
+    toUserName,
+    toUserAvatar,
+    skillToLearn,
+    skillOffered,
+  }: {
+    toUserId: string;
+    toUserName: string;
+    toUserAvatar?: string;
+    skillToLearn: string;
+    skillOffered: string;
+  }) => {
+    const newRequest: SwapRequest = {
+      id: `swap-${Date.now()}`,
+      fromUserId: currentUser.id,
+      fromUserName: currentUser.name,
+      fromUserAvatar: currentUser.avatar,
+      toUserId,
+      toUserName,
+      toUserAvatar,
+      skillToLearn,
+      skillOffered,
+      status: "Pending",
+      date: "Just now",
+    };
+
+    setSwapRequests((prev) => [newRequest, ...prev]);
+
+    const notif: NotificationItem = {
+      id: `notif-${Date.now()}`,
+      title: "Swap Request Sent 🤝",
+      message: `You offered to swap "${skillOffered}" for "${skillToLearn}" with ${toUserName}.`,
+      time: "Just now",
+      read: false,
+      type: "swap",
+      link: "/matches",
+    };
+    setNotifications((prev) => [notif, ...prev]);
+
+    showToast(
+      "Swap Request Sent! 🚀",
+      `Offered "${skillOffered}" in exchange for "${skillToLearn}".`,
+      "success"
+    );
+
+    return { success: true };
+  };
+
+  const respondToSwapRequest = (requestId: string, action: "accept" | "decline") => {
+    const request = swapRequests.find((r) => r.id === requestId);
+    if (!request) return;
+
+    const newStatus = action === "accept" ? ("Accepted" as const) : ("Declined" as const);
+    setSwapRequests((prev) =>
+      prev.map((r) => (r.id === requestId ? { ...r, status: newStatus } : r))
+    );
+
+    if (action === "accept") {
+      // Create a session and conversation
+      const newSession: SessionItem = {
+        id: `session-${Date.now()}`,
+        skillTitle: `${request.skillToLearn} ↔ ${request.skillOffered}`,
+        teacherName: request.fromUserName,
+        teacherAvatar: request.fromUserAvatar,
+        teacherId: request.fromUserId,
+        date: "Scheduled Soon",
+        time: "TBD",
+        duration: "60 mins",
+        credits: 10,
+        status: "upcoming",
+        roomUrl: `/learn/session-${Date.now()}`,
+        agenda: ["Skill exchange introduction", "Reciprocal 30-min hands-on sessions", "Next milestone planning"],
+      };
+      setSessions((prev) => [newSession, ...prev]);
+
+      // Add conversation
+      const newConv: ChatConversation = {
+        id: `conv-${Date.now()}`,
+        participantId: request.fromUserId,
+        participantName: request.fromUserName,
+        participantAvatar: request.fromUserAvatar,
+        participantRole: "Swap Partner",
+        lastMessage: `Swap accepted! Let's arrange a time for ${request.skillToLearn}.`,
+        lastMessageTime: "Just now",
+        unreadCount: 0,
+        online: true,
+      };
+      setConversations((prev) => [newConv, ...prev]);
+
+      showToast(
+        "Swap Accepted! 🎉",
+        `You connected with ${request.fromUserName}. A chat has been opened.`,
+        "success"
+      );
+    } else {
+      showToast("Swap Request Declined", `You declined the request from ${request.fromUserName}.`, "info");
+    }
+  };
+
+  // Messaging System
+  const sendMessage = (receiverId: string, content: string) => {
+    if (!content.trim()) return;
+
+    const newMsg: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      senderId: currentUser.id,
+      receiverId,
+      senderName: currentUser.name,
+      senderAvatar: currentUser.avatar,
+      content: content.trim(),
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      read: true,
+    };
+
+    setMessages((prev) => [...prev, newMsg]);
+
+    // Update conversation last message
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.participantId === receiverId
+          ? {
+              ...c,
+              lastMessage: content.trim(),
+              lastMessageTime: "Just now",
+            }
+          : c
+      )
+    );
+  };
+
+  // My Skills Management
+  const addTeachingSkill = (skill: { name: string; level: "Beginner" | "Intermediate" | "Advanced" | "Expert"; category?: string }) => {
+    const newItem: UserSkillItem = {
+      id: `ts-${Date.now()}`,
+      name: skill.name.trim(),
+      level: skill.level,
+      category: skill.category || "General",
+    };
+    setUserTaughtSkillsList((prev) => [...prev, newItem]);
+    showToast("Skill Added to Teaching", `You can now offer "${skill.name}" in skill swaps.`, "success");
+  };
+
+  const removeTeachingSkill = (skillIdOrName: string) => {
+    setUserTaughtSkillsList((prev) => prev.filter((s) => s.id !== skillIdOrName && s.name !== skillIdOrName));
+    showToast("Skill Removed", "Teaching skill removed from your profile.", "info");
+  };
+
+  const addLearningSkill = (skill: { name: string; level: "Beginner" | "Intermediate" | "Advanced" | "Expert"; goal?: string }) => {
+    const newItem: UserSkillItem = {
+      id: `ls-${Date.now()}`,
+      name: skill.name.trim(),
+      level: skill.level,
+      goal: skill.goal,
+    };
+    setUserLearningSkillsList((prev) => [...prev, newItem]);
+    showToast("Goal Added to Learning", `"${skill.name}" added to your target skills.`, "success");
+  };
+
+  const removeLearningSkill = (skillIdOrName: string) => {
+    setUserLearningSkillsList((prev) => prev.filter((s) => s.id !== skillIdOrName && s.name !== skillIdOrName));
+    showToast("Goal Removed", "Learning goal removed.", "info");
+  };
+
+  // Booking & Credits
   const bookSession = ({
     skill,
     date,
@@ -641,7 +1105,7 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
     return { success: true, session: newSession };
   };
 
-  const completeSession = (sessionId: string, review?: { rating: number; comment: string }) => {
+  const completeSession = (sessionId: string) => {
     const session = sessions.find((s) => s.id === sessionId);
     if (!session) return;
 
@@ -747,7 +1211,11 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
     };
 
     setSkills((prev) => [newSkill, ...prev]);
-    setUserTaughtSkills((prev) => [skillData.title, ...prev]);
+    addTeachingSkill({
+      name: skillData.title,
+      level: skillData.level === "All Levels" ? "Intermediate" : skillData.level,
+      category: skillData.category,
+    });
 
     const notif: NotificationItem = {
       id: `notif-${Date.now()}`,
@@ -815,16 +1283,34 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
     <SkillSwapContext.Provider
       value={{
         currentUser,
+        isAuthenticated,
+        isLoadingAuth,
         credits,
         transactions,
         skills,
         sessions,
         userTaughtSkills,
+        userTaughtSkillsList,
+        userLearningSkillsList,
         savedSkillIds,
         notifications,
         communityPosts,
         toasts,
         unreadNotifsCount,
+        swapRequests,
+        conversations,
+        messages,
+        loginWithDemo,
+        loginWithGoogle,
+        signOut,
+        refreshUserProfile,
+        sendSwapRequest,
+        respondToSwapRequest,
+        sendMessage,
+        addTeachingSkill,
+        removeTeachingSkill,
+        addLearningSkill,
+        removeLearningSkill,
         bookSession,
         completeSession,
         buyCredits,

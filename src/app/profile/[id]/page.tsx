@@ -4,88 +4,82 @@ import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import BookingModal from "@/components/BookingModal";
-import BuyCreditsModal from "@/components/BuyCreditsModal";
+import SwapRequestModal from "@/components/SwapRequestModal";
 import { useSkillSwap, SkillListing } from "@/context/SkillSwapContext";
 import {
   Star,
   MapPin,
-  CheckCircle2,
+  ShieldCheck,
   Calendar,
   Clock,
-  ShieldCheck,
   MessageSquare,
-  Award,
-  ArrowRight,
+  Repeat,
   ArrowLeft,
-  Share2,
+  CheckCircle2,
+  Layers,
+  GraduationCap,
 } from "lucide-react";
 
-export default function TeacherProfilePage() {
+export default function UserPublicProfilePage() {
   const params = useParams();
   const router = useRouter();
-  const { skills, showToast } = useSkillSwap();
+  const { skills } = useSkillSwap();
 
-  const [bookingSkill, setBookingSkill] = useState<SkillListing | null>(null);
-  const [isBuyCreditsOpen, setIsBuyCreditsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"skills" | "reviews">("skills");
+  const [swapModalOpen, setSwapModalOpen] = useState(false);
 
   const teacherId = (params?.id as string) || "arun-kumar";
 
-  // Find all skills by this teacher
+  // Find matching skills
   const teacherSkills = skills.filter((s) => s.teacher.id === teacherId);
-
-  // Fallback teacher metadata if not matched directly
   const teacher = teacherSkills[0]?.teacher || {
-    id: "arun-kumar",
+    id: teacherId,
     name: "Arun Kumar",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
     role: "Full-Stack Developer & Mentor",
     location: "San Francisco, CA • Remote",
-    bio: "Full-stack developer helping beginners build real-world projects. Specializing in Pythonic architectures, React micro-frontends, and pragmatic engineering workflows.",
+    bio: "Full-stack developer helping beginners build real-world software projects. Specializing in Python, React micro-frontends, and pragmatic engineering workflows.",
     rating: 4.9,
     sessionsTaught: 127,
     creditsEarned: 340,
     verified: true,
   };
 
-  const handleShare = () => {
-    if (typeof window !== "undefined") {
-      navigator.clipboard?.writeText(window.location.href);
-      showToast("Link Copied!", "Teacher profile URL copied to clipboard.", "info");
-    }
+  const primarySkill = teacherSkills[0]?.title || "Python Programming & Data Structures";
+
+  const handleMessage = () => {
+    router.push(`/messages?partnerId=${encodeURIComponent(teacher.id)}&partnerName=${encodeURIComponent(teacher.name)}`);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F9FAFB]">
-      <Navbar onOpenBuyCredits={() => setIsBuyCreditsOpen(true)} />
+    <div className="min-h-screen flex flex-col bg-[#F8F7FF] dark:bg-[#0E0C1B] text-[#18181B] dark:text-[#F4F3FA] transition-colors duration-200">
+      <Navbar />
 
-      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-8">
         {/* Back navigation */}
-        <div className="mb-6">
+        <div>
           <Link
             href="/discover"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#71717A] hover:text-[#18181B] dark:hover:text-white transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            Back to Discover
+            <span>Back to Explore</span>
           </Link>
         </div>
 
         {/* Profile Card Header */}
-        <div className="bg-white rounded-3xl border border-gray-200/90 shadow-sm p-6 sm:p-8">
+        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
               <div className="relative">
                 <img
                   src={teacher.avatar}
                   alt={teacher.name}
-                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-gray-100 shadow-sm"
+                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#EDE9FE] dark:border-[#2D264E] shadow-sm"
                 />
                 {teacher.verified && (
                   <div
-                    title="Verified Teacher"
-                    className="absolute bottom-1 right-1 w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center text-white ring-2 ring-white"
+                    title="Verified Mentor"
+                    className="absolute bottom-1 right-1 w-6 h-6 bg-[#7C3AED] rounded-full flex items-center justify-center text-white ring-2 ring-white dark:ring-[#161327]"
                   >
                     <ShieldCheck className="w-3.5 h-3.5" />
                   </div>
@@ -94,297 +88,177 @@ export default function TeacherProfilePage() {
 
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold text-gray-900">{teacher.name}</h1>
-                  <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-semibold">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-[#18181B] dark:text-white">
+                    {teacher.name}
+                  </h1>
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] text-xs font-semibold">
                     Top Mentor
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-gray-600 mt-1 font-medium">
-                  {teacher.role}
+                <p className="text-xs sm:text-sm text-[#71717A] dark:text-zinc-400 mt-1">
+                  @{teacher.name.toLowerCase().replace(/\s+/g, "")} • {teacher.role}
                 </p>
-                <div className="flex flex-wrap items-center gap-4 mt-2.5 text-xs text-gray-500">
+                <div className="flex items-center gap-3 text-xs text-[#71717A] dark:text-zinc-400 mt-2">
                   <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                    <MapPin className="w-3.5 h-3.5" />
                     {teacher.location}
                   </span>
-                  <span className="flex items-center gap-1 font-semibold text-gray-800">
-                    <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                    {teacher.rating}
-                  </span>
+                  <span>•</span>
+                  <div className="flex items-center gap-1 text-amber-500 font-bold">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    <span>{teacher.rating}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Top Right Action */}
+            {/* CTAs: Request Skill Swap & Message */}
             <div className="flex items-center gap-2.5 w-full sm:w-auto">
               <button
                 type="button"
-                onClick={handleShare}
-                className="p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors"
-                title="Share profile"
+                onClick={handleMessage}
+                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-xs font-semibold text-[#18181B] dark:text-zinc-200 transition-colors flex items-center justify-center gap-1.5"
               >
-                <Share2 className="w-4 h-4" />
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Message</span>
               </button>
-              {teacherSkills.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setBookingSkill(teacherSkills[0])}
-                  className="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-all flex items-center justify-center gap-1.5"
-                >
-                  <span>Request a Session</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setSwapModalOpen(true)}
+                className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-md transition-all flex items-center justify-center gap-1.5"
+              >
+                <Repeat className="w-3.5 h-3.5" />
+                <span>Request Skill Swap</span>
+              </button>
             </div>
           </div>
 
-          {/* Bio statement */}
-          <div className="mt-6 pt-6 border-t border-gray-100">
-            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-3xl">
-              &quot;{teacher.bio}&quot;
-            </p>
-          </div>
-
-          {/* Stats Counters */}
-          <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-100 max-w-lg">
-            <div className="p-3 rounded-xl bg-gray-50/80 border border-gray-100 text-center">
-              <span className="text-base sm:text-lg font-bold text-gray-900 font-mono">
+          {/* Stats Bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800 text-center">
+            <div className="p-3 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B]">
+              <span className="text-[11px] font-semibold text-[#71717A] block">Skills Teaching</span>
+              <span className="text-xl font-extrabold text-[#7C3AED] dark:text-[#A78BFA] font-mono">
+                {teacherSkills.length || 2}
+              </span>
+            </div>
+            <div className="p-3 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B]">
+              <span className="text-[11px] font-semibold text-[#71717A] block">Skills Learning</span>
+              <span className="text-xl font-extrabold text-[#7C3AED] dark:text-[#A78BFA] font-mono">
+                2
+              </span>
+            </div>
+            <div className="p-3 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B]">
+              <span className="text-[11px] font-semibold text-[#71717A] block">Successful Swaps</span>
+              <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
                 {teacher.sessionsTaught}
               </span>
-              <p className="text-[11px] text-gray-500 mt-0.5">sessions completed</p>
             </div>
-            <div className="p-3 rounded-xl bg-gray-50/80 border border-gray-100 text-center">
-              <span className="text-base sm:text-lg font-bold text-indigo-600 font-mono">
-                🪙 {teacher.creditsEarned}
-              </span>
-              <p className="text-[11px] text-gray-500 mt-0.5">credits earned</p>
-            </div>
-            <div className="p-3 rounded-xl bg-gray-50/80 border border-gray-100 text-center">
-              <span className="text-base sm:text-lg font-bold text-gray-900 font-mono">
+            <div className="p-3 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B]">
+              <span className="text-[11px] font-semibold text-[#71717A] block">Rating</span>
+              <span className="text-xl font-extrabold text-amber-500 font-mono">
                 {teacher.rating} ★
               </span>
-              <p className="text-[11px] text-gray-500 mt-0.5">satisfaction score</p>
             </div>
           </div>
         </div>
 
-        {/* Tabs: Skills I Teach vs Reviews */}
-        <div className="mt-10">
-          <div className="flex items-center gap-2 border-b border-gray-200">
-            <button
-              type="button"
-              onClick={() => setActiveTab("skills")}
-              className={`pb-3 text-sm font-semibold transition-colors border-b-2 ${
-                activeTab === "skills"
-                  ? "border-indigo-600 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              Skills I Teach ({teacherSkills.length || 3})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("reviews")}
-              className={`pb-3 text-sm font-semibold transition-colors border-b-2 ml-4 ${
-                activeTab === "reviews"
-                  ? "border-indigo-600 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              Student Reviews (48)
-            </button>
+        {/* SECTION: ABOUT ME */}
+        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-2">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-[#7C3AED] dark:text-[#A78BFA]">
+            About Me
+          </h2>
+          <p className="text-sm text-[#18181B] dark:text-zinc-200 leading-relaxed font-normal">
+            {teacher.bio}
+          </p>
+        </div>
+
+        {/* SECTION: I CAN TEACH */}
+        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-4">
+          <div className="flex items-center gap-2 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+            <Layers className="w-5 h-5 text-[#7C3AED] dark:text-[#A78BFA]" />
+            <h2 className="text-base font-bold text-[#18181B] dark:text-white">I Can Teach</h2>
           </div>
 
-          {activeTab === "skills" ? (
-            <div className="mt-6 space-y-4">
-              {teacherSkills.length > 0 ? (
-                teacherSkills.map((skill) => (
-                  <div
-                    key={skill.id}
-                    className="p-5 sm:p-6 bg-white rounded-2xl border border-gray-200/90 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-gray-300 transition-colors"
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {teacherSkills.map((skill) => (
+              <div
+                key={skill.id}
+                className="p-5 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA]">
+                      {skill.level}
+                    </span>
+                    <span className="text-xs font-mono font-bold text-[#7C3AED]">
+                      🪙 {skill.creditsPerSession} cr
+                    </span>
+                  </div>
+                  <h3 className="text-base font-bold text-[#18181B] dark:text-white mb-1">
+                    {skill.title}
+                  </h3>
+                  <p className="text-xs text-[#71717A] dark:text-zinc-400 line-clamp-2">
+                    {skill.description}
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-zinc-800 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setSwapModalOpen(true)}
+                    className="px-3.5 py-1.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm flex items-center gap-1.5"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-gray-100 text-gray-700">
-                          {skill.category}
-                        </span>
-                        <span className="text-xs text-gray-400">•</span>
-                        <span className="text-xs text-gray-500">{skill.level}</span>
-                      </div>
-                      <h3 className="text-base font-bold text-gray-900 mt-1.5">
-                        {skill.title}
-                      </h3>
-                      <p className="text-xs text-gray-500 mt-1 leading-relaxed max-w-2xl">
-                        {skill.description}
-                      </p>
-
-                      <div className="flex items-center gap-4 mt-3 text-xs text-gray-500 font-mono">
-                        <span className="flex items-center gap-1 font-bold text-indigo-600">
-                          🪙 {skill.creditsPerSession} credits
-                        </span>
-                        <span className="text-gray-300">|</span>
-                        <span className="flex items-center gap-1 font-sans">
-                          <Clock className="w-3.5 h-3.5 text-gray-400" />
-                          {skill.durationMinutes} minutes
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setBookingSkill(skill)}
-                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-indigo-600 text-white text-xs font-semibold transition-colors shadow-sm flex items-center justify-center gap-1.5 shrink-0"
-                    >
-                      <span>Request a Session</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))
-              ) : (
-                /* Static fallback for Arun Kumar */
-                <>
-                  <div className="p-5 sm:p-6 bg-white rounded-2xl border border-gray-200/90 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-gray-100 text-gray-700">
-                        Programming
-                      </span>
-                      <h3 className="text-base font-bold text-gray-900 mt-1.5">
-                        Python Programming & Data Structures
-                      </h3>
-                      <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                        Hands-on coding, algorithms, OOP patterns, and clean Pythonic architecture.
-                      </p>
-                      <div className="flex items-center gap-4 mt-3 text-xs text-gray-500 font-mono">
-                        <span className="font-bold text-indigo-600">🪙 10 credits</span>
-                        <span className="text-gray-300">|</span>
-                        <span>60 minutes</span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setBookingSkill({
-                          id: "skill-1",
-                          title: "Python Programming",
-                          category: "Programming",
-                          description: "Hands-on Python",
-                          level: "Beginner",
-                          creditsPerSession: 10,
-                          durationMinutes: 60,
-                          rating: 4.9,
-                          reviewCount: 48,
-                          availability: "Available today",
-                          mode: "Online",
-                          teacher,
-                        })
-                      }
-                      className="px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-indigo-600 text-white text-xs font-semibold"
-                    >
-                      Request a Session
-                    </button>
-                  </div>
-
-                  <div className="p-5 sm:p-6 bg-white rounded-2xl border border-gray-200/90 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-gray-100 text-gray-700">
-                        AI & ML
-                      </span>
-                      <h3 className="text-base font-bold text-gray-900 mt-1.5">
-                        Machine Learning Foundations & Fast API
-                      </h3>
-                      <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                        Practical generative AI: fine-tuning small open-source models, RAG pipelines, and deploying with FastAPI.
-                      </p>
-                      <div className="flex items-center gap-4 mt-3 text-xs text-gray-500 font-mono">
-                        <span className="font-bold text-indigo-600">🪙 15 credits</span>
-                        <span className="text-gray-300">|</span>
-                        <span>60 minutes</span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setBookingSkill({
-                          id: "skill-3",
-                          title: "Machine Learning Foundations",
-                          category: "AI & ML",
-                          description: "Practical ML & RAG",
-                          level: "Advanced",
-                          creditsPerSession: 15,
-                          durationMinutes: 60,
-                          rating: 4.8,
-                          reviewCount: 27,
-                          availability: "Available this week",
-                          mode: "Online",
-                          teacher,
-                        })
-                      }
-                      className="px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-indigo-600 text-white text-xs font-semibold"
-                    >
-                      Request a Session
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          ) : (
-            /* Reviews List */
-            <div className="mt-6 space-y-4">
-              <div className="p-5 bg-white rounded-2xl border border-gray-200/90 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center">
-                      M
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-gray-900">Maya Patel</h4>
-                      <p className="text-[10px] text-gray-400">Sep 15, 2026</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-amber-400 text-xs">
-                    <Star className="w-3.5 h-3.5 fill-amber-400" />
-                    <span className="font-bold text-gray-800">5.0</span>
-                  </div>
+                    <Repeat className="w-3.5 h-3.5" />
+                    <span>Swap This Skill</span>
+                  </button>
                 </div>
-                <p className="text-xs text-gray-600 mt-2.5 leading-relaxed">
-                  &quot;Arun walked me through Python async generators and explained the exact difference between threading and event loops. Worth every single credit!&quot;
-                </p>
               </div>
+            ))}
+          </div>
+        </div>
 
-              <div className="p-5 bg-white rounded-2xl border border-gray-200/90 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">
-                      L
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-gray-900">Liam Chang</h4>
-                      <p className="text-[10px] text-gray-400">Sep 11, 2026</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-amber-400 text-xs">
-                    <Star className="w-3.5 h-3.5 fill-amber-400" />
-                    <span className="font-bold text-gray-800">5.0</span>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-600 mt-2.5 leading-relaxed">
-                  &quot;Fantastic session. We paired on an actual repository and debugged an issue that I had been stuck on for two days.&quot;
-                </p>
-              </div>
+        {/* SECTION: I WANT TO LEARN */}
+        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-4">
+          <div className="flex items-center gap-2 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+            <GraduationCap className="w-5 h-5 text-[#7C3AED] dark:text-[#A78BFA]" />
+            <h2 className="text-base font-bold text-[#18181B] dark:text-white">I Want to Learn</h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-4 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E]">
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
+                Beginner Target
+              </span>
+              <h4 className="text-sm font-bold text-[#18181B] dark:text-white mt-2">
+                UI/UX Design Systems in Figma
+              </h4>
+              <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-1">
+                Looking to learn token systems, auto-layout 5.0, and developer handoff.
+              </p>
             </div>
-          )}
+            <div className="p-4 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E]">
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
+                Intermediate Target
+              </span>
+              <h4 className="text-sm font-bold text-[#18181B] dark:text-white mt-2">
+                Conversational Spanish
+              </h4>
+              <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-1">
+                Aiming for conversational fluency for international travel and remote teams.
+              </p>
+            </div>
+          </div>
         </div>
       </main>
 
-      <BookingModal
-        skill={bookingSkill}
-        isOpen={!!bookingSkill}
-        onClose={() => setBookingSkill(null)}
-      />
-
-      <BuyCreditsModal
-        isOpen={isBuyCreditsOpen}
-        onClose={() => setIsBuyCreditsOpen(false)}
+      <SwapRequestModal
+        isOpen={swapModalOpen}
+        onClose={() => setSwapModalOpen(false)}
+        targetUser={{
+          id: teacher.id,
+          name: teacher.name,
+          avatar: teacher.avatar,
+          skillToTeach: primarySkill,
+        }}
       />
     </div>
   );

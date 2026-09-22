@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import SkillCard from "@/components/SkillCard";
-import BookingModal from "@/components/BookingModal";
+import SwapRequestModal from "@/components/SwapRequestModal";
 import BuyCreditsModal from "@/components/BuyCreditsModal";
 import { useSkillSwap, SkillListing } from "@/context/SkillSwapContext";
 import {
@@ -18,273 +18,358 @@ import {
   PlusCircle,
   GraduationCap,
   Award,
+  Search,
+  Repeat,
+  Star,
+  ShieldCheck,
+  User,
+  Coins,
 } from "lucide-react";
 
 export default function DashboardPage() {
-  const { currentUser, credits, sessions, skills, userTaughtSkills } = useSkillSwap();
+  const router = useRouter();
+  const {
+    currentUser,
+    credits,
+    transactions,
+    sessions,
+    skills,
+    userTaughtSkillsList,
+    userLearningSkillsList,
+    swapRequests,
+    respondToSwapRequest,
+  } = useSkillSwap();
 
-  const [bookingSkill, setBookingSkill] = useState<SkillListing | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isBuyCreditsOpen, setIsBuyCreditsOpen] = useState(false);
+  const [swapModalOpen, setSwapModalOpen] = useState(false);
+  const [selectedTargetUser, setSelectedTargetUser] = useState<{
+    id: string;
+    name: string;
+    avatar?: string;
+    skillToTeach: string;
+  }>({
+    id: "arun-kumar",
+    name: "Arun Kumar",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    skillToTeach: "Python Programming & Data Structures",
+  });
 
   const upcomingSessions = sessions.filter((s) => s.status === "upcoming");
-  const recommendedSkills = skills.slice(1, 4);
+  const recommendedSkills = skills.slice(0, 4);
 
-  const continueLearningItems = [
-    {
-      title: "Python Data Structures & Concurrency",
-      teacher: "Arun Kumar",
-      progress: 75,
-      nextStep: "Async I/O and Generator patterns",
-    },
-    {
-      title: "UI/UX Design Systems in Figma",
-      teacher: "Elena Rostova",
-      progress: 40,
-      nextStep: "Color token taxonomy and responsive variants",
-    },
-  ];
+  // Calculate credits earned and spent
+  const creditsEarned = transactions
+    .filter((t) => t.type === "EARNED")
+    .reduce((acc, t) => acc + t.amount, 0);
+  const creditsSpent = transactions
+    .filter((t) => t.type === "SPENT")
+    .reduce((acc, t) => acc + Math.abs(t.amount), 0);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/discover?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push("/discover");
+    }
+  };
+
+  const handleOpenSwap = (mentor: { id: string; name: string; avatar?: string; skill: string }) => {
+    setSelectedTargetUser({
+      id: mentor.id,
+      name: mentor.name,
+      avatar: mentor.avatar,
+      skillToTeach: mentor.skill,
+    });
+    setSwapModalOpen(true);
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F9FAFB]">
+    <div className="min-h-screen flex flex-col bg-[#F8F7FF] dark:bg-[#0E0C1B] text-[#18181B] dark:text-[#F4F3FA] transition-colors duration-200">
       <Navbar onOpenBuyCredits={() => setIsBuyCreditsOpen(true)} />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-10">
-        {/* Personalized Greeting */}
+        {/* Header Greeting */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-[#18181B] dark:text-white tracking-tight">
               Good morning, {currentUser.name} 👋
             </h1>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">
-              Here is what is happening across your learning and teaching sessions today.
+            <p className="text-sm text-[#71717A] dark:text-zinc-400 mt-1 font-medium">
+              What would you like to learn today?
             </p>
           </div>
 
           <div className="flex items-center gap-2.5">
             <Link
               href="/discover"
-              className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 text-xs font-semibold shadow-sm transition-colors"
+              className="px-4 py-2.5 rounded-xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] text-[#18181B] dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-xs font-semibold shadow-sm transition-colors"
             >
               Explore Skills
             </Link>
             <Link
-              href="/teach"
-              className="px-4 py-2 rounded-xl bg-gray-900 hover:bg-indigo-600 text-white text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
+              href="/skills"
+              className="px-4 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
             >
               <PlusCircle className="w-3.5 h-3.5" />
-              <span>Teach a Skill</span>
+              <span>Manage My Skills</span>
             </Link>
           </div>
         </div>
 
-        {/* Main Card: Your Learning Journey */}
-        <div className="bg-white rounded-3xl border border-gray-200/90 shadow-sm p-6 sm:p-8">
-          <div className="flex items-center justify-between pb-5 border-b border-gray-100">
+        {/* Large Search Bar */}
+        <form onSubmit={handleSearch} className="relative">
+          <Search className="w-5 h-5 text-[#71717A] absolute left-4 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search for a skill (e.g. Python, UI/UX Design, Machine Learning)..."
+            className="w-full pl-12 pr-28 py-3.5 rounded-2xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] text-sm text-[#18181B] dark:text-white placeholder-[#71717A] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40 transition-all"
+          />
+          <button
+            type="submit"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 px-4 py-2 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm transition-colors"
+          >
+            Search
+          </button>
+        </form>
+
+        {/* CREDIT SUMMARY */}
+        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#E4E1F5] dark:border-[#2D264E]">
             <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
-                Performance & Growth
+              <span className="text-xs font-bold uppercase tracking-wider text-[#7C3AED] dark:text-[#A78BFA]">
+                Wallet & Credits
               </span>
-              <h2 className="text-lg font-bold text-gray-900 mt-0.5">Your Learning Journey</h2>
+              <h2 className="text-xl font-bold text-[#18181B] dark:text-white mt-0.5">Credit Summary</h2>
             </div>
             <Link
               href="/credits"
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+              className="px-4 py-2 rounded-xl bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] hover:bg-[#DDD6FE] text-xs font-semibold transition-colors flex items-center gap-1.5 w-fit"
             >
-              Manage Wallet →
+              <span>Manage Credits</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-            <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100/80">
-              <span className="text-xs text-indigo-800 font-medium">Credit Balance</span>
-              <p className="text-2xl sm:text-3xl font-extrabold text-indigo-950 font-mono mt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+            <div className="p-5 rounded-2xl bg-[#EDE9FE]/50 dark:bg-[#231C3D]/50 border border-[#DDD6FE] dark:border-[#3B2D66]">
+              <span className="text-xs text-[#7C3AED] dark:text-[#A78BFA] font-semibold uppercase tracking-wider">
+                Current Credits
+              </span>
+              <p className="text-3xl sm:text-4xl font-extrabold text-[#7C3AED] dark:text-[#A78BFA] font-mono mt-1">
                 🪙 {credits}
               </p>
-              <span className="text-[10px] text-indigo-600 font-medium mt-1 block">
-                Available to spend
+              <p className="text-[11px] text-[#71717A] dark:text-zinc-400 mt-1">Available for swap escrow or bookings</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E]">
+              <span className="text-xs text-[#71717A] dark:text-zinc-400 font-semibold uppercase tracking-wider">
+                Credits Earned
               </span>
+              <p className="text-3xl sm:text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono mt-1">
+                +{creditsEarned}
+              </p>
+              <p className="text-[11px] text-[#71717A] dark:text-zinc-400 mt-1">Earned by sharing your skills</p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
-              <span className="text-xs text-gray-500 font-medium">Learning sessions</span>
-              <p className="text-2xl sm:text-3xl font-extrabold text-gray-900 font-mono mt-1">
-                {currentUser.learningCount}
+            <div className="p-5 rounded-2xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E]">
+              <span className="text-xs text-[#71717A] dark:text-zinc-400 font-semibold uppercase tracking-wider">
+                Credits Spent
+              </span>
+              <p className="text-3xl sm:text-4xl font-extrabold text-[#18181B] dark:text-zinc-200 font-mono mt-1">
+                -{creditsSpent}
               </p>
-              <span className="text-[10px] text-gray-400 mt-1 block">Completed as student</span>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
-              <span className="text-xs text-gray-500 font-medium">Teaching sessions</span>
-              <p className="text-2xl sm:text-3xl font-extrabold text-gray-900 font-mono mt-1">
-                {currentUser.teachingCount}
-              </p>
-              <span className="text-[10px] text-gray-400 mt-1 block">Delivered as mentor</span>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
-              <span className="text-xs text-gray-500 font-medium">Skills In Progress</span>
-              <p className="text-2xl sm:text-3xl font-extrabold text-gray-900 font-mono mt-1">
-                {currentUser.skillsCount}
-              </p>
-              <span className="text-[10px] text-gray-400 mt-1 block">Topics active</span>
+              <p className="text-[11px] text-[#71717A] dark:text-zinc-400 mt-1">Invested in your learning journey</p>
             </div>
           </div>
         </div>
 
-        {/* Upcoming Sessions Section */}
-        <section>
+        {/* RECOMMENDED FOR YOU */}
+        <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-indigo-600" />
-              <span>Upcoming Sessions</span>
-            </h2>
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-[#7C3AED] dark:text-[#A78BFA]">
+                Personalized
+              </span>
+              <h2 className="text-xl font-bold text-[#18181B] dark:text-white">Recommended for You</h2>
+            </div>
             <Link
-              href="/learn"
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+              href="/discover"
+              className="text-xs font-semibold text-[#7C3AED] dark:text-[#A78BFA] hover:underline"
             >
-              View all ({upcomingSessions.length})
+              View all →
             </Link>
           </div>
 
-          {upcomingSessions.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {upcomingSessions.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-white p-5 rounded-2xl border border-gray-200/90 shadow-sm flex flex-col justify-between hover:border-gray-300 transition-colors"
-                >
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-                        {item.date}
-                      </span>
-                      <span className="text-xs font-mono text-gray-500">{item.time}</span>
-                    </div>
-
-                    <h3 className="text-base font-bold text-gray-900 mt-2.5">
-                      {item.skillTitle}
-                    </h3>
-
-                    <div className="flex items-center gap-2 mt-2">
-                      <img
-                        src={item.teacherAvatar}
-                        alt={item.teacherName}
-                        className="w-5 h-5 rounded-full object-cover"
-                      />
-                      <span className="text-xs text-gray-600 font-medium">
-                        with {item.teacherName}
-                      </span>
-                      <span className="text-xs text-gray-300">•</span>
-                      <span className="text-xs text-indigo-600 font-mono font-semibold">
-                        🪙 {item.credits} credits
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between">
-                    <span className="text-[11px] text-gray-400">Duration: {item.duration}</span>
-                    <Link
-                      href={`/learn/${item.id}`}
-                      className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5"
-                    >
-                      <Play className="w-3 h-3 fill-white" />
-                      <span>Join Session</span>
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-8 text-center bg-white rounded-2xl border border-gray-200/80">
-              <Calendar className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-xs font-semibold text-gray-700">Nothing scheduled yet.</p>
-              <p className="text-[11px] text-gray-400 mt-0.5">Find a skill and start learning.</p>
-              <Link
-                href="/discover"
-                className="mt-3 inline-block px-3.5 py-1.5 rounded-xl bg-gray-900 text-white text-xs font-semibold"
-              >
-                Explore Skills
-              </Link>
-            </div>
-          )}
-        </section>
-
-        {/* Continue Learning Section with Progress Bars */}
-        <section>
-          <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-indigo-600" />
-            <span>Continue Learning</span>
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {continueLearningItems.map((item, idx) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {recommendedSkills.map((item) => (
               <div
-                key={idx}
-                className="bg-white p-5 rounded-2xl border border-gray-200/90 shadow-sm"
+                key={item.id}
+                className="p-5 rounded-2xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] hover:border-[#A78BFA] shadow-sm flex flex-col justify-between transition-all group"
               >
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-gray-900">{item.title}</h3>
-                  <span className="text-xs font-mono font-bold text-indigo-600">
-                    {item.progress}%
+                <div>
+                  <div className="flex items-start gap-3 mb-3">
+                    <img
+                      src={item.teacher.avatar}
+                      alt={item.teacher.name}
+                      className="w-11 h-11 rounded-full object-cover border border-[#E4E1F5] shrink-0"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        href={`/profile/${item.teacher.id}`}
+                        className="text-sm font-bold text-[#18181B] dark:text-white truncate block hover:text-[#7C3AED]"
+                      >
+                        {item.teacher.name}
+                      </Link>
+                      <p className="text-[11px] text-[#71717A] dark:text-zinc-400 truncate">{item.teacher.role}</p>
+                    </div>
+                  </div>
+
+                  <h3 className="text-sm font-bold text-[#18181B] dark:text-white line-clamp-1 mb-1">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs text-[#71717A] dark:text-zinc-400 line-clamp-2 leading-relaxed mb-3">
+                    {item.description}
+                  </p>
+
+                  <div className="flex items-center gap-2 text-xs mb-4">
+                    <span className="px-2 py-0.5 rounded-md bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] text-[11px] font-semibold">
+                      {item.level}
+                    </span>
+                    <div className="flex items-center gap-1 text-amber-500 font-semibold text-xs ml-auto">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      <span>{item.rating}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between">
+                  <span className="font-mono text-xs font-bold text-[#7C3AED] dark:text-[#A78BFA]">
+                    🪙 {item.creditsPerSession} cr
                   </span>
-                </div>
-                <p className="text-xs text-gray-500 mt-0.5">Instructor: {item.teacher}</p>
-
-                <div className="w-full bg-gray-100 h-2 rounded-full mt-3 overflow-hidden">
-                  <div
-                    className="bg-indigo-600 h-full rounded-full transition-all duration-300"
-                    style={{ width: `${item.progress}%` }}
-                  />
-                </div>
-
-                <div className="mt-3 text-[11px] text-gray-500 flex items-center justify-between">
-                  <span>Next step: {item.nextStep}</span>
-                  <Link
-                    href="/learn"
-                    className="text-indigo-600 font-semibold hover:underline"
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleOpenSwap({
+                        id: item.teacher.id,
+                        name: item.teacher.name,
+                        avatar: item.teacher.avatar,
+                        skill: item.title,
+                      })
+                    }
+                    className="px-3.5 py-1.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5"
                   >
-                    Resume →
-                  </Link>
+                    <Repeat className="w-3.5 h-3.5" />
+                    <span>Swap</span>
+                  </button>
                 </div>
               </div>
             ))}
           </div>
-        </section>
+        </div>
 
-        {/* Recommended For You */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                <span>Recommended For You</span>
-              </h2>
-              <p className="text-xs text-gray-500">Based on your learning history and goals</p>
+        {/* TWO-COLUMN GRID: YOUR LEARNING & YOUR TEACHING */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* YOUR LEARNING */}
+          <div className="p-6 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-[#7C3AED] dark:text-[#A78BFA]" />
+                <h2 className="text-base font-bold text-[#18181B] dark:text-white">Your Learning</h2>
+              </div>
+              <Link href="/learn" className="text-xs font-semibold text-[#7C3AED] hover:underline">
+                View all →
+              </Link>
             </div>
-            <Link
-              href="/discover"
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
-            >
-              Browse all →
-            </Link>
+
+            {upcomingSessions.length > 0 ? (
+              <div className="space-y-3">
+                {upcomingSessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className="p-4 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] flex items-center justify-between gap-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={session.teacherAvatar}
+                        alt={session.teacherName}
+                        className="w-10 h-10 rounded-full object-cover border border-[#E4E1F5]"
+                      />
+                      <div>
+                        <h4 className="text-xs font-bold text-[#18181B] dark:text-white">{session.skillTitle}</h4>
+                        <p className="text-[11px] text-[#71717A] mt-0.5">
+                          {session.teacherName} • {session.date}, {session.time}
+                        </p>
+                      </div>
+                    </div>
+                    <Link
+                      href={session.roomUrl || "/learn"}
+                      className="px-3 py-1.5 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shrink-0"
+                    >
+                      Join Room
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-xs text-[#71717A]">
+                <p>No active learning connections yet.</p>
+                <Link href="/discover" className="text-[#7C3AED] font-semibold hover:underline mt-1 block">
+                  Find a skill to swap →
+                </Link>
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {recommendedSkills.map((skill) => (
-              <SkillCard
-                key={skill.id}
-                skill={skill}
-                onBookClick={(s) => setBookingSkill(s)}
-              />
-            ))}
+          {/* YOUR TEACHING */}
+          <div className="p-6 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-[#7C3AED] dark:text-[#A78BFA]" />
+                <h2 className="text-base font-bold text-[#18181B] dark:text-white">Your Teaching</h2>
+              </div>
+              <Link href="/skills" className="text-xs font-semibold text-[#7C3AED] hover:underline">
+                Edit skills →
+              </Link>
+            </div>
+
+            {userTaughtSkillsList.length > 0 ? (
+              <div className="space-y-2.5">
+                {userTaughtSkillsList.map((skill) => (
+                  <div
+                    key={skill.id}
+                    className="p-3.5 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] flex items-center justify-between"
+                  >
+                    <div>
+                      <h4 className="text-xs font-bold text-[#18181B] dark:text-white">{skill.name}</h4>
+                      <span className="text-[11px] text-[#71717A]">{skill.level} • 10 Credits / session</span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
+                      Offering
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-xs text-[#71717A]">
+                <p>You haven&apos;t added any teaching skills yet.</p>
+                <Link href="/skills" className="text-[#7C3AED] font-semibold hover:underline mt-1 block">
+                  Add what you can teach →
+                </Link>
+              </div>
+            )}
           </div>
-        </section>
+        </div>
       </main>
 
-      <BookingModal
-        skill={bookingSkill}
-        isOpen={!!bookingSkill}
-        onClose={() => setBookingSkill(null)}
+      {/* Modals */}
+      <SwapRequestModal
+        isOpen={swapModalOpen}
+        onClose={() => setSwapModalOpen(false)}
+        targetUser={selectedTargetUser}
       />
 
       <BuyCreditsModal

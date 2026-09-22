@@ -50,23 +50,23 @@ export default function RatingModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="relative w-full max-w-md bg-white rounded-2xl border border-gray-200/90 shadow-2xl p-6 sm:p-7 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/60 backdrop-blur-sm animate-in fade-in duration-150">
+      <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/90 dark:border-gray-800 shadow-2xl p-6 sm:p-7 overflow-hidden">
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+          className="absolute top-5 right-5 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           aria-label="Close modal"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="text-center">
-          <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto mb-3">
+          <div className="w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-500 flex items-center justify-center mx-auto mb-3">
             <Sparkles className="w-6 h-6" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900">How was your session?</h3>
-          <p className="text-xs text-gray-500 mt-1">
-            {skillTitle} with <span className="font-semibold text-gray-700">{teacherName}</span>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">How was your session?</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {skillTitle} with <span className="font-semibold text-gray-700 dark:text-gray-200">{teacherName}</span>
           </p>
 
           {/* Star Rating */}
@@ -84,14 +84,14 @@ export default function RatingModal({
                 >
                   <Star
                     className={`w-7 h-7 ${
-                      active ? "text-amber-400 fill-amber-400" : "text-gray-200"
+                      active ? "text-amber-400 fill-amber-400" : "text-gray-200 dark:text-gray-700"
                     }`}
                   />
                 </button>
               );
             })}
           </div>
-          <span className="text-xs font-semibold text-gray-500 mt-1.5 block">
+          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mt-1.5 block">
             {rating === 5
               ? "Exceptional!"
               : rating === 4
@@ -104,7 +104,7 @@ export default function RatingModal({
 
         {/* Endorsements Chips */}
         <div className="mt-5">
-          <label className="block text-xs font-semibold text-gray-700 mb-2">
+          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
             Skill Endorsements
           </label>
           <div className="flex flex-wrap gap-1.5">
@@ -117,8 +117,8 @@ export default function RatingModal({
                   onClick={() => toggleEndorsement(tag)}
                   className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
                     isSelected
-                      ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
-                      : "bg-gray-50 text-gray-600 border border-gray-200/80 hover:bg-gray-100"
+                      ? "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
+                      : "bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200/80 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-750"
                   }`}
                 >
                   {tag}
@@ -130,7 +130,7 @@ export default function RatingModal({
 
         {/* Feedback text */}
         <div className="mt-4">
-          <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
             Feedback & Takeaways (Optional)
           </label>
           <textarea
@@ -138,7 +138,7 @@ export default function RatingModal({
             onChange={(e) => setComment(e.target.value)}
             placeholder="What was most helpful? Any key advice to remember?"
             rows={3}
-            className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none text-gray-800"
+            className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
           />
         </div>
 
@@ -147,7 +147,7 @@ export default function RatingModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-gray-600 hover:text-gray-900"
+            className="px-4 py-2 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
           >
             Skip for now
           </button>

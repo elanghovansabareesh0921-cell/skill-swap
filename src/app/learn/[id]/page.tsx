@@ -61,10 +61,10 @@ export default function SessionRoomPage() {
     return () => clearInterval(interval);
   }, [secondsRemaining]);
 
-  const formatCountdown = (totalSecs: number) => {
-    const mins = Math.floor(totalSecs / 60);
-    const secs = totalSecs % 60;
-    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  const formatCountdown = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -73,7 +73,11 @@ export default function SessionRoomPage() {
 
     setChatMessages((prev) => [
       ...prev,
-      { sender: "You", text: newMessage.trim(), time: "Now" },
+      {
+        sender: "You",
+        text: newMessage.trim(),
+        time: "Just now",
+      },
     ]);
     setNewMessage("");
 
@@ -101,11 +105,11 @@ export default function SessionRoomPage() {
 
   if (!session) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#F9FAFB]">
+      <div className="min-h-screen flex flex-col bg-[#F9FAFB] dark:bg-[#090D16] text-gray-900 dark:text-gray-100">
         <Navbar />
         <div className="flex-1 flex items-center justify-center text-center p-6">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Session Not Found</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Session Not Found</h2>
             <Link
               href="/dashboard"
               className="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold"
@@ -119,35 +123,35 @@ export default function SessionRoomPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F9FAFB]">
+    <div className="min-h-screen flex flex-col bg-[#F9FAFB] dark:bg-[#090D16] text-gray-900 dark:text-gray-100 transition-colors duration-200">
       {/* Top Session Header */}
-      <header className="sticky top-0 z-40 w-full bg-white border-b border-gray-200/90 py-3.5 px-4 sm:px-8 flex items-center justify-between">
+      <header className="sticky top-0 z-40 w-full bg-white dark:bg-[#0B0F19] border-b border-gray-200/90 dark:border-gray-800 py-3.5 px-4 sm:px-8 flex items-center justify-between transition-colors">
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-sm sm:text-base font-bold text-gray-900 leading-none">
+              <h1 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white leading-none">
                 {session.skillTitle}
               </h1>
-              <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-semibold">
+              <span className="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-[10px] font-semibold">
                 1-on-1 Swap
               </span>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Teacher: <span className="font-semibold text-gray-700">{session.teacherName}</span>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Teacher: <span className="font-semibold text-gray-700 dark:text-gray-300">{session.teacherName}</span>
             </p>
           </div>
         </div>
 
         {/* Live Countdown / Status */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-xs font-mono font-semibold">
-            <Clock className="w-3.5 h-3.5 text-amber-600" />
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs font-mono font-semibold">
+            <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
             <span>
               {isJoined
                 ? "Live WebRTC P2P Active"
@@ -193,19 +197,19 @@ export default function SessionRoomPage() {
           </div>
 
           {/* Interactive Collaborative Scratchpad & Notes */}
-          <div className="bg-white rounded-3xl border border-gray-200/90 shadow-sm p-5 flex flex-col">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <div className="flex items-center gap-2 text-xs font-semibold text-gray-900">
-                <Edit3 className="w-4 h-4 text-indigo-600" />
+          <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200/90 dark:border-gray-800 shadow-sm p-5 flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-white">
+                <Edit3 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                 <span>Collaborative Code & Notes Scratchpad</span>
               </div>
-              <span className="text-[11px] text-gray-400 font-mono">Auto-saving live</span>
+              <span className="text-[11px] text-gray-400 dark:text-gray-500 font-mono">Auto-saving live</span>
             </div>
             <textarea
               value={scratchpadText}
               onChange={(e) => setScratchpadText(e.target.value)}
               rows={8}
-              className="mt-3 w-full font-mono text-xs text-gray-800 bg-gray-50/70 p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 resize-y leading-relaxed"
+              className="mt-3 w-full font-mono text-xs text-gray-800 dark:text-gray-200 bg-gray-50/70 dark:bg-gray-800/60 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 resize-y leading-relaxed"
             />
           </div>
         </div>
@@ -213,34 +217,34 @@ export default function SessionRoomPage() {
         {/* Right 4 Columns: Session Details, Agenda, & Chat */}
         <div className="lg:col-span-4 flex flex-col gap-5">
           {/* Session Overview Card */}
-          <div className="bg-white rounded-3xl border border-gray-200/90 shadow-sm p-5 sm:p-6">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200/90 dark:border-gray-800 shadow-sm p-5 sm:p-6">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4">
               Session Overview
             </h3>
 
             <div className="space-y-3.5 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-gray-500">Topic:</span>
-                <span className="font-semibold text-gray-900">{session.skillTitle}</span>
+                <span className="text-gray-500 dark:text-gray-400">Topic:</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{session.skillTitle}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-500">Instructor:</span>
-                <span className="font-semibold text-gray-900">{session.teacherName}</span>
+                <span className="text-gray-500 dark:text-gray-400">Instructor:</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{session.teacherName}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-500">Duration:</span>
-                <span className="font-semibold text-gray-900">{session.duration}</span>
+                <span className="text-gray-500 dark:text-gray-400">Duration:</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{session.duration}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-500">Escrow Value:</span>
-                <span className="font-bold text-indigo-600 font-mono">
+                <span className="text-gray-500 dark:text-gray-400">Escrow Value:</span>
+                <span className="font-bold text-indigo-600 dark:text-indigo-400 font-mono">
                   🪙 {session.credits} Credits
                 </span>
               </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-gray-100 flex items-start gap-2 text-[11px] text-gray-500 leading-normal">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-start gap-2 text-[11px] text-gray-500 dark:text-gray-400 leading-normal">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
               <span>
                 Credits remain safely locked until you click &quot;Mark Complete&quot;.
               </span>
@@ -248,15 +252,15 @@ export default function SessionRoomPage() {
           </div>
 
           {/* Tabbed Side Panel: Agenda & Live Chat */}
-          <div className="bg-white rounded-3xl border border-gray-200/90 shadow-sm p-5 flex-1 flex flex-col">
-            <div className="flex items-center gap-4 pb-3 border-b border-gray-100 text-xs font-semibold">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200/90 dark:border-gray-800 shadow-sm p-5 flex-1 flex flex-col">
+            <div className="flex items-center gap-4 pb-3 border-b border-gray-100 dark:border-gray-800 text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => setActiveTab("notes")}
                 className={`pb-1 transition-colors ${
                   activeTab === "notes"
-                    ? "text-indigo-600 border-b-2 border-indigo-600"
-                    : "text-gray-400 hover:text-gray-700"
+                    ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
+                    : "text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                 }`}
               >
                 Agenda Checklist
@@ -266,8 +270,8 @@ export default function SessionRoomPage() {
                 onClick={() => setActiveTab("chat")}
                 className={`pb-1 transition-colors ${
                   activeTab === "chat"
-                    ? "text-indigo-600 border-b-2 border-indigo-600"
-                    : "text-gray-400 hover:text-gray-700"
+                    ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
+                    : "text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                 }`}
               >
                 Session Chat ({chatMessages.length})
@@ -284,7 +288,7 @@ export default function SessionRoomPage() {
                 ]).map((item, idx) => (
                   <label
                     key={idx}
-                    className="flex items-start gap-2.5 p-2 rounded-xl hover:bg-gray-50 cursor-pointer text-xs text-gray-700 transition-colors"
+                    className="flex items-start gap-2.5 p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer text-xs text-gray-700 dark:text-gray-300 transition-colors"
                   >
                     <input
                       type="checkbox"
@@ -304,11 +308,11 @@ export default function SessionRoomPage() {
                       key={i}
                       className={`p-2.5 rounded-xl text-xs ${
                         msg.sender === "You"
-                          ? "bg-indigo-50 text-indigo-950 ml-6"
-                          : "bg-gray-100 text-gray-800 mr-6"
+                          ? "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-950 dark:text-indigo-200 ml-6"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 mr-6"
                       }`}
                     >
-                      <div className="flex items-center justify-between text-[10px] text-gray-400 mb-1">
+                      <div className="flex items-center justify-between text-[10px] text-gray-400 dark:text-gray-500 mb-1">
                         <span className="font-semibold">{msg.sender}</span>
                         <span>{msg.time}</span>
                       </div>
@@ -319,14 +323,14 @@ export default function SessionRoomPage() {
 
                 <form
                   onSubmit={handleSendMessage}
-                  className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2"
+                  className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center gap-2"
                 >
                   <input
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Send a message..."
-                    className="flex-1 px-3 py-2 text-xs bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                    className="flex-1 px-3 py-2 text-xs bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-600"
                   />
                   <button
                     type="submit"
