@@ -17,6 +17,7 @@ import {
   Sparkles,
   MessageSquare,
   ShieldCheck,
+  CalendarPlus,
 } from "lucide-react";
 
 function MessagesContent() {
@@ -37,6 +38,7 @@ function MessagesContent() {
   const [inputText, setInputText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
+  const [showProposeModal, setShowProposeModal] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -81,6 +83,29 @@ function MessagesContent() {
 
     sendMessage(activeConversation.participantId, inputText);
     setInputText("");
+  };
+
+  const handleProposeSession = async () => {
+    try {
+      const res = await fetch("/api/sessions/propose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          receiverId: activeConversation.participantId,
+          skillName: "Skill Swap",
+          scheduledAt: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
+          durationMinutes: 45
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Session proposed successfully! 10 credits held in escrow.");
+      } else {
+        alert("Failed to propose: " + data.error);
+      }
+    } catch (e) {
+      alert("Error proposing session");
+    }
   };
 
   const filteredConversations = conversations.filter((c) =>
@@ -286,6 +311,15 @@ function MessagesContent() {
                 placeholder="Type a message..."
                 className="flex-1 px-4 py-2.5 rounded-xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] text-xs sm:text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
               />
+              <button
+                type="button"
+                onClick={handleProposeSession}
+                className="p-2.5 rounded-xl bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] hover:bg-[#DDD6FE] dark:hover:bg-[#2D264E] transition-colors shadow-sm flex items-center gap-2"
+                title="Propose Session Time"
+              >
+                <CalendarPlus className="w-4 h-4" />
+                <span className="hidden sm:inline text-xs font-semibold">Propose Time</span>
+              </button>
               <button
                 type="submit"
                 disabled={!inputText.trim()}

@@ -84,6 +84,17 @@ create table if not exists public.messages (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- 9. Credit Ledger Table
+create table if not exists public.credit_ledger (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references public.profiles(id) on delete cascade,
+  session_id uuid references public.sessions(id) on delete cascade,
+  transaction_type text check (transaction_type in ('ESCROW', 'PAYOUT', 'REFUND', 'PLATFORM_FEE', 'PURCHASE')),
+  amount int not null,
+  description text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- ==============================================================================
 -- Row Level Security (RLS) Policies
 -- ==============================================================================
@@ -289,16 +300,25 @@ begin
     return json_build_object('error', 'Session must be in CONFIRMED status to complete.');
   end if;
 
-  -- Payout 10 credits to the receiver (mentor/teacher)
-  update public.profiles set credits = credits + 10 where id = v_session.receiver_id;
+  -- Dynamic Economy: 10 Deducted (already escrowed), 7 Paid to Mentor, 3 Platform Fee (Burn)
+  
+  -- Payout 7 credits to the receiver (mentor/teacher)
+  update public.profiles set credits = credits + 7 where id = v_session.receiver_id;
   update public.sessions set status = 'COMPLETED' where id = p_session_id;
+
+  -- Log transaction in credit_ledger
+  insert into public.credit_ledger (user_id, session_id, transaction_type, amount, description)
+  values 
+    (v_session.requester_id, p_session_id, 'ESCROW', -10, 'Session escrow settled for ' || v_session.skill_name),
+    (v_session.receiver_id, p_session_id, 'PAYOUT', 7, 'Session payout for ' || v_session.skill_name),
+    (null, p_session_id, 'PLATFORM_FEE', 3, 'Platform fee for ' || v_session.skill_name);
 
   -- Notify receiver
   insert into public.notifications (user_id, title, message, link)
   values (
     v_session.receiver_id,
     'Credits Earned! 🪙',
-    'Your teaching session for ' || v_session.skill_name || ' was marked complete. +10 credits awarded.',
+    'Your teaching session for ' || v_session.skill_name || ' was marked complete. +7 credits awarded.',
     '/dashboard'
   );
 

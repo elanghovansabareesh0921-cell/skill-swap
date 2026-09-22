@@ -595,6 +595,13 @@ export default function VideoRoom({
 
     try {
       await Promise.allSettled(tasks);
+      
+      // Complete session and process escrow/payouts
+      await fetch("/api/sessions/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
     } catch (e) {
       console.error("End call sync error:", e);
     }
