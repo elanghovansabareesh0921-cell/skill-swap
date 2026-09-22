@@ -165,7 +165,9 @@ interface SkillSwapContextType {
 
   // Auth actions
   loginWithDemo: () => Promise<{ success: boolean; error?: string }>;
-  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: () => Promise<{ success: boolean; error?: string; requiresConfig?: boolean }>;
+  loginWithGoogleEmail: (email: string, name?: string, avatar?: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogleCredential: (credentialToken: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   refreshUserProfile: () => Promise<void>;
 
@@ -768,6 +770,15 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
   // Load from localStorage on mount
   useEffect(() => {
     try {
+      const savedUserStr = localStorage.getItem("skillswap_user");
+      if (savedUserStr) {
+        const parsed = JSON.parse(savedUserStr);
+        if (parsed?.id) {
+          setCurrentUser(parsed);
+          setIsAuthenticated(true);
+        }
+      }
+
       const savedCredits = localStorage.getItem("skillswap_credits");
       if (savedCredits) setCredits(Number(savedCredits));
 
@@ -850,13 +861,105 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
         },
       });
       if (error) {
-        showToast("Google OAuth Setup", error.message || "Google Provider requires client credentials in Supabase.", "warning");
-        return { success: false, error: error.message };
+        const isConfigNeeded =
+          error.message?.toLowerCase().includes("provider") ||
+          error.message?.toLowerCase().includes("unsupported") ||
+          error.message?.toLowerCase().includes("not enabled") ||
+          (error as any).code === "validation_failed";
+
+        return { success: false, error: error.message, requiresConfig: isConfigNeeded };
       }
       return { success: true };
     } catch (err: any) {
-      showToast("Google Login", err.message, "error");
+      return { success: false, error: err.message, requiresConfig: true };
+    }
+  };
+
+  const loginWithGoogleEmail = async (email: string, name?: string, avatar?: string) => {
+    setIsLoadingAuth(true);
+    try {
+      const cleanEmail = email.trim().toLowerCase();
+      // 1. Look up profile in Supabase
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .ilike("email", cleanEmail)
+        .maybeSingle();
+
+      let resolvedUser;
+      if (profile) {
+        resolvedUser = {
+          id: profile.id,
+          name: profile.full_name || name || cleanEmail.split("@")[0],
+          email: profile.email,
+          avatar: avatar || (profile as any).avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+          role: "Skill Swap Member",
+          location: "Remote",
+          bio: profile.bio || "Active peer learner and mentor on Skill Swap.",
+          credits: profile.credits ?? 50,
+          learningCount: 3,
+          teachingCount: 2,
+          skillsCount: 4,
+        };
+      } else {
+        const newId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "user-" + Date.now();
+        resolvedUser = {
+          id: newId,
+          name: name || cleanEmail.split("@")[0],
+          email: cleanEmail,
+          avatar: avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+          role: "New Member",
+          location: "Remote",
+          bio: "Excited to exchange skills with peers worldwide.",
+          credits: 50,
+          learningCount: 2,
+          teachingCount: 1,
+          skillsCount: 2,
+        };
+        try {
+          await supabase.from("profiles").insert([{
+            id: newId,
+            full_name: resolvedUser.name,
+            email: resolvedUser.email,
+            credits: 50,
+            bio: resolvedUser.bio,
+          }]);
+        } catch (dbErr) {
+          console.warn("Could not insert profile:", dbErr);
+        }
+      }
+
+      setCurrentUser(resolvedUser);
+      setCredits(resolvedUser.credits);
+      setIsAuthenticated(true);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("skillswap_user", JSON.stringify(resolvedUser));
+        localStorage.setItem("skillswap_credits", String(resolvedUser.credits));
+      }
+      showToast("Welcome back! 👋", `Logged in with Google as ${resolvedUser.name}`, "success");
+      return { success: true };
+    } catch (err: any) {
+      showToast("Login Failed", err.message || "Failed to log in with Google account.", "error");
       return { success: false, error: err.message };
+    } finally {
+      setIsLoadingAuth(false);
+    }
+  };
+
+  const loginWithGoogleCredential = async (credentialToken: string) => {
+    try {
+      const base64Url = credentialToken.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      const gUser = JSON.parse(jsonPayload);
+      return await loginWithGoogleEmail(gUser.email, gUser.name, gUser.picture);
+    } catch (err: any) {
+      return { success: false, error: "Invalid Google credential format." };
     }
   };
 
@@ -865,6 +968,9 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
       await supabase.auth.signOut();
     } catch (err) {
       console.warn(err);
+    }
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("skillswap_user");
     }
     setIsAuthenticated(false);
     showToast("Signed Out", "You have successfully logged out.", "info");
@@ -1302,6 +1408,8 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
         messages,
         loginWithDemo,
         loginWithGoogle,
+        loginWithGoogleEmail,
+        loginWithGoogleCredential,
         signOut,
         refreshUserProfile,
         sendSwapRequest,

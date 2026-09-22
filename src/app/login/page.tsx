@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { useSkillSwap } from "@/context/SkillSwapContext";
 import ThemeToggle from "@/components/ThemeToggle";
+import { GoogleOAuthModal } from "@/components/GoogleOAuthModal";
 import {
   Eye,
   EyeOff,
@@ -34,6 +35,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
 
@@ -132,7 +134,11 @@ function LoginForm() {
     const res = await loginWithGoogle();
     if (!res.success) {
       setGoogleLoading(false);
-      setErrorMsg(res.error || "Google login initialization failed.");
+      if (res.requiresConfig) {
+        setIsGoogleModalOpen(true);
+      } else {
+        setErrorMsg(res.error || "Google login initialization failed.");
+      }
     }
   };
 
@@ -438,6 +444,17 @@ function LoginForm() {
             <span>Continue with Google</span>
           </button>
 
+          {/* Setup / Fast Access helper link */}
+          <div className="flex items-center justify-center pt-0.5">
+            <button
+              type="button"
+              onClick={() => setIsGoogleModalOpen(true)}
+              className="text-[11px] text-[#7C3AED] dark:text-[#A78BFA] hover:underline font-medium"
+            >
+              Google login issue or custom setup? Click here
+            </button>
+          </div>
+
           {/* Bottom Link to Signup */}
           <p className="text-center text-xs text-[#71717A] dark:text-zinc-400 pt-2">
             Don&apos;t have an account?{" "}
@@ -515,6 +532,13 @@ function LoginForm() {
           </div>
         </div>
       )}
+
+      {/* Google OAuth & Fast Sign-In Modal */}
+      <GoogleOAuthModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => setIsGoogleModalOpen(false)}
+        defaultEmail="elanghovansabareesh0921@gmail.com"
+      />
     </div>
   );
 }

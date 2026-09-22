@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { useSkillSwap } from "@/context/SkillSwapContext";
 import ThemeToggle from "@/components/ThemeToggle";
+import { GoogleOAuthModal } from "@/components/GoogleOAuthModal";
 import {
   Eye,
   EyeOff,
@@ -25,6 +26,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [fieldErrors, setFieldErrors] = useState<{
     fullName?: string;
@@ -113,7 +115,11 @@ export default function SignupPage() {
     const res = await loginWithGoogle();
     if (!res.success) {
       setGoogleLoading(false);
-      setErrorMsg(res.error || "Google authentication initialization failed.");
+      if (res.requiresConfig) {
+        setIsGoogleModalOpen(true);
+      } else {
+        setErrorMsg(res.error || "Google authentication initialization failed.");
+      }
     }
   };
 
@@ -385,6 +391,17 @@ export default function SignupPage() {
             <span>Continue with Google</span>
           </button>
 
+          {/* Setup / Fast Access helper link */}
+          <div className="flex items-center justify-center pt-0.5">
+            <button
+              type="button"
+              onClick={() => setIsGoogleModalOpen(true)}
+              className="text-[11px] text-[#7C3AED] dark:text-[#A78BFA] hover:underline font-medium"
+            >
+              Google login issue or custom setup? Click here
+            </button>
+          </div>
+
           <p className="text-center text-xs text-[#71717A] dark:text-zinc-400 pt-2">
             Already have an account?{" "}
             <Link href="/login" className="text-[#7C3AED] dark:text-[#A78BFA] font-semibold hover:underline">
@@ -393,6 +410,13 @@ export default function SignupPage() {
           </p>
         </div>
       </div>
+
+      {/* Google OAuth & Fast Sign-In Modal */}
+      <GoogleOAuthModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => setIsGoogleModalOpen(false)}
+        defaultEmail="elanghovansabareesh0921@gmail.com"
+      />
     </div>
   );
 }
