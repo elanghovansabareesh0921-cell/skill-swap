@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       userId,
     } = body;
 
-    if (!amount || !credits) {
+    if (!amount || !credits || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return NextResponse.json(
         { error: "Missing required payment details." },
         { status: 400 }

@@ -19,6 +19,13 @@ export async function POST(req: Request) {
     // Amount in paise (1 INR = 100 paise)
     const amountInPaise = Math.round(Number(amount) * 100);
 
+    if (amountInPaise < 100) {
+      return NextResponse.json(
+        { error: "Amount must be at least 100 paise (1 INR)." },
+        { status: 400 }
+      );
+    }
+
     // If live/test Razorpay API credentials are provided in .env.local
     if (keyId && keySecret) {
       const razorpay = new Razorpay({
@@ -61,6 +68,15 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error("Razorpay order creation error:", error);
+    
+    // Handle auth failures (return 401)
+    if (error?.statusCode === 401 || (error?.error?.code === 'BAD_REQUEST_ERROR' && error?.error?.description?.includes('authenticat'))) {
+      return NextResponse.json(
+        { error: "Authentication failed with payment provider." },
+        { status: 401 }
+      );
+    }
+
     return NextResponse.json(
       { error: error.message || "Failed to initiate Razorpay order." },
       { status: 500 }
