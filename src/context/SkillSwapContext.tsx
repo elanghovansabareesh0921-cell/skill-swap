@@ -854,22 +854,44 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithGoogle = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const redirectOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined,
+          redirectTo: `${redirectOrigin}/dashboard`,
+          skipBrowserRedirect: true,
         },
       });
-      if (error) {
-        const isConfigNeeded =
-          error.message?.toLowerCase().includes("provider") ||
-          error.message?.toLowerCase().includes("unsupported") ||
-          error.message?.toLowerCase().includes("not enabled") ||
-          (error as any).code === "validation_failed";
 
-        return { success: false, error: error.message, requiresConfig: isConfigNeeded };
+      if (error) {
+        return { success: false, error: error.message, requiresConfig: true };
       }
-      return { success: true };
+
+      if (data?.url) {
+        // Preflight check the URL before redirecting to prevent user from being stranded on 400 screen
+        try {
+          const preflight = await fetch(data.url, { redirect: "manual" });
+          if (preflight.status === 400) {
+            const body = await preflight.text();
+            if (body.includes("provider is not enabled") || body.includes("validation_failed")) {
+              return {
+                success: false,
+                error: "Google Provider is not enabled in your Supabase Dashboard yet.",
+                requiresConfig: true,
+              };
+            }
+          }
+        } catch {
+          // If preflight has CORS restriction, proceed to redirect
+        }
+
+        if (typeof window !== "undefined") {
+          window.location.assign(data.url);
+        }
+        return { success: true };
+      }
+
+      return { success: false, error: "Unable to generate OAuth URL.", requiresConfig: true };
     } catch (err: any) {
       return { success: false, error: err.message, requiresConfig: true };
     }
