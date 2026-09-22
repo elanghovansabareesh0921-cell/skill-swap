@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import QRCode from "react-qr-code";
 import { useSkillSwap } from "@/context/SkillSwapContext";
 import { processRazorpayCheckout } from "@/lib/razorpayClient";
 import {
@@ -317,13 +318,10 @@ export default function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProp
             <div className="flex flex-col sm:flex-row items-center gap-5">
               {/* Authentic QR Image */}
               <div className="bg-white p-2.5 rounded-2xl shadow-sm border border-zinc-200 shrink-0">
-                <Image
-                  src="/upi-qr.png"
-                  alt="UPI QR Code"
-                  width={150}
-                  height={150}
-                  className="rounded-lg object-contain"
-                  priority
+                <QRCode
+                  value={upiDeepLink}
+                  size={150}
+                  style={{ height: "auto", maxWidth: "100%", width: "150px" }}
                 />
               </div>
 
