@@ -94,7 +94,7 @@ export default function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProp
   const [selectedPackage, setSelectedPackage] = useState<string>("pack_100");
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isCustom, setIsCustom] = useState<boolean>(false);
-  const [paymentTab, setPaymentTab] = useState<"upi" | "razorpay">("upi");
+  const [paymentTab, setPaymentTab] = useState<"upi" | "razorpay">("razorpay");
 
   // Razorpay State
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
