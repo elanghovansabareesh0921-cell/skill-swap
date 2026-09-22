@@ -19,15 +19,28 @@ import {
   Edit3,
   Play,
   MonitorUp,
+  Share2,
+  Copy,
+  Check,
 } from "lucide-react";
 
 export default function SessionRoomPage() {
   const params = useParams();
   const router = useRouter();
-  const { sessions, completeSession, showToast } = useSkillSwap();
+  const { sessions, completeSession, showToast, currentUser } = useSkillSwap();
 
   const sessionId = (params?.id as string) || "session-python-arun";
   const session = sessions.find((s) => s.id === sessionId) || sessions[0];
+
+  // Unique peer identifier per browser window to allow seamless cross-tab & remote testing
+  const [peerId, setPeerId] = useState<string>("");
+  const [copiedLink, setCopiedLink] = useState<boolean>(false);
+
+  useEffect(() => {
+    const base = currentUser?.id || "peer";
+    const unique = Math.random().toString(36).substring(2, 8);
+    setPeerId(`${base}_${unique}`);
+  }, [currentUser]);
 
   // In-session control states
   const [isJoined, setIsJoined] = useState(false);
@@ -148,21 +161,38 @@ export default function SessionRoomPage() {
           </div>
         </div>
 
-        {/* Live Countdown / Status */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs font-mono font-semibold">
-            <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+        {/* Live Countdown, Copy Link & Actions */}
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                navigator.clipboard.writeText(window.location.href);
+                setCopiedLink(true);
+                showToast("Room Link Copied", "Open in a second tab or send to peer to test WebRTC P2P streaming!", "success");
+                setTimeout(() => setCopiedLink(false), 2000);
+              }
+            }}
+            className="px-3 py-1.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#161327] hover:bg-zinc-50 dark:hover:bg-[#231C3D] text-xs font-semibold text-[#7C3AED] dark:text-[#A78BFA] flex items-center gap-1.5 transition-colors"
+            title="Copy room URL to test with peer in another tab"
+          >
+            {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Share2 className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">{copiedLink ? "Link Copied!" : "Share Room Link"}</span>
+          </button>
+
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#EDE9FE] dark:bg-[#231C3D] border border-[#DDD6FE] dark:border-[#3B2D66] text-[#7C3AED] dark:text-[#A78BFA] text-xs font-mono font-semibold">
+            <Clock className="w-3.5 h-3.5 text-[#7C3AED]" />
             <span>
               {isJoined
                 ? "Live WebRTC P2P Active"
-                : `Session starting in ${formatCountdown(secondsRemaining)}`}
+                : `Session in ${formatCountdown(secondsRemaining)}`}
             </span>
           </div>
 
           <button
             type="button"
             onClick={handleMarkComplete}
-            className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5"
+            className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all flex items-center gap-1.5"
           >
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Mark Complete</span>
@@ -175,24 +205,33 @@ export default function SessionRoomPage() {
         {/* Left / Center 8 Columns: Live Stage & Collaborative Workspace */}
         <div className="lg:col-span-8 flex flex-col gap-5">
           {/* Video Stream Stage */}
-          <div className="relative aspect-video sm:aspect-[16/9] w-full bg-gray-950 rounded-3xl overflow-hidden shadow-lg border border-gray-800 flex items-center justify-center">
+          <div className="relative aspect-video sm:aspect-[16/9] w-full bg-[#161327] rounded-3xl overflow-hidden shadow-2xl border border-[#2D264E] flex items-center justify-center">
             {/* Pre-join or Active Preview State */}
-            <div className="text-center p-6 max-w-md">
-              <div className="w-16 h-16 rounded-full bg-gray-900 text-indigo-400 border border-gray-800 flex items-center justify-center mx-auto mb-4">
+            <div className="text-center p-6 max-w-md space-y-3">
+              <div className="w-16 h-16 rounded-3xl bg-[#231C3D] text-[#A78BFA] border border-[#3B2D66] flex items-center justify-center mx-auto shadow-md">
                 <VideoIcon className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-white">Ready for your swap session?</h3>
-              <p className="text-xs text-gray-400 mt-1">
-                Direct WebRTC audio, video, screen-sharing, collaborative whiteboard, and real-time live captions.
-              </p>
-              <button
-                type="button"
-                onClick={() => setIsJoined(true)}
-                className="mt-6 px-7 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 mx-auto"
-              >
-                <Play className="w-4 h-4 fill-white" />
-                <span>Launch WebRTC Session</span>
-              </button>
+              <div>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Encrypted Peer-to-Peer</span>
+                </span>
+                <h3 className="text-xl font-extrabold text-white mt-1">Ready for your swap session?</h3>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Native WebRTC audio, video, screen-sharing, collaborative code notes, whiteboard, and real-time live captions.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsJoined(true)}
+                  className="w-full sm:w-auto px-7 py-3 rounded-2xl bg-gradient-to-r from-[#7C3AED] to-[#8B5CF6] hover:opacity-95 text-white font-bold text-xs shadow-lg shadow-[#7C3AED]/25 transition-all flex items-center justify-center gap-2"
+                >
+                  <Play className="w-4 h-4 fill-white" />
+                  <span>Launch WebRTC Session</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -349,7 +388,8 @@ export default function SessionRoomPage() {
       {isJoined && (
         <VideoRoom
           sessionId={sessionId}
-          currentUserId="user-sabareesh"
+          currentUserId={peerId || currentUser?.id || "guest-peer"}
+          peerName={session.teacherName || "Arun Kumar"}
           onClose={() => setIsJoined(false)}
           onComplete={() => {
             setIsJoined(false);

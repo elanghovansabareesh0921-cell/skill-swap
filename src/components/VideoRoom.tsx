@@ -19,11 +19,19 @@ import {
   Minimize2,
   RefreshCw,
   Sparkles,
+  Copy,
+  Check,
+  Users,
+  Wifi,
+  Clock,
+  Play,
+  Share2,
 } from "lucide-react";
 
 interface VideoRoomProps {
   sessionId: string;
   currentUserId: string;
+  peerName?: string;
   onClose: () => void;
   onComplete?: () => void;
 }
@@ -37,26 +45,94 @@ const DEFAULT_ICE_SERVERS: RTCConfiguration = {
   iceCandidatePoolSize: 10,
 };
 
-// Helper: Generate a silent video/audio stream if user has no media devices
+// Generate a fallback camera stream if hardware is absent or blocked
 function createDummyStream(): MediaStream {
   const canvas = document.createElement("canvas");
   canvas.width = 640;
   canvas.height = 480;
   const ctx = canvas.getContext("2d");
   if (ctx) {
-    ctx.fillStyle = "#0f172a";
+    ctx.fillStyle = "#161327";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#64748b";
-    ctx.font = "20px sans-serif";
-    ctx.fillText("Camera Offline", 240, 240);
+    ctx.fillStyle = "#A78BFA";
+    ctx.font = "bold 20px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("📷 Camera Offline / Virtual Stream", canvas.width / 2, canvas.height / 2);
   }
-  const canvasStream = canvas.captureStream(10);
-  return canvasStream;
+  const stream = canvas.captureStream(10);
+  return stream;
+}
+
+// Generate an animated 720p virtual peer stream for local solo testing & presentation
+function createVirtualPeerStream(peerName = "Swap Partner"): MediaStream {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1280;
+  canvas.height = 720;
+  const ctx = canvas.getContext("2d");
+  let frame = 0;
+
+  function draw() {
+    if (!ctx) return;
+    frame++;
+
+    // Gradient background
+    const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    grad.addColorStop(0, "#16112C");
+    grad.addColorStop(1, "#261547");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Dynamic wave mesh
+    ctx.strokeStyle = "rgba(124, 58, 237, 0.25)";
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 5; i++) {
+      ctx.beginPath();
+      for (let x = 0; x < canvas.width; x += 40) {
+        const y =
+          canvas.height / 2 +
+          Math.sin(x * 0.005 + frame * 0.03 + i) * 60 +
+          (i - 2) * 50;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    // Avatar Circle
+    const radius = 70 + Math.sin(frame * 0.04) * 8;
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, canvas.height / 2 - 30, radius, 0, Math.PI * 2);
+    ctx.fillStyle = "#7C3AED";
+    ctx.fill();
+    ctx.strokeStyle = "#C4B5FD";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // Initial
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 44px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(peerName.charAt(0).toUpperCase(), canvas.width / 2, canvas.height / 2 - 30);
+
+    // Name & Status
+    ctx.font = "bold 24px sans-serif";
+    ctx.fillText(peerName, canvas.width / 2, canvas.height / 2 + 75);
+
+    ctx.font = "16px sans-serif";
+    ctx.fillStyle = "#10B981";
+    ctx.fillText("● Live 720p HD Stream (Connected)", canvas.width / 2, canvas.height / 2 + 110);
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+  return canvas.captureStream(30);
 }
 
 export default function VideoRoom({
   sessionId,
   currentUserId,
+  peerName = "Peer",
   onClose,
   onComplete,
 }: VideoRoomProps) {
@@ -67,6 +143,7 @@ export default function VideoRoom({
   const localStreamRef = useRef<MediaStream | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
   const channelRef = useRef<any>(null);
+  const localBcRef = useRef<BroadcastChannel | null>(null);
 
   // Queues to solve ICE candidate race conditions
   const pendingRemoteCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
@@ -77,7 +154,7 @@ export default function VideoRoom({
   const isMakingOfferRef = useRef<boolean>(false);
   const isSettingRemoteAnswerPendingRef = useRef<boolean>(false);
 
-  // States
+  // Call States
   const [callStatus, setCallStatus] = useState<string>("Initializing WebRTC...");
   const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>("new");
   const [isMuted, setIsMuted] = useState(false);
@@ -85,20 +162,39 @@ export default function VideoRoom({
   const [isSharingScreen, setIsSharingScreen] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [remotePeerActive, setRemotePeerActive] = useState(false);
+  const [isSimulatedPeer, setIsSimulatedPeer] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  // Timer
+  const [callSeconds, setCallSeconds] = useState(0);
 
   // Dynamic drawer tool
   const [activeTool, setActiveTool] = useState<"NONE" | "SCRATCHPAD" | "WHITEBOARD">("NONE");
   const [sharedNotes, setSharedNotes] = useState<string>(
-    "// Collaborative Session Notes & Code\n// Synced live between peers\n"
+    `// Collaborative Code & Session Notes\n// Session Room: ${sessionId}\n// Synced live between peers via WebRTC Data & Broadcast\n\nfunction swapSkills(mentor, learner) {\n  return {\n    knowledgeShared: true,\n    creditsExchanged: 10,\n    status: "Mastered"\n  };\n}\n`
   );
 
   // Live Speech Recognition & Closed Captions
-  const [isTranscribing, setIsTranscribing] = useState(true);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const [currentCaption, setCurrentCaption] = useState<string>("");
   const fullTranscriptRef = useRef<string>("");
   const recognitionRef = useRef<any>(null);
 
   const supabase = createClient();
+
+  // Call timer counter
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCallSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatDuration = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins < 10 ? "0" : ""}${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
 
   // Helper: Flush pending remote ICE candidates after setRemoteDescription
   const flushRemoteCandidates = useCallback(async (pc: RTCPeerConnection) => {
@@ -114,18 +210,33 @@ export default function VideoRoom({
     }
   }, []);
 
-  // Helper: Send message over Supabase broadcast channel safely
-  const sendBroadcast = useCallback((event: string, payload: any) => {
-    if (channelRef.current && isChannelSubscribedRef.current) {
-      channelRef.current.send({
-        type: "broadcast",
-        event,
-        payload: { ...payload, senderId: currentUserId },
-      });
-    } else {
-      pendingLocalCandidatesRef.current.push({ event, payload });
-    }
-  }, [currentUserId]);
+  // Dual Signaling Broadcast: Supabase Realtime + Local BroadcastChannel
+  const sendBroadcast = useCallback(
+    (event: string, payload: any) => {
+      const fullPayload = { ...payload, senderId: currentUserId };
+
+      // 1. Supabase Realtime Channel
+      if (channelRef.current && isChannelSubscribedRef.current) {
+        channelRef.current.send({
+          type: "broadcast",
+          event,
+          payload: fullPayload,
+        });
+      } else {
+        pendingLocalCandidatesRef.current.push({ event, payload });
+      }
+
+      // 2. Browser BroadcastChannel (for instant cross-tab local testing)
+      if (localBcRef.current) {
+        try {
+          localBcRef.current.postMessage({ event, payload: fullPayload });
+        } catch (err) {
+          console.warn("BroadcastChannel send error:", err);
+        }
+      }
+    },
+    [currentUserId]
+  );
 
   // Main WebRTC Initialization
   useEffect(() => {
@@ -134,7 +245,7 @@ export default function VideoRoom({
 
     async function setupWebRTC() {
       try {
-        setCallStatus("Fetching ICE servers...");
+        setCallStatus("Fetching ICE configuration...");
 
         let rtcConfig = DEFAULT_ICE_SERVERS;
         try {
@@ -144,12 +255,12 @@ export default function VideoRoom({
             rtcConfig = { ...DEFAULT_ICE_SERVERS, iceServers: data.iceServers };
           }
         } catch (e) {
-          console.warn("Falling back to standard STUN:", e);
+          console.warn("Using public STUN servers:", e);
         }
 
         if (!isMounted) return;
 
-        // 1. Acquire User Media with progressive fallback
+        // 1. Acquire Local Media Stream
         let stream: MediaStream;
         try {
           stream = await navigator.mediaDevices.getUserMedia({
@@ -164,7 +275,7 @@ export default function VideoRoom({
               audio: true,
             });
           } catch (audioError) {
-            console.warn("No audio/video hardware accessible, creating placeholder stream:", audioError);
+            console.warn("No hardware accessible, using fallback canvas stream:", audioError);
             stream = createDummyStream();
           }
         }
@@ -183,7 +294,7 @@ export default function VideoRoom({
         const pc = new RTCPeerConnection(rtcConfig);
         pcRef.current = pc;
 
-        // Add local stream tracks to RTCPeerConnection
+        // Add local tracks
         stream.getTracks().forEach((track) => {
           pc.addTrack(track, stream);
         });
@@ -193,9 +304,10 @@ export default function VideoRoom({
           if (remoteVideoRef.current && event.streams[0]) {
             remoteVideoRef.current.srcObject = event.streams[0];
             setRemotePeerActive(true);
-            setCallStatus("Peer Connected (P2P Stream)");
+            setIsSimulatedPeer(false);
+            setCallStatus("Connected (P2P Stream Active)");
             remoteVideoRef.current.play().catch((err) => {
-              console.warn("Remote video auto-play interrupted:", err);
+              console.warn("Remote video auto-play note:", err);
             });
           }
         };
@@ -211,7 +323,7 @@ export default function VideoRoom({
           } else if (pc.connectionState === "disconnected") {
             setCallStatus("Peer disconnected. Reconnecting...");
           } else if (pc.connectionState === "failed") {
-            setCallStatus("Connection failed. Attempting ICE restart...");
+            setCallStatus("Connection retrying...");
             pc.restartIce();
           }
         };
@@ -229,54 +341,37 @@ export default function VideoRoom({
           }
         };
 
-        // 6. Supabase Realtime Signaling Channel
-        channel = supabase.channel(`call_room_${sessionId}`, {
-          config: { broadcast: { self: false } },
-        });
-        channelRef.current = channel;
+        // 6. Incoming message router
+        const handleIncomingEvent = async (event: string, payload: any) => {
+          const senderId = payload?.senderId;
+          if (!senderId || senderId === currentUserId) return;
 
-        // Perfect negotiation helper: Polite peer yields on collision
-        const isPolite = (peerId: string) => currentUserId > peerId;
-
-        channel
-          .on("broadcast", { event: "user-joined" }, async (msg: any) => {
-            const senderId = msg.payload?.senderId;
-            if (senderId && senderId !== currentUserId) {
-              setCallStatus("Peer joined room, sending offer...");
-              try {
-                isMakingOfferRef.current = true;
-                const offer = await pc.createOffer();
-                await pc.setLocalDescription(offer);
-                sendBroadcast("offer", { offer, targetId: senderId });
-              } catch (err) {
-                console.error("Error creating offer:", err);
-              } finally {
-                isMakingOfferRef.current = false;
-              }
+          if (event === "user-joined") {
+            setCallStatus("Peer joined, sending offer...");
+            try {
+              isMakingOfferRef.current = true;
+              const offer = await pc.createOffer();
+              await pc.setLocalDescription(offer);
+              sendBroadcast("offer", { offer, targetId: senderId });
+            } catch (err) {
+              console.error("Error creating offer:", err);
+            } finally {
+              isMakingOfferRef.current = false;
             }
-          })
-          .on("broadcast", { event: "offer" }, async (msg: any) => {
-            const senderId = msg.payload?.senderId;
-            if (senderId === currentUserId) return;
-
-            const offer = msg.payload?.offer;
+          } else if (event === "offer") {
+            const offer = payload?.offer;
             if (!offer) return;
 
-            // Detect Offer Collision / Glare
-            const isCollision =
-              isMakingOfferRef.current || pc.signalingState !== "stable";
+            const isCollision = isMakingOfferRef.current || pc.signalingState !== "stable";
+            const isPolite = currentUserId > senderId;
 
             if (isCollision) {
-              if (!isPolite(senderId)) {
-                // Impolite peer ignores colliding offer
-                return;
-              }
-              // Polite peer rolls back local description to accept incoming offer
+              if (!isPolite) return;
               await pc.setLocalDescription({ type: "rollback" } as any);
             }
 
             try {
-              setCallStatus("Offer received, generating answer...");
+              setCallStatus("Offer received, responding...");
               await pc.setRemoteDescription(new RTCSessionDescription(offer));
               await flushRemoteCandidates(pc);
 
@@ -286,12 +381,8 @@ export default function VideoRoom({
             } catch (err) {
               console.error("Error handling offer:", err);
             }
-          })
-          .on("broadcast", { event: "answer" }, async (msg: any) => {
-            const senderId = msg.payload?.senderId;
-            if (senderId === currentUserId) return;
-
-            const answer = msg.payload?.answer;
+          } else if (event === "answer") {
+            const answer = payload?.answer;
             if (!answer) return;
 
             try {
@@ -305,12 +396,8 @@ export default function VideoRoom({
             } finally {
               isSettingRemoteAnswerPendingRef.current = false;
             }
-          })
-          .on("broadcast", { event: "ice-candidate" }, async (msg: any) => {
-            const senderId = msg.payload?.senderId;
-            if (senderId === currentUserId) return;
-
-            const candidate = msg.payload?.candidate;
+          } else if (event === "ice-candidate") {
+            const candidate = payload?.candidate;
             if (!candidate) return;
 
             if (pc.remoteDescription && pc.remoteDescription.type) {
@@ -320,34 +407,48 @@ export default function VideoRoom({
                 console.warn("addIceCandidate error:", err);
               }
             } else {
-              // Queue candidate until setRemoteDescription completes
               pendingRemoteCandidatesRef.current.push(candidate);
             }
-          })
-          .on("broadcast", { event: "scratchpad-update" }, (msg: any) => {
-            if (msg.payload?.senderId !== currentUserId) {
-              setSharedNotes(msg.payload?.content || "");
-            }
-          })
-          .on("broadcast", { event: "peer-left" }, (msg: any) => {
-            if (msg.payload?.senderId !== currentUserId) {
-              setRemotePeerActive(false);
-              setCallStatus("Peer left the room");
-            }
-          })
+          } else if (event === "scratchpad-update") {
+            setSharedNotes(payload?.content || "");
+          } else if (event === "peer-left") {
+            setRemotePeerActive(false);
+            setCallStatus("Peer left the room");
+          }
+        };
+
+        // 7. Supabase Realtime Channel
+        channel = supabase.channel(`call_room_${sessionId}`, {
+          config: { broadcast: { self: false } },
+        });
+        channelRef.current = channel;
+
+        channel
+          .on("broadcast", { event: "user-joined" }, (msg: any) =>
+            handleIncomingEvent("user-joined", msg.payload)
+          )
+          .on("broadcast", { event: "offer" }, (msg: any) =>
+            handleIncomingEvent("offer", msg.payload)
+          )
+          .on("broadcast", { event: "answer" }, (msg: any) =>
+            handleIncomingEvent("answer", msg.payload)
+          )
+          .on("broadcast", { event: "ice-candidate" }, (msg: any) =>
+            handleIncomingEvent("ice-candidate", msg.payload)
+          )
+          .on("broadcast", { event: "scratchpad-update" }, (msg: any) =>
+            handleIncomingEvent("scratchpad-update", msg.payload)
+          )
+          .on("broadcast", { event: "peer-left" }, (msg: any) =>
+            handleIncomingEvent("peer-left", msg.payload)
+          )
           .subscribe((status: string) => {
             if (status === "SUBSCRIBED") {
               isChannelSubscribedRef.current = true;
-              setCallStatus("Channel ready. Waiting for peer...");
+              setCallStatus("Ready. Waiting for peer...");
 
-              // Announce presence
-              channel.send({
-                type: "broadcast",
-                event: "user-joined",
-                payload: { senderId: currentUserId },
-              });
+              sendBroadcast("user-joined", {});
 
-              // Flush any queued local messages
               const queued = [...pendingLocalCandidatesRef.current];
               pendingLocalCandidatesRef.current = [];
               for (const item of queued) {
@@ -359,6 +460,25 @@ export default function VideoRoom({
               }
             }
           });
+
+        // 8. Local BroadcastChannel for Cross-Tab Testing on Same Machine
+        if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+          try {
+            const bc = new BroadcastChannel(`call_room_${sessionId}`);
+            localBcRef.current = bc;
+            bc.onmessage = (event) => {
+              if (event.data && event.data.event && event.data.payload) {
+                handleIncomingEvent(event.data.event, event.data.payload);
+              }
+            };
+            bc.postMessage({
+              event: "user-joined",
+              payload: { senderId: currentUserId },
+            });
+          } catch (bcErr) {
+            console.warn("BroadcastChannel error:", bcErr);
+          }
+        }
       } catch (err: any) {
         console.error("WebRTC initialization error:", err);
         setCallStatus(`Media initialization note: ${err.message}`);
@@ -367,78 +487,64 @@ export default function VideoRoom({
 
     setupWebRTC();
 
-    // 7. Speech Recognition for Closed Captions & Transcript Distillation
-    const SpeechRecognition =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
+    // 9. Speech Recognition for Closed Captions
+    if (typeof window !== "undefined") {
+      const SpeechRecognition =
+        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
-    if (SpeechRecognition) {
-      try {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = "en-US";
-
-        recognition.onresult = (event: any) => {
-          let interim = "";
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            const piece = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              fullTranscriptRef.current += " " + piece;
-            } else {
-              interim += piece;
-            }
-          }
-          setCurrentCaption(interim || "Listening...");
-        };
-
-        recognition.onerror = (e: any) => {
-          if (e.error !== "no-speech") {
-            console.warn("Speech recognition warning:", e.error);
-          }
-        };
-
-        recognition.start();
-        recognitionRef.current = recognition;
-      } catch (err) {
-        console.warn("Speech recognition could not be started:", err);
-      }
-    }
-
-    // Comprehensive Unmount & Teardown
-    return () => {
-      isMounted = false;
-
-      // Broadcast departure
-      if (channelRef.current && isChannelSubscribedRef.current) {
+      if (SpeechRecognition) {
         try {
-          channelRef.current.send({
-            type: "broadcast",
-            event: "peer-left",
-            payload: { senderId: currentUserId },
-          });
+          const recognition = new SpeechRecognition();
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          recognition.lang = "en-US";
+
+          recognition.onresult = (event: any) => {
+            let interimTranscript = "";
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+              if (event.results[i].isFinal) {
+                fullTranscriptRef.current += " " + event.results[i][0].transcript;
+                setCurrentCaption(event.results[i][0].transcript);
+              } else {
+                interimTranscript += event.results[i][0].transcript;
+              }
+            }
+            if (interimTranscript) {
+              setCurrentCaption(interimTranscript);
+            }
+          };
+
+          recognition.onerror = () => {
+            // Ignore minor speech errors
+          };
+
+          recognitionRef.current = recognition;
         } catch {
           // ignore
         }
       }
+    }
 
-      // Stop all tracks
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach((t) => t.stop());
+    // Cleanup on unmount
+    return () => {
+      isMounted = false;
+      sendBroadcast("peer-left", {});
+
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
       }
-      if (screenStreamRef.current) {
-        screenStreamRef.current.getTracks().forEach((t) => t.stop());
+      if (localBcRef.current) {
+        localBcRef.current.close();
       }
-      // Close PeerConnection
       if (pcRef.current) {
         pcRef.current.close();
-        pcRef.current = null;
       }
-      // Cleanup Realtime channel
-      if (channel) {
-        supabase.removeChannel(channel);
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach((track) => track.stop());
       }
-      // Stop Speech recognition
+      if (screenStreamRef.current) {
+        screenStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
@@ -447,44 +553,64 @@ export default function VideoRoom({
         }
       }
     };
-  }, [sessionId, currentUserId, supabase, flushRemoteCandidates, sendBroadcast]);
+  }, [sessionId, currentUserId, sendBroadcast, supabase, flushRemoteCandidates]);
 
-  // Handle Scratchpad note sync
+  // Simulate / Toggle Virtual Peer for solo development testing
+  const toggleVirtualPeerSimulation = () => {
+    if (isSimulatedPeer) {
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = null;
+      }
+      setRemotePeerActive(false);
+      setIsSimulatedPeer(false);
+      setCallStatus("Simulated peer disconnected. Waiting for real peer...");
+    } else {
+      const virtualStream = createVirtualPeerStream(peerName);
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = virtualStream;
+        remoteVideoRef.current.play().catch(() => {});
+      }
+      setRemotePeerActive(true);
+      setIsSimulatedPeer(true);
+      setCallStatus("Connected (Simulated 720p HD Stream)");
+    }
+  };
+
+  // Toggle Mute
+  const toggleMute = () => {
+    if (!localStreamRef.current) return;
+    const audioTrack = localStreamRef.current.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = !audioTrack.enabled;
+      setIsMuted(!audioTrack.enabled);
+    }
+  };
+
+  // Toggle Video
+  const toggleVideo = () => {
+    if (!localStreamRef.current) return;
+    const videoTrack = localStreamRef.current.getVideoTracks()[0];
+    if (videoTrack) {
+      videoTrack.enabled = !videoTrack.enabled;
+      setIsVideoOff(!videoTrack.enabled);
+    }
+  };
+
+  // Synchronized Scratchpad Notes
   const handleNotesChange = (val: string) => {
     setSharedNotes(val);
     sendBroadcast("scratchpad-update", { content: val });
   };
 
-  // Toggle Microphone
-  const toggleMute = () => {
-    if (localStreamRef.current) {
-      const audioTrack = localStreamRef.current.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-        setIsMuted(!audioTrack.enabled);
-      }
-    }
-  };
-
-  // Toggle Camera
-  const toggleVideo = () => {
-    if (localStreamRef.current) {
-      const videoTrack = localStreamRef.current.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setIsVideoOff(!videoTrack.enabled);
-      }
-    }
-  };
-
-  // Toggle Screen Share with track replacement
+  // Screen Sharing
   const toggleScreenShare = async () => {
-    if (!pcRef.current || !localStreamRef.current) return;
+    if (!pcRef.current) return;
 
     if (!isSharingScreen) {
       try {
         const screenStream = await navigator.mediaDevices.getDisplayMedia({
           video: true,
+          audio: true,
         });
         screenStreamRef.current = screenStream;
 
@@ -507,7 +633,7 @@ export default function VideoRoom({
 
         setIsSharingScreen(true);
       } catch (err) {
-        console.warn("Screen share request cancelled or error:", err);
+        console.warn("Screen share cancelled:", err);
       }
     } else {
       stopScreenShare();
@@ -538,18 +664,10 @@ export default function VideoRoom({
     setIsSharingScreen(false);
   };
 
-  // End Call and Trigger AI Summary Tasks
+  // End Call & Trigger AI Session Notes
   const handleEndCall = async () => {
     setIsEnding(true);
-    setCallStatus("Processing session summary...");
-
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch {
-        // ignore
-      }
-    }
+    setCallStatus("Wrapping up session...");
 
     const tasks: Promise<any>[] = [];
 
@@ -589,44 +707,91 @@ export default function VideoRoom({
     }
   };
 
+  const handleCopyLink = () => {
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(window.location.href);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 bg-gray-950/95 backdrop-blur-md flex flex-col items-center justify-between p-4 sm:p-6 select-none animate-in fade-in duration-200">
-      {/* Top Session Bar */}
-      <div className="w-full max-w-6xl flex items-center justify-between pb-3 border-b border-gray-800">
+    <div className="fixed inset-0 z-50 bg-[#0E0C1B]/95 backdrop-blur-xl flex flex-col items-center justify-between p-4 sm:p-6 select-none animate-in fade-in duration-200 text-[#F4F3FA]">
+      {/* Top Session Header Bar */}
+      <div className="w-full max-w-6xl flex items-center justify-between pb-3.5 border-b border-[#2D264E]">
         <div className="flex items-center gap-3">
-          <Badge className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 text-xs font-semibold flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5" />
+          <Badge className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white px-3 py-1 text-xs font-semibold flex items-center gap-1.5 shadow-xs">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
             <span>Native WebRTC P2P</span>
           </Badge>
 
           <div className="flex items-center gap-2">
             <span
-              className={`w-2 h-2 rounded-full ${
-                connectionState === "connected"
+              className={`w-2.5 h-2.5 rounded-full ${
+                remotePeerActive
                   ? "bg-emerald-500 animate-pulse"
-                  : "bg-amber-400"
+                  : "bg-amber-400 animate-ping"
               }`}
             />
-            <span className="text-xs text-gray-300 font-mono truncate max-w-xs sm:max-w-md">
+            <span className="text-xs text-zinc-300 font-mono truncate max-w-xs sm:max-w-md">
               {callStatus}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Status Pills & Actions */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Call Timer */}
+          <div className="hidden sm:flex items-center gap-1 px-3 py-1 rounded-full bg-[#161327] border border-[#2D264E] text-xs font-mono text-zinc-300">
+            <Clock className="w-3.5 h-3.5 text-[#A78BFA]" />
+            <span>{formatDuration(callSeconds)}</span>
+          </div>
+
+          {/* Solo Test Simulator Button */}
+          <button
+            type="button"
+            onClick={toggleVirtualPeerSimulation}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 ${
+              isSimulatedPeer
+                ? "bg-emerald-600 text-white border-emerald-500"
+                : "border-[#2D264E] bg-[#161327] text-[#A78BFA] hover:bg-[#231C3D]"
+            }`}
+            title="Simulate a live peer video stream to test audio/video/tools solo"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">
+              {isSimulatedPeer ? "Stop Test Peer" : "Simulate Peer Video"}
+            </span>
+            <span className="md:hidden">Test Peer</span>
+          </button>
+
+          {/* Copy Link Button */}
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-[#2D264E] bg-[#161327] text-zinc-300 hover:bg-[#231C3D] transition-colors flex items-center gap-1.5"
+            title="Copy room link to open in second tab or send to friend"
+          >
+            {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">{copiedLink ? "Copied!" : "Copy Link"}</span>
+          </button>
+
+          {/* End Call Button */}
           <Button
             variant="destructive"
             size="sm"
             disabled={isEnding}
             onClick={handleEndCall}
-            className="text-xs font-semibold px-4 py-2"
+            className="text-xs font-semibold px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-xs"
           >
-            {isEnding ? "Processing Recap..." : "End Call"}
+            <PhoneOff className="w-3.5 h-3.5 mr-1" />
+            <span>{isEnding ? "Saving..." : "End Call"}</span>
           </Button>
+
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+            className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-[#161327] transition-colors"
             title="Minimize View"
           >
             <Minimize2 className="w-4 h-4" />
@@ -634,45 +799,59 @@ export default function VideoRoom({
         </div>
       </div>
 
-      {/* Main Video & Collaborative Stage */}
+      {/* Main Video Stage & Side Drawers */}
       <div
         className={`w-full max-w-6xl grid gap-4 my-auto relative ${
           activeTool !== "NONE" ? "md:grid-cols-3" : "md:grid-cols-2"
         }`}
       >
-        {/* Remote Video Stream */}
-        <div className="relative aspect-video bg-gray-900 rounded-3xl overflow-hidden border border-gray-800 flex items-center justify-center shadow-2xl">
+        {/* Remote Peer Video Stream */}
+        <div className="relative aspect-video bg-[#161327] rounded-3xl overflow-hidden border border-[#2D264E] flex items-center justify-center shadow-2xl">
           <video
             ref={remoteVideoRef}
             autoPlay
             playsInline
             className="w-full h-full object-cover"
           />
+
           {!remotePeerActive && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 text-gray-400 p-6 text-center">
-              <div className="w-14 h-14 rounded-full bg-gray-800 text-indigo-400 flex items-center justify-center mb-3">
-                <RefreshCw className="w-6 h-6 animate-spin" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#161327]/95 text-zinc-400 p-6 text-center space-y-3">
+              <div className="w-16 h-16 rounded-2xl bg-[#231C3D] text-[#A78BFA] border border-[#3B2D66] flex items-center justify-center">
+                <RefreshCw className="w-7 h-7 animate-spin" />
               </div>
-              <h4 className="text-sm font-semibold text-white">
-                Waiting for peer to connect...
-              </h4>
-              <p className="text-xs text-gray-400 mt-1 max-w-xs">
-                Once your peer joins, encrypted P2P media streaming will start automatically.
-              </p>
+              <div>
+                <h4 className="text-sm font-bold text-white">
+                  Waiting for {peerName} to connect...
+                </h4>
+                <p className="text-xs text-zinc-400 mt-1 max-w-xs mx-auto">
+                  Open this link in another tab to test live peer-to-peer streaming, or click below:
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={toggleVirtualPeerSimulation}
+                className="px-4 py-2 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Simulate Peer Stream (Solo Test)</span>
+              </button>
             </div>
           )}
-          <div className="absolute bottom-3 left-3 bg-gray-950/80 backdrop-blur-md px-3 py-1 rounded-xl text-xs text-white flex items-center gap-2">
+
+          <div className="absolute bottom-3 left-3 bg-[#0E0C1B]/80 backdrop-blur-md px-3 py-1 rounded-xl text-xs text-white flex items-center gap-2 border border-[#2D264E]">
             <span
               className={`w-2 h-2 rounded-full ${
                 remotePeerActive ? "bg-emerald-500" : "bg-gray-500"
               }`}
             />
-            <span>Peer Stream</span>
+            <span className="font-semibold">
+              {peerName} {isSimulatedPeer ? "(Simulated 720p)" : "(Peer Stream)"}
+            </span>
           </div>
         </div>
 
-        {/* Local Video Stream */}
-        <div className="relative aspect-video bg-gray-900 rounded-3xl overflow-hidden border border-gray-800 flex items-center justify-center shadow-2xl">
+        {/* Local Camera Stream */}
+        <div className="relative aspect-video bg-[#161327] rounded-3xl overflow-hidden border border-[#2D264E] flex items-center justify-center shadow-2xl">
           <video
             ref={localVideoRef}
             autoPlay
@@ -682,131 +861,164 @@ export default function VideoRoom({
               isSharingScreen ? "" : "-scale-x-100"
             }`}
           />
+
           {isVideoOff && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-gray-400">
-              <VideoOff className="w-10 h-10 text-gray-600 mb-2" />
-              <span className="text-xs">Camera is turned off</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#161327] text-zinc-400 space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-red-950/40 border border-red-800/60 flex items-center justify-center text-red-400">
+                <VideoOff className="w-6 h-6" />
+              </div>
+              <span className="text-xs font-semibold">Your camera is turned off</span>
             </div>
           )}
-          <div className="absolute bottom-3 left-3 bg-gray-950/80 backdrop-blur-md px-3 py-1 rounded-xl text-xs text-white flex items-center gap-2">
+
+          <div className="absolute bottom-3 left-3 bg-[#0E0C1B]/80 backdrop-blur-md px-3 py-1 rounded-xl text-xs text-white flex items-center gap-2 border border-[#2D264E]">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>{isSharingScreen ? "You (Sharing Screen)" : "You (Local Camera)"}</span>
+            <span className="font-semibold">
+              {isSharingScreen ? "You (Sharing Screen)" : "You (Local Stream)"}
+            </span>
           </div>
         </div>
 
         {/* Tool Drawer: Live Collaborative Scratchpad */}
         {activeTool === "SCRATCHPAD" && (
-          <div className="aspect-video md:aspect-auto bg-gray-900 rounded-3xl border border-gray-800 flex flex-col overflow-hidden p-4 shadow-2xl">
-            <div className="flex items-center justify-between pb-2.5 border-b border-gray-800">
+          <div className="aspect-video md:aspect-auto bg-[#161327] rounded-3xl border border-[#2D264E] flex flex-col overflow-hidden p-4 shadow-2xl">
+            <div className="flex items-center justify-between pb-2.5 border-b border-[#2D264E]">
               <span className="text-xs font-semibold text-white flex items-center gap-1.5">
                 <Edit3 className="w-4 h-4 text-emerald-400" />
-                <span>P2P Scratchpad & Code Sync</span>
+                <span>P2P Live Scratchpad & Code Sync</span>
               </span>
               <Badge
                 variant="outline"
                 className="text-[10px] text-emerald-400 border-emerald-800"
               >
-                Broadcast Active
+                Live Synced
               </Badge>
             </div>
             <textarea
               value={sharedNotes}
               onChange={(e) => handleNotesChange(e.target.value)}
               placeholder="Paste code or type shared notes here..."
-              className="w-full flex-1 mt-3 bg-gray-950 text-gray-200 font-mono text-xs p-3 rounded-2xl border border-gray-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none leading-relaxed"
+              className="w-full flex-1 mt-3 bg-[#0E0C1B] text-zinc-200 font-mono text-xs p-3.5 rounded-2xl border border-[#2D264E] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 resize-none leading-relaxed"
             />
           </div>
         )}
 
-        {/* Tool Drawer: Collaborative Architecture Whiteboard */}
+        {/* Tool Drawer: Collaborative Whiteboard */}
         {activeTool === "WHITEBOARD" && (
-          <div className="aspect-video md:aspect-auto h-[380px] md:h-full bg-gray-900 rounded-3xl border border-gray-800 overflow-hidden shadow-2xl p-2">
+          <div className="aspect-video md:aspect-auto h-[380px] md:h-full bg-[#161327] rounded-3xl border border-[#2D264E] overflow-hidden shadow-2xl p-2">
             <Whiteboard channel={channelRef.current} currentUserId={currentUserId} />
           </div>
         )}
 
         {/* Live Closed Captions Display */}
         {isTranscribing && currentCaption && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-950/85 text-white text-xs px-5 py-2.5 rounded-full border border-gray-800 backdrop-blur-md max-w-xl truncate shadow-2xl flex items-center gap-2">
-            <Subtitles className="w-4 h-4 text-purple-400 shrink-0" />
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#0E0C1B]/90 text-white text-xs px-5 py-2.5 rounded-full border border-[#2D264E] backdrop-blur-md max-w-xl truncate shadow-2xl flex items-center gap-2">
+            <Subtitles className="w-4 h-4 text-[#A78BFA] shrink-0" />
             <span className="italic">{currentCaption}</span>
           </div>
         )}
       </div>
 
       {/* Control Actions Bar */}
-      <div className="flex items-center gap-2.5 flex-wrap justify-center pt-3 border-t border-gray-800/80 w-full">
-        {/* Mic toggle */}
+      <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-center pt-3 border-t border-[#2D264E] w-full">
+        {/* Mic Toggle */}
         <Button
           variant={isMuted ? "destructive" : "secondary"}
           onClick={toggleMute}
           size="sm"
-          className="text-xs flex items-center gap-1.5 rounded-xl"
+          className={`text-xs flex items-center gap-1.5 rounded-xl transition-all ${
+            isMuted
+              ? "bg-red-600 hover:bg-red-700 text-white"
+              : "bg-[#161327] hover:bg-[#231C3D] text-white border border-[#2D264E]"
+          }`}
         >
-          {isMuted ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+          {isMuted ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5 text-emerald-400" />}
           <span>{isMuted ? "Unmute Mic" : "Mute Mic"}</span>
         </Button>
 
-        {/* Camera toggle */}
+        {/* Camera Toggle */}
         <Button
           variant={isVideoOff ? "destructive" : "secondary"}
           onClick={toggleVideo}
           size="sm"
-          className="text-xs flex items-center gap-1.5 rounded-xl"
+          className={`text-xs flex items-center gap-1.5 rounded-xl transition-all ${
+            isVideoOff
+              ? "bg-red-600 hover:bg-red-700 text-white"
+              : "bg-[#161327] hover:bg-[#231C3D] text-white border border-[#2D264E]"
+          }`}
         >
-          {isVideoOff ? <VideoOff className="w-3.5 h-3.5" /> : <VideoIcon className="w-3.5 h-3.5" />}
+          {isVideoOff ? <VideoOff className="w-3.5 h-3.5" /> : <VideoIcon className="w-3.5 h-3.5 text-indigo-400" />}
           <span>{isVideoOff ? "Camera Off" : "Camera On"}</span>
         </Button>
 
-        {/* Screen share toggle */}
+        {/* Screen Share Toggle */}
         <Button
           variant={isSharingScreen ? "default" : "secondary"}
           onClick={toggleScreenShare}
           size="sm"
-          className={`text-xs flex items-center gap-1.5 rounded-xl ${
-            isSharingScreen ? "bg-indigo-600 hover:bg-indigo-500 text-white" : ""
+          className={`text-xs flex items-center gap-1.5 rounded-xl transition-all ${
+            isSharingScreen
+              ? "bg-[#7C3AED] hover:bg-[#6D28D9] text-white shadow-xs"
+              : "bg-[#161327] hover:bg-[#231C3D] text-white border border-[#2D264E]"
           }`}
         >
-          <MonitorUp className="w-3.5 h-3.5" />
+          <MonitorUp className="w-3.5 h-3.5 text-amber-400" />
           <span>{isSharingScreen ? "Stop Screen Share" : "Share Screen"}</span>
         </Button>
 
-        {/* Scratchpad tool toggle */}
+        {/* Scratchpad Tool Toggle */}
         <Button
           variant={activeTool === "SCRATCHPAD" ? "default" : "secondary"}
           onClick={() => setActiveTool(activeTool === "SCRATCHPAD" ? "NONE" : "SCRATCHPAD")}
           size="sm"
-          className={`text-xs flex items-center gap-1.5 rounded-xl ${
-            activeTool === "SCRATCHPAD" ? "bg-emerald-600 hover:bg-emerald-500 text-white" : ""
+          className={`text-xs flex items-center gap-1.5 rounded-xl transition-all ${
+            activeTool === "SCRATCHPAD"
+              ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+              : "bg-[#161327] hover:bg-[#231C3D] text-white border border-[#2D264E]"
           }`}
         >
-          <Edit3 className="w-3.5 h-3.5" />
+          <Edit3 className="w-3.5 h-3.5 text-emerald-400" />
           <span>Code Notes</span>
         </Button>
 
-        {/* Whiteboard tool toggle */}
+        {/* Whiteboard Tool Toggle */}
         <Button
           variant={activeTool === "WHITEBOARD" ? "default" : "secondary"}
           onClick={() => setActiveTool(activeTool === "WHITEBOARD" ? "NONE" : "WHITEBOARD")}
           size="sm"
-          className={`text-xs flex items-center gap-1.5 rounded-xl ${
-            activeTool === "WHITEBOARD" ? "bg-indigo-600 hover:bg-indigo-500 text-white" : ""
+          className={`text-xs flex items-center gap-1.5 rounded-xl transition-all ${
+            activeTool === "WHITEBOARD"
+              ? "bg-[#7C3AED] hover:bg-[#6D28D9] text-white shadow-xs"
+              : "bg-[#161327] hover:bg-[#231C3D] text-white border border-[#2D264E]"
           }`}
         >
-          <Palette className="w-3.5 h-3.5" />
+          <Palette className="w-3.5 h-3.5 text-[#A78BFA]" />
           <span>Whiteboard</span>
         </Button>
 
-        {/* Captions toggle */}
+        {/* Captions Toggle */}
         <Button
           variant={isTranscribing ? "default" : "secondary"}
-          onClick={() => setIsTranscribing(!isTranscribing)}
+          onClick={() => {
+            if (!isTranscribing && recognitionRef.current) {
+              try {
+                recognitionRef.current.start();
+              } catch {}
+            } else if (recognitionRef.current) {
+              try {
+                recognitionRef.current.stop();
+              } catch {}
+            }
+            setIsTranscribing(!isTranscribing);
+          }}
           size="sm"
-          className={`text-xs flex items-center gap-1.5 rounded-xl ${
-            isTranscribing ? "bg-purple-600 hover:bg-purple-500 text-white" : ""
+          className={`text-xs flex items-center gap-1.5 rounded-xl transition-all ${
+            isTranscribing
+              ? "bg-purple-600 hover:bg-purple-700 text-white shadow-xs"
+              : "bg-[#161327] hover:bg-[#231C3D] text-white border border-[#2D264E]"
           }`}
         >
-          <Subtitles className="w-3.5 h-3.5" />
+          <Subtitles className="w-3.5 h-3.5 text-purple-400" />
           <span>{isTranscribing ? "Captions On" : "Captions Off"}</span>
         </Button>
       </div>
