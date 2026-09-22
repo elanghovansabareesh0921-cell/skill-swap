@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   Layers,
   GraduationCap,
+  Award,
 } from "lucide-react";
 
 export default function UserPublicProfilePage() {
@@ -37,6 +38,15 @@ export default function UserPublicProfilePage() {
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
     role: "Full-Stack Developer & Mentor",
     location: "San Francisco, CA • Remote",
+    currentActivity: "Senior Engineer @ OpenDev • Mentoring in Python & System Design",
+    school: "Carnegie Mellon University",
+    degree: "M.S. in Software Engineering",
+    graduationYear: "Alumni",
+    credentials: [
+      "AWS Certified Solutions Architect",
+      "Google Developer Expert",
+      "Python Software Foundation Contributor",
+    ],
     bio: "Full-stack developer helping beginners build real-world software projects. Specializing in Python, React micro-frontends, and pragmatic engineering workflows.",
     rating: 4.9,
     sessionsTaught: 127,
@@ -74,7 +84,7 @@ export default function UserPublicProfilePage() {
                 <img
                   src={teacher.avatar}
                   alt={teacher.name}
-                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#EDE9FE] dark:border-[#2D264E] shadow-sm"
+                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#7C3AED] shadow-sm"
                 />
                 {teacher.verified && (
                   <div
@@ -95,12 +105,20 @@ export default function UserPublicProfilePage() {
                     Top Mentor
                   </span>
                 </div>
+
+                {/* Headline / What they are doing rn */}
+                {(teacher as any).currentActivity && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EDE9FE]/70 dark:bg-[#231C3D]/70 text-xs font-semibold text-[#7C3AED] dark:text-[#A78BFA] mt-1.5 border border-[#DDD6FE] dark:border-[#3B2D66]">
+                    <span>{(teacher as any).currentActivity}</span>
+                  </div>
+                )}
+
                 <p className="text-xs sm:text-sm text-[#71717A] dark:text-zinc-400 mt-1">
                   @{teacher.name.toLowerCase().replace(/\s+/g, "")} • {teacher.role}
                 </p>
                 <div className="flex items-center gap-3 text-xs text-[#71717A] dark:text-zinc-400 mt-2">
                   <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5" />
+                    <MapPin className="w-3.5 h-3.5 text-[#7C3AED]" />
                     {teacher.location}
                   </span>
                   <span>•</span>
@@ -171,6 +189,65 @@ export default function UserPublicProfilePage() {
             {teacher.bio}
           </p>
         </div>
+
+        {/* SECTION: STUDIES & EDUCATION */}
+        {((teacher as any).school || (teacher as any).degree) && (
+          <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-3">
+            <div className="flex items-center gap-2 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+              <GraduationCap className="w-5 h-5 text-[#7C3AED] dark:text-[#A78BFA]" />
+              <h2 className="text-base font-bold text-[#18181B] dark:text-white">Studies &amp; Education</h2>
+            </div>
+            <div className="flex items-start gap-4 p-4 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E]">
+              <div className="w-10 h-10 rounded-xl bg-[#EDE9FE] dark:bg-[#231C3D] flex items-center justify-center text-[#7C3AED] dark:text-[#A78BFA] shrink-0">
+                <GraduationCap className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-[#18181B] dark:text-white">
+                  {(teacher as any).school}
+                </h4>
+                <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-0.5">
+                  {(teacher as any).degree}
+                </p>
+                {(teacher as any).graduationYear && (
+                  <span className="inline-block text-[11px] font-semibold text-[#7C3AED] dark:text-[#A78BFA] mt-1.5 px-2 py-0.5 rounded-md bg-[#EDE9FE] dark:bg-[#231C3D]">
+                    {(teacher as any).graduationYear}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SECTION: CREDENTIALS & CERTIFICATIONS */}
+        {(teacher as any).credentials && (teacher as any).credentials.length > 0 && (
+          <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-4">
+            <div className="flex items-center gap-2 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+              <Award className="w-5 h-5 text-[#7C3AED] dark:text-[#A78BFA]" />
+              <h2 className="text-base font-bold text-[#18181B] dark:text-white">Credentials &amp; Certifications</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {(teacher as any).credentials.map((cred: string, idx: number) => (
+                <div
+                  key={idx}
+                  className="p-4 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] flex items-center gap-3"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                    <Award className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-[#18181B] dark:text-white">
+                      {cred}
+                    </h5>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Verified
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* SECTION: I CAN TEACH */}
         <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-4">

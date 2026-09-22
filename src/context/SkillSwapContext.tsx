@@ -131,20 +131,28 @@ export interface UserSkillItem {
   goal?: string;
 }
 
+export interface CurrentUser {
+  id: string;
+  name: string;
+  email?: string;
+  avatar: string;
+  role: string;
+  location: string;
+  bio: string;
+  credits: number;
+  learningCount: number;
+  teachingCount: number;
+  skillsCount: number;
+  currentActivity?: string; // what they are doing right now (occupation / focus)
+  school?: string; // school / university / college
+  degree?: string; // field of study / degree
+  graduationYear?: string; // graduation year or status
+  gender?: string; // gender identity
+  credentials?: string[]; // certifications / credentials / degrees
+}
+
 interface SkillSwapContextType {
-  currentUser: {
-    id: string;
-    name: string;
-    email?: string;
-    avatar: string;
-    role: string;
-    location: string;
-    bio: string;
-    credits: number;
-    learningCount: number;
-    teachingCount: number;
-    skillsCount: number;
-  };
+  currentUser: CurrentUser;
   isAuthenticated: boolean;
   isLoadingAuth: boolean;
   credits: number;
@@ -170,6 +178,7 @@ interface SkillSwapContextType {
   loginWithGoogleCredential: (credentialToken: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   refreshUserProfile: () => Promise<void>;
+  updateUserProfile: (updates: Partial<CurrentUser>) => Promise<{ success: boolean; error?: string }>;
 
   // Swap Requests
   sendSwapRequest: (data: {
@@ -665,7 +674,7 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   },
 ];
 
-const DEFAULT_USER = {
+const DEFAULT_USER: CurrentUser = {
   id: "user-alex",
   name: "Alex Demo",
   email: "demo@skillswap.com",
@@ -677,6 +686,16 @@ const DEFAULT_USER = {
   learningCount: 4,
   teachingCount: 6,
   skillsCount: 4,
+  currentActivity: "Building Generative AI & Web Applications",
+  school: "UC Berkeley",
+  degree: "B.S. in Computer Science",
+  graduationYear: "2024",
+  gender: "Prefer not to say",
+  credentials: [
+    "AWS Certified Solutions Architect",
+    "Meta Frontend Developer Professional",
+    "Google UX Design Certificate",
+  ],
 };
 
 const SkillSwapContext = createContext<SkillSwapContextType | undefined>(undefined);
@@ -720,6 +739,7 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setIsAuthenticated(true);
+        const userMeta = session.user.user_metadata || {};
         const { data: profile } = await supabase
           .from("profiles")
           .select("*")
@@ -730,10 +750,18 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
           setCurrentUser((prev) => ({
             ...prev,
             id: profile.id,
-            name: profile.full_name || session.user.user_metadata?.full_name || "User",
+            name: profile.full_name || userMeta.full_name || session.user.user_metadata?.full_name || "User",
             email: profile.email || session.user.email || "",
             credits: profile.credits ?? prev.credits,
             bio: profile.bio || prev.bio,
+            avatar: userMeta.avatar_url || userMeta.avatar || prev.avatar,
+            location: userMeta.location ?? prev.location,
+            currentActivity: userMeta.current_activity ?? prev.currentActivity,
+            school: userMeta.school ?? prev.school,
+            degree: userMeta.degree ?? prev.degree,
+            graduationYear: userMeta.graduation_year ?? prev.graduationYear,
+            gender: userMeta.gender ?? prev.gender,
+            credentials: userMeta.credentials ?? prev.credentials,
           }));
           if (profile.credits !== undefined && profile.credits !== null) {
             setCredits(profile.credits);
@@ -744,6 +772,14 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
             id: session.user.id,
             name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
             email: session.user.email || "",
+            avatar: userMeta.avatar_url || userMeta.avatar || prev.avatar,
+            location: userMeta.location ?? prev.location,
+            currentActivity: userMeta.current_activity ?? prev.currentActivity,
+            school: userMeta.school ?? prev.school,
+            degree: userMeta.degree ?? prev.degree,
+            graduationYear: userMeta.graduation_year ?? prev.graduationYear,
+            gender: userMeta.gender ?? prev.gender,
+            credentials: userMeta.credentials ?? prev.credentials,
           }));
         }
       }
@@ -996,6 +1032,71 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
     }
     setIsAuthenticated(false);
     showToast("Signed Out", "You have successfully logged out.", "info");
+  };
+
+  const updateUserProfile = async (updates: Partial<CurrentUser>) => {
+    setIsLoadingAuth(true);
+    try {
+      const updatedUser: CurrentUser = {
+        ...currentUser,
+        ...updates,
+      };
+
+      setCurrentUser(updatedUser);
+
+      // Save to localStorage for instant state persistence across page loads
+      if (typeof window !== "undefined") {
+        localStorage.setItem("skillswap_user", JSON.stringify(updatedUser));
+      }
+
+      // Sync to Supabase
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // Update user metadata in Supabase Auth (supports all custom fields without schema restrictions)
+          await supabase.auth.updateUser({
+            data: {
+              full_name: updatedUser.name,
+              avatar_url: updatedUser.avatar,
+              location: updatedUser.location,
+              current_activity: updatedUser.currentActivity,
+              school: updatedUser.school,
+              degree: updatedUser.degree,
+              graduation_year: updatedUser.graduationYear,
+              gender: updatedUser.gender,
+              credentials: updatedUser.credentials,
+            },
+          });
+
+          // Also update profiles table (safe existing columns only)
+          await supabase
+            .from("profiles")
+            .update({
+              full_name: updatedUser.name,
+              bio: updatedUser.bio,
+            })
+            .eq("id", user.id);
+        } else if (currentUser.id) {
+          await supabase
+            .from("profiles")
+            .update({
+              full_name: updatedUser.name,
+              bio: updatedUser.bio,
+            })
+            .eq("id", currentUser.id);
+        }
+      } catch (dbErr) {
+        console.warn("Supabase profile sync warning:", dbErr);
+      }
+
+      showToast("Profile Updated! 🎉", "Your profile changes have been saved.", "success");
+      return { success: true };
+    } catch (err: any) {
+      showToast("Update Failed", err.message || "Failed to update profile.", "error");
+      return { success: false, error: err.message };
+    } finally {
+      setIsLoadingAuth(false);
+    }
   };
 
   // Swap Request Management
@@ -1434,6 +1535,7 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
         loginWithGoogleCredential,
         signOut,
         refreshUserProfile,
+        updateUserProfile,
         sendSwapRequest,
         respondToSwapRequest,
         sendMessage,

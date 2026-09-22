@@ -17,6 +17,8 @@ import {
   CheckCircle2,
   MapPin,
   Mail,
+  Briefcase,
+  User,
 } from "lucide-react";
 
 export default function CurrentUserProfilePage() {
@@ -43,10 +45,10 @@ export default function CurrentUserProfilePage() {
                 <img
                   src={currentUser.avatar}
                   alt={currentUser.name}
-                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#EDE9FE] dark:border-[#2D264E] shadow-sm"
+                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#7C3AED] shadow-sm"
                 />
                 <div
-                  title="Verified Peer Mentor"
+                  title="Verified Member"
                   className="absolute bottom-1 right-1 w-6 h-6 bg-[#7C3AED] rounded-full flex items-center justify-center text-white ring-2 ring-white dark:ring-[#161327]"
                 >
                   <ShieldCheck className="w-3.5 h-3.5" />
@@ -62,14 +64,32 @@ export default function CurrentUserProfilePage() {
                     Member
                   </span>
                 </div>
+
+                {/* Headline / What they are doing right now */}
+                {currentUser.currentActivity && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EDE9FE]/70 dark:bg-[#231C3D]/70 text-xs font-semibold text-[#7C3AED] dark:text-[#A78BFA] mt-1.5 border border-[#DDD6FE] dark:border-[#3B2D66]">
+                    <Briefcase className="w-3.5 h-3.5" />
+                    <span>{currentUser.currentActivity}</span>
+                  </div>
+                )}
+
                 <p className="text-xs sm:text-sm text-[#71717A] dark:text-zinc-400 mt-1">
                   @{currentUser.name.toLowerCase().replace(/\s+/g, "")} • {currentUser.role}
                 </p>
-                <div className="flex items-center gap-4 text-xs text-[#71717A] dark:text-zinc-400 mt-2">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {currentUser.location}
-                  </span>
+
+                <div className="flex flex-wrap items-center gap-4 text-xs text-[#71717A] dark:text-zinc-400 mt-2">
+                  {currentUser.location && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-[#7C3AED]" />
+                      {currentUser.location}
+                    </span>
+                  )}
+                  {currentUser.gender && currentUser.gender !== "Prefer not to say" && (
+                    <span className="flex items-center gap-1">
+                      <User className="w-3.5 h-3.5 text-[#7C3AED]" />
+                      {currentUser.gender}
+                    </span>
+                  )}
                   <span className="font-mono font-bold text-[#7C3AED] dark:text-[#A78BFA]">
                     🪙 {credits} Credits
                   </span>
@@ -79,7 +99,7 @@ export default function CurrentUserProfilePage() {
 
             <div className="flex items-center gap-2.5 w-full sm:w-auto">
               <Link
-                href="/settings"
+                href="/settings?tab=profile"
                 className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] text-xs font-semibold text-[#18181B] dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center gap-1.5"
               >
                 <Settings className="w-3.5 h-3.5" />
@@ -123,6 +143,77 @@ export default function CurrentUserProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* SECTION: EDUCATION & STUDIES */}
+        {(currentUser.school || currentUser.degree) && (
+          <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-3">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-[#7C3AED] dark:text-[#A78BFA]" />
+                <h2 className="text-base font-bold text-[#18181B] dark:text-white">Studies &amp; Education</h2>
+              </div>
+              <Link href="/settings?tab=profile" className="text-xs font-semibold text-[#7C3AED] hover:underline">
+                Edit
+              </Link>
+            </div>
+
+            <div className="flex items-start gap-4 p-4 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E]">
+              <div className="w-10 h-10 rounded-xl bg-[#EDE9FE] dark:bg-[#231C3D] flex items-center justify-center text-[#7C3AED] dark:text-[#A78BFA] shrink-0">
+                <GraduationCap className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-[#18181B] dark:text-white">
+                  {currentUser.school || "University"}
+                </h4>
+                <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-0.5">
+                  {currentUser.degree || "Field of Study"}
+                </p>
+                {currentUser.graduationYear && (
+                  <span className="inline-block text-[11px] font-semibold text-[#7C3AED] dark:text-[#A78BFA] mt-1.5 px-2 py-0.5 rounded-md bg-[#EDE9FE] dark:bg-[#231C3D]">
+                    {currentUser.graduationYear}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SECTION: CREDENTIALS & CERTIFICATIONS */}
+        {currentUser.credentials && currentUser.credentials.length > 0 && (
+          <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-[#7C3AED] dark:text-[#A78BFA]" />
+                <h2 className="text-base font-bold text-[#18181B] dark:text-white">Credentials &amp; Certifications</h2>
+              </div>
+              <Link href="/settings?tab=profile" className="text-xs font-semibold text-[#7C3AED] hover:underline">
+                + Add credential
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {currentUser.credentials.map((cred, idx) => (
+                <div
+                  key={idx}
+                  className="p-4 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] flex items-center gap-3"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                    <Award className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-[#18181B] dark:text-white">
+                      {cred}
+                    </h5>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Verified
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* SECTION: ABOUT ME */}
         <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-2">

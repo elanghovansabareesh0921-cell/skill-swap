@@ -62,7 +62,7 @@ const AVATAR_PRESETS = [
 export default function OnboardingPage() {
   const router = useRouter();
   const supabase = createClient();
-  const { addTeachingSkill, addLearningSkill, showToast } = useSkillSwap();
+  const { addTeachingSkill, addLearningSkill, updateUserProfile, showToast } = useSkillSwap();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [loading, setLoading] = useState(false);
@@ -82,6 +82,8 @@ export default function OnboardingPage() {
   const [avatar, setAvatar] = useState(AVATAR_PRESETS[0]);
   const [bio, setBio] = useState("Excited to learn, teach, and swap skills on the platform!");
   const [location, setLocation] = useState("Remote / Global");
+  const [currentActivity, setCurrentActivity] = useState("");
+  const [school, setSchool] = useState("");
   const [experienceLevel, setExperienceLevel] = useState("Intermediate");
 
   const toggleLearnSkill = (skill: string) => {
@@ -129,14 +131,15 @@ export default function OnboardingPage() {
         addLearningSkill({ name: l, level: "Beginner" });
       });
 
-      // Try to save to Supabase if authenticated
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("profiles").update({
-          bio,
-          avatar_url: avatar,
-        }).eq("id", user.id);
-      }
+      // Update rich profile fields
+      await updateUserProfile({
+        avatar,
+        bio,
+        location,
+        currentActivity: currentActivity.trim() || undefined,
+        school: school.trim() || undefined,
+        role: currentActivity.trim() || "Skill Swap Member",
+      });
     } catch (e) {
       console.warn("Onboarding sync:", e);
     }
@@ -496,6 +499,36 @@ export default function OnboardingPage() {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="Share what excites you about learning and mentoring..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                />
+              </div>
+
+              {/* Current Activity / Occupation */}
+              <div className="space-y-1.5">
+                <label htmlFor="currentActivity" className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block">
+                  What are you doing right now? (Occupation / Headline)
+                </label>
+                <input
+                  id="currentActivity"
+                  type="text"
+                  value={currentActivity}
+                  onChange={(e) => setCurrentActivity(e.target.value)}
+                  placeholder="e.g. Software Engineer @ Stripe • Learning AI Agents"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                />
+              </div>
+
+              {/* School / Education */}
+              <div className="space-y-1.5">
+                <label htmlFor="school" className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block">
+                  School / College / University (Optional)
+                </label>
+                <input
+                  id="school"
+                  type="text"
+                  value={school}
+                  onChange={(e) => setSchool(e.target.value)}
+                  placeholder="e.g. Stanford University, MIT, Self-Taught"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
                 />
               </div>
