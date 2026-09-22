@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { useTheme } from "@/context/ThemeContext";
-import { useSkillSwap } from "@/context/SkillSwapContext";
+import { useSkillSwap, CredentialItem, normalizeCredential } from "@/context/SkillSwapContext";
+import CertificateModal from "@/components/CertificateModal";
 import { createClient } from "@/lib/supabase";
 import {
   Sun,
@@ -27,6 +28,15 @@ import {
   Briefcase,
   MapPin,
   X,
+  FileText,
+  ExternalLink,
+  Eye,
+  Trash2,
+  Paperclip,
+  Building2,
+  Calendar,
+  Sparkles,
+  Plus,
 } from "lucide-react";
 
 const AVATAR_PRESETS = [
@@ -60,8 +70,19 @@ function SettingsContent() {
   const [degree, setDegree] = useState(currentUser.degree || "");
   const [graduationYear, setGraduationYear] = useState(currentUser.graduationYear || "");
   const [gender, setGender] = useState(currentUser.gender || "Prefer not to say");
-  const [credentials, setCredentials] = useState<string[]>(currentUser.credentials || []);
+  const [credentials, setCredentials] = useState<(string | CredentialItem)[]>(currentUser.credentials || []);
   const [newCred, setNewCred] = useState("");
+
+  // Rich Certificate Attachment State
+  const [showAddDocModal, setShowAddDocModal] = useState(false);
+  const [newCredTitle, setNewCredTitle] = useState("");
+  const [newCredIssuer, setNewCredIssuer] = useState("");
+  const [newCredYear, setNewCredYear] = useState("");
+  const [newCredVerifyUrl, setNewCredVerifyUrl] = useState("");
+  const [newCredDocUrl, setNewCredDocUrl] = useState<string | null>(null);
+  const [newCredDocName, setNewCredDocName] = useState<string>("");
+  const [selectedPreviewCred, setSelectedPreviewCred] = useState<CredentialItem | null>(null);
+
   const [githubUrl, setGithubUrl] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
@@ -111,12 +132,62 @@ function SettingsContent() {
     if (e) e.preventDefault();
     const trimmed = newCred.trim();
     if (!trimmed) return;
-    if (credentials.includes(trimmed)) {
+    const exists = credentials.some((c) => {
+      const norm = normalizeCredential(c);
+      return norm.title.toLowerCase() === trimmed.toLowerCase();
+    });
+    if (exists) {
       showToast("Already Added", "This credential is already in your profile list.", "info");
       return;
     }
     setCredentials((prev) => [...prev, trimmed]);
     setNewCred("");
+    showToast("Credential Added", `Added "${trimmed}" to your profile.`, "success");
+  };
+
+  const handleCertDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) {
+      showToast("File Too Large", "Please upload a document under 8MB.", "warning");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setNewCredDocUrl(event.target.result as string);
+        setNewCredDocName(file.name);
+        showToast("Certificate Attached", `${file.name} loaded successfully.`, "info");
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAddRichCredential = () => {
+    const title = newCredTitle.trim();
+    if (!title) {
+      showToast("Title Required", "Please enter the certificate or credential title.", "warning");
+      return;
+    }
+    const newCredItem: CredentialItem = {
+      id: `cred-${Date.now()}`,
+      title,
+      issuer: newCredIssuer.trim() || undefined,
+      issueDate: newCredYear.trim() || undefined,
+      documentUrl: newCredDocUrl || undefined,
+      verificationUrl: newCredVerifyUrl.trim() || undefined,
+      fileName: newCredDocName || undefined,
+    };
+
+    setCredentials((prev) => [...prev, newCredItem]);
+    setNewCredTitle("");
+    setNewCredIssuer("");
+    setNewCredYear("");
+    setNewCredVerifyUrl("");
+    setNewCredDocUrl(null);
+    setNewCredDocName("");
+    setShowAddDocModal(false);
+    showToast("Certificate Saved", `"${title}" has been attached with proof documents.`, "success");
   };
 
   const handleRemoveCredential = (indexToRemove: number) => {
@@ -448,59 +519,127 @@ function SettingsContent() {
                   <span>Credentials &amp; Certifications</span>
                 </label>
                 <span className="text-[11px] text-[#71717A]">
-                  Add verified badges, licenses, or honors
+                  Attach certificates, diplomas, or licenses to prove your legibility
                 </span>
               </div>
 
-              {/* Active Badges */}
-              <div className="flex flex-wrap items-center gap-2 min-h-[36px]">
+              {/* Active Credentials & Certificates Cards */}
+              <div className="space-y-2.5">
                 {credentials.length > 0 ? (
-                  credentials.map((cred, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#EDE9FE] dark:bg-[#231C3D] border border-[#DDD6FE] dark:border-[#3B2D66] text-xs font-medium text-[#7C3AED] dark:text-[#A78BFA] shadow-xs"
-                    >
-                      <Award className="w-3 h-3" />
-                      <span>{cred}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveCredential(idx)}
-                        className="hover:text-red-600 transition-colors p-0.5 rounded-full"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {credentials.map((cred, idx) => {
+                      const item = normalizeCredential(cred, idx);
+                      const hasDoc = Boolean(item.documentUrl);
+                      const hasLink = Boolean(item.verificationUrl);
+
+                      return (
+                        <div
+                          key={item.id || idx}
+                          className="p-3.5 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] flex items-start justify-between gap-3 shadow-2xs hover:border-[#DDD6FE] transition-colors"
+                        >
+                          <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                            <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800/60 flex items-center justify-center text-amber-600 shrink-0 mt-0.5">
+                              <Award className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h5 className="text-xs font-bold text-[#18181B] dark:text-white truncate">
+                                {item.title}
+                              </h5>
+                              <p className="text-[11px] text-[#71717A] dark:text-zinc-400 flex items-center gap-1 mt-0.5">
+                                <span>{item.issuer || "Verified Credential"}</span>
+                                {item.issueDate && <span>• {item.issueDate}</span>}
+                              </p>
+
+                              {/* Badges / Document indicator */}
+                              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                {hasDoc && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-[10px] font-semibold text-[#7C3AED] dark:text-[#A78BFA]">
+                                    <FileText className="w-3 h-3" />
+                                    <span>Doc Attached</span>
+                                  </span>
+                                )}
+                                {hasLink && (
+                                  <a
+                                    href={item.verificationUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/50 text-[10px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                                  >
+                                    <ExternalLink className="w-2.5 h-2.5" />
+                                    <span>Verify URL</span>
+                                  </a>
+                                )}
+                                <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-semibold">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  <span>Active</span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedPreviewCred(item)}
+                              className="p-1.5 rounded-lg text-[#7C3AED] dark:text-[#A78BFA] hover:bg-[#EDE9FE] dark:hover:bg-[#231C3D] transition-colors"
+                              title="View Certificate / Document"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCredential(idx)}
+                              className="p-1.5 rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                              title="Remove Credential"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 ) : (
-                  <p className="text-xs text-[#71717A] italic">
-                    No credentials added yet. Add one below!
+                  <p className="text-xs text-[#71717A] italic py-2">
+                    No credentials or certificates added yet. Attach one below to build trust with swap partners!
                   </p>
                 )}
               </div>
 
-              {/* Add New Credential Bar */}
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newCred}
-                  onChange={(e) => setNewCred(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddCredential();
-                    }
-                  }}
-                  placeholder="e.g. AWS Certified Solutions Architect, Google UX Certificate"
-                  className="flex-1 px-3.5 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
-                />
+              {/* Action Buttons: Add Document Modal Button & Quick Single Line Add */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => handleAddCredential()}
-                  disabled={!newCred.trim()}
-                  className="px-4 py-2 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold disabled:opacity-50 transition-colors"
+                  onClick={() => setShowAddDocModal(true)}
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#8B5CF6] hover:opacity-95 text-white text-xs font-semibold shadow-xs flex items-center justify-center gap-2 transition-all"
                 >
-                  + Add
+                  <Paperclip className="w-3.5 h-3.5" />
+                  <span>+ Attach Certificate / Document</span>
                 </button>
+
+                <div className="flex-1 flex gap-2">
+                  <input
+                    type="text"
+                    value={newCred}
+                    onChange={(e) => setNewCred(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddCredential();
+                      }
+                    }}
+                    placeholder="Quick add credential (e.g. AWS Solutions Architect)"
+                    className="flex-1 px-3.5 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddCredential()}
+                    disabled={!newCred.trim()}
+                    className="px-3.5 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-[#18181B] dark:text-zinc-200 text-xs font-semibold disabled:opacity-50 transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
               </div>
 
               {/* Quick Suggestions */}
@@ -511,8 +650,10 @@ function SettingsContent() {
                     key={suggest}
                     type="button"
                     onClick={() => {
-                      if (!credentials.includes(suggest)) {
+                      const exists = credentials.some((c) => normalizeCredential(c).title === suggest);
+                      if (!exists) {
                         setCredentials((prev) => [...prev, suggest]);
+                        showToast("Credential Added", `Added "${suggest}".`, "success");
                       }
                     }}
                     className="text-[11px] px-2 py-0.5 rounded-lg border border-[#E4E1F5] dark:border-[#2D264E] hover:border-[#7C3AED] text-[#71717A] dark:text-zinc-300 hover:text-[#7C3AED] transition-colors"
@@ -521,6 +662,165 @@ function SettingsContent() {
                   </button>
                 ))}
               </div>
+
+              {/* MODAL: ATTACH CERTIFICATE / DOCUMENT */}
+              {showAddDocModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+                  <div className="w-full max-w-lg bg-white dark:bg-[#161327] rounded-3xl border border-[#E4E1F5] dark:border-[#2D264E] shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddDocModal(false)}
+                      className="absolute top-5 right-5 text-[#71717A] hover:text-[#18181B] dark:hover:text-white"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+
+                    <div className="flex items-center gap-2.5 mb-4">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-[#7C3AED] flex items-center justify-center">
+                        <Award className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-base font-bold text-[#18181B] dark:text-white">
+                          Attach Certificate Document
+                        </h4>
+                        <p className="text-xs text-[#71717A] dark:text-zinc-400">
+                          Upload certificate file or paste verification link to prove legibility.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      {/* Title */}
+                      <div>
+                        <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
+                          Certification / Credential Title *
+                        </label>
+                        <input
+                          type="text"
+                          value={newCredTitle}
+                          onChange={(e) => setNewCredTitle(e.target.value)}
+                          placeholder="e.g. AWS Certified Solutions Architect, Google UX Design"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-[#F8F7FF] dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                        />
+                      </div>
+
+                      {/* Issuer & Year */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
+                            Issuing Body / Institution
+                          </label>
+                          <input
+                            type="text"
+                            value={newCredIssuer}
+                            onChange={(e) => setNewCredIssuer(e.target.value)}
+                            placeholder="e.g. Amazon Web Services, Coursera, MIT"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-[#F8F7FF] dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
+                            Issue Year / Date
+                          </label>
+                          <input
+                            type="text"
+                            value={newCredYear}
+                            onChange={(e) => setNewCredYear(e.target.value)}
+                            placeholder="e.g. 2024, May 2023"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-[#F8F7FF] dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                          />
+                        </div>
+                      </div>
+
+                      {/* File Upload for Document / Certificate */}
+                      <div>
+                        <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
+                          Certificate File / Document (PNG, JPG, WebP, or PDF)
+                        </label>
+                        <div className="border-2 border-dashed border-[#DDD6FE] dark:border-[#3B2D66] rounded-2xl p-4 text-center bg-[#F8F7FF] dark:bg-[#0E0C1B] space-y-2 relative hover:bg-purple-50/40 transition-colors">
+                          <input
+                            type="file"
+                            accept="image/*,application/pdf"
+                            onChange={handleCertDocUpload}
+                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          />
+                          {newCredDocUrl ? (
+                            <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-white dark:bg-[#161327] border border-emerald-300 dark:border-emerald-700 text-xs">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                <span className="font-semibold text-[#18181B] dark:text-white truncate max-w-xs">
+                                  {newCredDocName || "Document Attached"}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setNewCredDocUrl(null);
+                                  setNewCredDocName("");
+                                }}
+                                className="text-red-500 hover:text-red-700 text-xs font-semibold"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="space-y-1">
+                              <Upload className="w-6 h-6 mx-auto text-[#7C3AED]" />
+                              <p className="text-xs font-semibold text-[#18181B] dark:text-white">
+                                Drag &amp; drop or click to upload certificate document
+                              </p>
+                              <p className="text-[11px] text-[#71717A]">
+                                Max file size: 8MB. Shows in your public profile to prove authenticity.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* External Verification URL */}
+                      <div>
+                        <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
+                          Certificate Verification Link / URL (Optional)
+                        </label>
+                        <input
+                          type="url"
+                          value={newCredVerifyUrl}
+                          onChange={(e) => setNewCredVerifyUrl(e.target.value)}
+                          placeholder="https://credly.com/badges/... or https://coursera.org/verify/..."
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-[#F8F7FF] dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-[#E4E1F5] dark:border-[#2D264E] flex items-center justify-end gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => setShowAddDocModal(false)}
+                        className="px-4 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] text-xs font-semibold text-[#71717A] hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleAddRichCredential}
+                        disabled={!newCredTitle.trim()}
+                        className="px-5 py-2 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold disabled:opacity-50 transition-colors shadow-xs"
+                      >
+                        Save Credential &amp; Document
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Certificate Preview Modal */}
+              <CertificateModal
+                isOpen={Boolean(selectedPreviewCred)}
+                onClose={() => setSelectedPreviewCred(null)}
+                credential={selectedPreviewCred}
+                recipientName={fullName || currentUser.name}
+              />
             </div>
 
             {/* 5. LOCATION & GENDER */}

@@ -131,6 +131,27 @@ export interface UserSkillItem {
   goal?: string;
 }
 
+export interface CredentialItem {
+  id: string;
+  title: string;
+  issuer?: string;
+  issueDate?: string;
+  documentUrl?: string; // Data URL or storage link
+  verificationUrl?: string; // External verification URL (Credly, Coursera, etc.)
+  fileName?: string;
+}
+
+export function normalizeCredential(cred: string | CredentialItem, index: number = 0): CredentialItem {
+  if (typeof cred === "string") {
+    return {
+      id: `cred-${index}-${cred.toLowerCase().replace(/[^a-z0-9]/g, "-")}`,
+      title: cred,
+      issuer: "Verified Credential",
+    };
+  }
+  return cred;
+}
+
 export interface CurrentUser {
   id: string;
   name: string;
@@ -148,7 +169,7 @@ export interface CurrentUser {
   degree?: string; // field of study / degree
   graduationYear?: string; // graduation year or status
   gender?: string; // gender identity
-  credentials?: string[]; // certifications / credentials / degrees
+  credentials?: (string | CredentialItem)[]; // certifications / credentials / degrees with document support
 }
 
 interface SkillSwapContextType {
@@ -206,7 +227,7 @@ interface SkillSwapContextType {
     time: string;
   }) => { success: boolean; session?: SessionItem; error?: string };
   completeSession: (sessionId: string, review?: { rating: number; comment: string }) => void;
-  buyCredits: (amount: number, priceLabel: string) => void;
+  buyCredits: (amount: number, priceLabel: string, paymentMethod?: string) => void;
   publishSkill: (skillData: {
     title: string;
     category: string;
@@ -692,9 +713,27 @@ const DEFAULT_USER: CurrentUser = {
   graduationYear: "2024",
   gender: "Prefer not to say",
   credentials: [
-    "AWS Certified Solutions Architect",
-    "Meta Frontend Developer Professional",
-    "Google UX Design Certificate",
+    {
+      id: "cred-1",
+      title: "AWS Certified Solutions Architect",
+      issuer: "Amazon Web Services",
+      issueDate: "2023",
+      verificationUrl: "https://aws.amazon.com/verification",
+    },
+    {
+      id: "cred-2",
+      title: "Meta Frontend Developer Professional",
+      issuer: "Meta (Coursera)",
+      issueDate: "2023",
+      verificationUrl: "https://coursera.org/verify",
+    },
+    {
+      id: "cred-3",
+      title: "Google UX Design Professional Certificate",
+      issuer: "Google Career Certificates",
+      issueDate: "2024",
+      verificationUrl: "https://coursera.org/verify",
+    },
   ],
 };
 
@@ -1374,7 +1413,7 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const buyCredits = (amount: number, priceLabel: string) => {
+  const buyCredits = (amount: number, priceLabel: string, paymentMethod: string = "Razorpay") => {
     setCredits((prev) => prev + amount);
 
     const newTx: Transaction = {
@@ -1382,7 +1421,7 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
       type: "PURCHASED",
       amount: amount,
       title: "Credit Top-up",
-      detail: `Purchased ${amount} credits (${priceLabel})`,
+      detail: `Purchased ${amount} credits (${priceLabel} via ${paymentMethod})`,
       date: "Just now",
       category: "purchase",
     };
@@ -1391,7 +1430,7 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
     const notif: NotificationItem = {
       id: `notif-${Date.now()}`,
       title: "Credits Added 🪙",
-      message: `+${amount} Credits have been successfully credited to your wallet.`,
+      message: `+${amount} Credits have been successfully added to your wallet (${paymentMethod}).`,
       time: "Just now",
       read: false,
       type: "credits",
@@ -1399,7 +1438,7 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
     };
     setNotifications((prev) => [notif, ...prev]);
 
-    showToast("Payment Successful!", `+${amount} Credits added to your account.`, "success");
+    showToast("Payment Successful!", `+${amount} Credits added to your account via ${paymentMethod}.`, "success");
   };
 
   const publishSkill = (skillData: {

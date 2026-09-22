@@ -5,6 +5,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import BuyCreditsModal from "@/components/BuyCreditsModal";
 import { useSkillSwap, Transaction } from "@/context/SkillSwapContext";
+import { processRazorpayCheckout } from "@/lib/razorpayClient";
 import {
   Sparkles,
   ArrowUpRight,
@@ -19,13 +20,17 @@ import {
   Coins,
   Repeat,
   Info,
+  Loader2,
+  Zap,
 } from "lucide-react";
 
 export default function CreditsWalletPage() {
-  const { credits, transactions, buyCredits } = useSkillSwap();
+  const { credits, transactions, buyCredits, currentUser } = useSkillSwap();
 
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
   const [filterType, setFilterType] = useState<"ALL" | "EARNED" | "SPENT" | "PURCHASED">("ALL");
+  const [isProcessingRazorpay, setIsProcessingRazorpay] = useState(false);
+  const [customCredits, setCustomCredits] = useState("");
 
   const filteredTransactions = transactions.filter((tx) => {
     if (filterType === "ALL") return true;
@@ -37,27 +42,56 @@ export default function CreditsWalletPage() {
       id: "starter",
       name: "Starter Pack",
       credits: 50,
-      price: "$19",
-      description: "Ideal for trying out 5 standard 1-hour swap sessions",
+      amount: 50,
+      price: "₹50",
+      description: "Ideal for trying out 5 standard 1-hour swap sessions (₹1/credit)",
       popular: false,
     },
     {
       id: "popular",
       name: "Growth Pack",
       credits: 100,
-      price: "$35",
-      description: "Best value for active learners and career switchers",
+      amount: 100,
+      price: "₹100",
+      description: "Best value for active learners and career switchers (₹1/credit)",
       popular: true,
     },
     {
       id: "pro",
       name: "Mastery Pack",
       credits: 250,
-      price: "$79",
-      description: "For deep ongoing mentorship across multiple complex domains",
+      amount: 250,
+      price: "₹250",
+      description: "For deep ongoing mentorship across multiple complex domains (₹1/credit)",
+      popular: false,
+    },
+    {
+      id: "power",
+      name: "Pro Pack",
+      credits: 500,
+      amount: 500,
+      price: "₹500",
+      description: "Maximum mentorship acceleration for serious skill builders (₹1/credit)",
       popular: false,
     },
   ];
+
+  const handleCheckout = (amount: number, credCount: number) => {
+    processRazorpayCheckout({
+      amount,
+      credits: credCount,
+      userId: currentUser.id,
+      userName: currentUser.name,
+      userEmail: currentUser.email,
+      onProcessing: (proc) => setIsProcessingRazorpay(proc),
+      onSuccess: (added, paid, method) => {
+        buyCredits(added, `₹${paid}`, method);
+      },
+      onError: (err) => {
+        alert(err || "Payment failed. Please try again.");
+      },
+    });
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F7FF] dark:bg-[#0E0C1B] text-[#18181B] dark:text-[#F4F3FA] transition-colors duration-200">
@@ -148,24 +182,25 @@ export default function CreditsWalletPage() {
         <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-zinc-100 dark:border-zinc-800">
             <div>
-              <h2 className="text-xl font-bold text-[#18181B] dark:text-white">Buy Credits</h2>
+              <h2 className="text-xl font-bold text-[#18181B] dark:text-white">Buy Credits via Razorpay</h2>
               <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-0.5">
-                Top up your wallet when you want to learn without teaching first.
+                Top up your wallet at a transparent rate of <strong className="text-[#18181B] dark:text-white font-semibold">1 Credit = ₹1 INR</strong>.
               </p>
             </div>
-            <span className="text-[11px] px-2.5 py-1 rounded-full bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] font-medium w-fit flex items-center gap-1">
-              <Info className="w-3.5 h-3.5" />
-              <span>Stripe checkout integration structured</span>
+            <span className="text-[11px] px-3 py-1 rounded-full bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] font-semibold w-fit flex items-center gap-1.5 border border-[#DDD6FE] dark:border-[#3B2D66]">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Razorpay UPI &amp; Cards Enabled</span>
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {/* Packages Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {packages.map((pkg) => (
               <div
                 key={pkg.id}
-                className={`p-6 rounded-2xl border flex flex-col justify-between transition-all ${
+                className={`p-5 rounded-2xl border flex flex-col justify-between transition-all ${
                   pkg.popular
-                    ? "border-[#7C3AED] bg-[#EDE9FE]/20 dark:bg-[#231C3D]/30 shadow-md ring-1 ring-[#7C3AED]"
+                    ? "border-[#7C3AED] bg-[#EDE9FE]/20 dark:bg-[#231C3D]/30 shadow-md ring-2 ring-[#7C3AED]"
                     : "border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#161327]"
                 }`}
               >
@@ -191,20 +226,86 @@ export default function CreditsWalletPage() {
                 <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                   <button
                     type="button"
-                    onClick={() => {
-                      buyCredits(pkg.credits, pkg.price);
-                    }}
-                    className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                    disabled={isProcessingRazorpay}
+                    onClick={() => handleCheckout(pkg.amount, pkg.credits)}
+                    className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
                       pkg.popular
                         ? "bg-[#7C3AED] hover:bg-[#6D28D9] text-white shadow-sm"
                         : "border border-[#E4E1F5] dark:border-[#2D264E] text-[#18181B] dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800"
                     }`}
                   >
-                    Select {pkg.credits} Credits
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>Pay {pkg.price} (Razorpay)</span>
                   </button>
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Custom Amount Calculator Card */}
+          <div className="p-5 rounded-2xl border border-[#DDD6FE] dark:border-[#3B2D66] bg-gradient-to-br from-[#EDE9FE]/30 to-white dark:from-[#231C3D]/40 dark:to-[#161327] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="inline-flex items-center gap-1 text-xs font-bold text-[#7C3AED] dark:text-[#A78BFA]">
+                <Zap className="w-3.5 h-3.5" />
+                <span>Custom Credits Top-up (₹1 = 1 Credit)</span>
+              </span>
+              <p className="text-xs text-[#71717A] dark:text-zinc-300">
+                Want a specific number of credits? Type your desired credits (e.g. 75, 200, 1000):
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <span className="absolute left-3.5 top-2.5 text-xs text-[#71717A] font-bold">₹</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="100000"
+                  value={customCredits}
+                  onChange={(e) => setCustomCredits(e.target.value)}
+                  placeholder="e.g. 75"
+                  className="w-36 pl-8 pr-3 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#161327] text-xs font-mono font-bold text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
+                />
+              </div>
+
+              <button
+                type="button"
+                disabled={isProcessingRazorpay || !customCredits || Number(customCredits) <= 0}
+                onClick={() => handleCheckout(Number(customCredits), Number(customCredits))}
+                className="px-5 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-xs disabled:opacity-50 transition-all flex items-center gap-2"
+              >
+                {isProcessingRazorpay ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <CreditCard className="w-3.5 h-3.5" />
+                )}
+                <span>
+                  Pay ₹{customCredits || 0} for {customCredits || 0} 🪙
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Supported Methods Footer */}
+          <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/60 flex flex-wrap items-center justify-between gap-3 text-xs text-[#71717A]">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Direct Bank Settlement via Razorpay Merchant API</span>
+            </div>
+            <div className="flex items-center gap-2 text-[11px] font-medium">
+              <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                Google Pay
+              </span>
+              <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                PhonePe / Paytm
+              </span>
+              <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                RuPay / Visa / Mastercard
+              </span>
+              <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                Netbanking (50+ Banks)
+              </span>
+            </div>
           </div>
         </div>
 

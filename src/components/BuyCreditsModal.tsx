@@ -2,7 +2,20 @@
 
 import React, { useState } from "react";
 import { useSkillSwap } from "@/context/SkillSwapContext";
-import { X, Check, Sparkles, Shield, CreditCard, Smartphone, Building2, Lock, Info } from "lucide-react";
+import { processRazorpayCheckout } from "@/lib/razorpayClient";
+import {
+  X,
+  Check,
+  Sparkles,
+  ShieldCheck,
+  CreditCard,
+  Smartphone,
+  Building2,
+  Lock,
+  Info,
+  Loader2,
+  Zap,
+} from "lucide-react";
 
 interface BuyCreditsModalProps {
   isOpen: boolean;
@@ -11,19 +24,23 @@ interface BuyCreditsModalProps {
 
 const CREDIT_PACKAGES = [
   {
-    id: "starter",
+    id: "pack_50",
     name: "Starter Pack",
     credits: 50,
-    price: "$19",
-    tagline: "Great for trying out 5 standard swap sessions",
+    amount: 50,
+    price: "₹50",
+    rate: "1 Credit = ₹1",
+    tagline: "Ideal for trying out 5 standard swap sessions",
     popular: false,
     perks: ["50 swap credits", "Standard session matching", "Access to community"],
   },
   {
-    id: "popular",
+    id: "pack_100",
     name: "Growth Pack",
     credits: 100,
-    price: "$35",
+    amount: 100,
+    price: "₹100",
+    rate: "1 Credit = ₹1",
     tagline: "Best value for active learners and switchers",
     popular: true,
     perks: [
@@ -34,11 +51,13 @@ const CREDIT_PACKAGES = [
     ],
   },
   {
-    id: "pro",
+    id: "pack_250",
     name: "Mastery Pack",
     credits: 250,
-    price: "$79",
-    tagline: "For ongoing mastery across multiple domains",
+    amount: 250,
+    price: "₹250",
+    rate: "1 Credit = ₹1",
+    tagline: "For deep ongoing mentorship across multiple domains",
     popular: false,
     perks: [
       "250 swap credits",
@@ -47,34 +66,66 @@ const CREDIT_PACKAGES = [
       "Certificates of completion",
     ],
   },
+  {
+    id: "pack_500",
+    name: "Pro Pack",
+    credits: 500,
+    amount: 500,
+    price: "₹500",
+    rate: "1 Credit = ₹1",
+    tagline: "Maximum value for intensive skill acceleration",
+    popular: false,
+    perks: [
+      "500 swap credits",
+      "Fast-track mentor intros",
+      "Verified mastery badges",
+      "Permanent community access",
+    ],
+  },
 ];
 
 export default function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {
-  const { buyCredits } = useSkillSwap();
-  const [selectedPackage, setSelectedPackage] = useState<string>("popular");
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const { currentUser, buyCredits } = useSkillSwap();
+  const [selectedPackage, setSelectedPackage] = useState<string>("pack_100");
+  const [customAmount, setCustomAmount] = useState<string>("");
+  const [isCustom, setIsCustom] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [statusMessage, setStatusMessage] = useState<string>("");
 
   if (!isOpen) return null;
 
   const activePkg = CREDIT_PACKAGES.find((p) => p.id === selectedPackage) || CREDIT_PACKAGES[1];
 
-  const handlePurchase = () => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      buyCredits(activePkg.credits, activePkg.price);
-      setIsProcessing(false);
-      setIsSuccess(true);
-      setTimeout(() => {
-        setIsSuccess(false);
-        onClose();
-      }, 1500);
-    }, 600);
+  const currentCredits = isCustom ? Number(customAmount) || 0 : activePkg.credits;
+  const currentAmount = isCustom ? Number(customAmount) || 0 : activePkg.amount;
+
+  const handlePayWithRazorpay = () => {
+    if (currentAmount <= 0) return;
+
+    processRazorpayCheckout({
+      amount: currentAmount,
+      credits: currentCredits,
+      userId: currentUser.id,
+      userName: currentUser.name,
+      userEmail: currentUser.email,
+      onProcessing: (proc) => setIsProcessing(proc),
+      onSuccess: (creditsAdded, amountPaid, method) => {
+        buyCredits(creditsAdded, `₹${amountPaid}`, method);
+        setStatusMessage(`Successfully added ${creditsAdded} Credits!`);
+        setTimeout(() => {
+          setStatusMessage("");
+          onClose();
+        }, 1200);
+      },
+      onError: (errMsg) => {
+        alert(errMsg || "Payment failed. Please try again.");
+      },
+    });
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-xl bg-white dark:bg-[#161327] rounded-3xl border border-[#E4E1F5] dark:border-[#2D264E] shadow-2xl p-6 sm:p-8 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+      <div className="w-full max-w-2xl bg-white dark:bg-[#161327] rounded-3xl border border-[#E4E1F5] dark:border-[#2D264E] shadow-2xl p-6 sm:p-8 relative max-h-[95vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute top-5 right-5 text-[#71717A] hover:text-[#18181B] dark:hover:text-white transition-colors"
@@ -85,31 +136,41 @@ export default function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProp
         <div className="text-center max-w-md mx-auto">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] text-xs font-semibold mb-2">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Credit Wallet Top-up</span>
+            <span>Razorpay Secure Top-up</span>
           </div>
-          <h3 className="text-2xl font-bold text-[#18181B] dark:text-white">Add Swap Credits</h3>
+          <h3 className="text-2xl font-bold text-[#18181B] dark:text-white">Buy Swap Credits</h3>
           <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-1">
-            Learn from mentors anytime without waiting to teach first.
+            Flat pricing: <strong className="text-[#18181B] dark:text-white font-semibold">1 Credit = ₹1 INR</strong>. Learn from any mentor instantly.
           </p>
         </div>
 
-        {/* Notice on sandbox simulation */}
-        <div className="mt-4 p-3 rounded-xl bg-[#EDE9FE]/50 dark:bg-[#231C3D]/40 border border-[#DDD6FE] dark:border-[#3B2D66] text-xs text-[#7C3AED] dark:text-[#A78BFA] flex items-center gap-2">
-          <Info className="w-4 h-4 shrink-0" />
-          <span>Payment provider integration structured. Top-ups immediately fund your active wallet for testing.</span>
+        {/* Razorpay Banner */}
+        <div className="mt-4 p-3.5 rounded-2xl bg-[#EDE9FE]/50 dark:bg-[#231C3D]/40 border border-[#DDD6FE] dark:border-[#3B2D66] text-xs text-[#7C3AED] dark:text-[#A78BFA] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-600" />
+            <span>
+              Official <strong>Razorpay API</strong> Gateway (UPI, RuPay, Visa, Netbanking)
+            </span>
+          </div>
+          <span className="text-[10px] font-mono font-bold bg-white dark:bg-[#161327] px-2 py-0.5 rounded-md border border-[#DDD6FE] dark:border-[#3B2D66] w-fit">
+            ₹50 = 50 🪙 | ₹100 = 100 🪙
+          </span>
         </div>
 
         {/* Packages Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
           {CREDIT_PACKAGES.map((pkg) => {
-            const isSelected = selectedPackage === pkg.id;
+            const isSelected = !isCustom && selectedPackage === pkg.id;
             return (
               <div
                 key={pkg.id}
-                onClick={() => setSelectedPackage(pkg.id)}
+                onClick={() => {
+                  setIsCustom(false);
+                  setSelectedPackage(pkg.id);
+                }}
                 className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
                   isSelected
-                    ? "border-[#7C3AED] bg-[#EDE9FE]/30 dark:bg-[#231C3D]/50 shadow-sm ring-1 ring-[#7C3AED]"
+                    ? "border-[#7C3AED] bg-[#EDE9FE]/30 dark:bg-[#231C3D]/50 shadow-sm ring-2 ring-[#7C3AED]"
                     : "border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#161327] hover:border-[#A78BFA]"
                 }`}
               >
@@ -119,46 +180,116 @@ export default function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProp
                       Popular
                     </span>
                   )}
-                  <h4 className="text-xs font-bold text-[#18181B] dark:text-white">{pkg.name}</h4>
+                  <h4 className="text-xs font-bold text-[#18181B] dark:text-white line-clamp-1">{pkg.name}</h4>
                   <div className="my-1.5">
-                    <span className="text-2xl font-extrabold text-[#18181B] dark:text-white font-mono">{pkg.price}</span>
+                    <span className="text-2xl font-extrabold text-[#18181B] dark:text-white font-mono">
+                      {pkg.price}
+                    </span>
                   </div>
                   <p className="text-xs font-semibold text-[#7C3AED] dark:text-[#A78BFA] font-mono">
                     🪙 {pkg.credits} Credits
                   </p>
                 </div>
 
-                <div className="mt-4 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-[10px] text-[#71717A] space-y-1">
-                  {pkg.perks.slice(0, 2).map((perk, i) => (
-                    <div key={i} className="flex items-center gap-1">
-                      <Check className="w-3 h-3 text-emerald-600 shrink-0" />
-                      <span className="truncate">{perk}</span>
-                    </div>
-                  ))}
+                <div className="mt-3 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-[10px] text-[#71717A] space-y-1">
+                  <div className="flex items-center gap-1">
+                    <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+                    <span className="truncate">{pkg.perks[0]}</span>
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
 
+        {/* Custom Amount Calculator */}
+        <div className="mt-4 p-4 rounded-2xl border border-[#E4E1F5] dark:border-[#2D264E] bg-[#F8F7FF] dark:bg-[#0E0C1B] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Zap className="w-4 h-4 text-[#7C3AED]" />
+            <div>
+              <span className="text-xs font-bold text-[#18181B] dark:text-white block">
+                Custom Top-up Amount
+              </span>
+              <span className="text-[11px] text-[#71717A]">
+                Any amount at ₹1 per credit
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-xs text-[#71717A] font-bold">₹</span>
+              <input
+                type="number"
+                min="10"
+                max="50000"
+                value={customAmount}
+                placeholder="e.g. 75, 200"
+                onChange={(e) => {
+                  setCustomAmount(e.target.value);
+                  setIsCustom(true);
+                }}
+                onFocus={() => setIsCustom(true)}
+                className="w-32 pl-7 pr-3 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#161327] text-xs font-mono font-bold text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
+              />
+            </div>
+            <span className="text-xs font-semibold text-[#7C3AED] dark:text-[#A78BFA] font-mono">
+              = {customAmount ? Number(customAmount) : 0} 🪙
+            </span>
+          </div>
+        </div>
+
+        {/* Payment Methods Info */}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#71717A]">
+          <span className="flex items-center gap-1.5">
+            <Lock className="w-3.5 h-3.5 text-emerald-600" />
+            <span>256-bit SSL encrypted Razorpay checkout</span>
+          </span>
+          <div className="flex items-center gap-2 font-medium">
+            <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+              UPI (GPay, PhonePe, Paytm)
+            </span>
+            <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+              RuPay / Cards
+            </span>
+            <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+              Netbanking
+            </span>
+          </div>
+        </div>
+
+        {/* Footer Checkout Button */}
         <div className="mt-6 pt-4 border-t border-[#E4E1F5] dark:border-[#2D264E] flex items-center justify-between">
           <div>
-            <span className="text-xs text-[#71717A] block">Total Amount:</span>
-            <span className="text-base font-bold text-[#18181B] dark:text-white">{activePkg.price}</span>
+            <span className="text-xs text-[#71717A] block">Total Amount to Pay:</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl font-extrabold text-[#18181B] dark:text-white font-mono">
+                ₹{currentAmount}
+              </span>
+              <span className="text-xs font-semibold text-[#7C3AED] dark:text-[#A78BFA] font-mono">
+                (+{currentCredits} Credits)
+              </span>
+            </div>
           </div>
 
           <button
             type="button"
-            onClick={handlePurchase}
-            disabled={isProcessing || isSuccess}
-            className="px-6 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs sm:text-sm font-semibold shadow-md transition-all flex items-center gap-2"
+            onClick={handlePayWithRazorpay}
+            disabled={isProcessing || currentAmount <= 0}
+            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#7C3AED] to-[#8B5CF6] hover:opacity-95 text-white text-xs sm:text-sm font-semibold shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
           >
             {isProcessing ? (
-              <span>Processing...</span>
-            ) : isSuccess ? (
-              <span>Credits Added! ✓</span>
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Opening Razorpay...</span>
+              </>
+            ) : statusMessage ? (
+              <span>{statusMessage} ✓</span>
             ) : (
-              <span>Complete Top-up (Sandbox)</span>
+              <>
+                <CreditCard className="w-4 h-4" />
+                <span>Pay ₹{currentAmount} with Razorpay</span>
+              </>
             )}
           </button>
         </div>

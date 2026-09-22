@@ -5,7 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import SwapRequestModal from "@/components/SwapRequestModal";
-import { useSkillSwap, SkillListing } from "@/context/SkillSwapContext";
+import { useSkillSwap, SkillListing, CredentialItem, normalizeCredential } from "@/context/SkillSwapContext";
+import CertificateModal from "@/components/CertificateModal";
 import {
   Star,
   MapPin,
@@ -19,6 +20,9 @@ import {
   Layers,
   GraduationCap,
   Award,
+  FileText,
+  ExternalLink,
+  Eye,
 } from "lucide-react";
 
 export default function UserPublicProfilePage() {
@@ -27,6 +31,7 @@ export default function UserPublicProfilePage() {
   const { skills } = useSkillSwap();
 
   const [swapModalOpen, setSwapModalOpen] = useState(false);
+  const [selectedCredential, setSelectedCredential] = useState<CredentialItem | null>(null);
 
   const teacherId = (params?.id as string) || "arun-kumar";
 
@@ -226,26 +231,76 @@ export default function UserPublicProfilePage() {
               <h2 className="text-base font-bold text-[#18181B] dark:text-white">Credentials &amp; Certifications</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {(teacher as any).credentials.map((cred: string, idx: number) => (
-                <div
-                  key={idx}
-                  className="p-4 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] flex items-center gap-3"
-                >
-                  <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
-                    <Award className="w-4 h-4" />
+              {(teacher as any).credentials.map((cred: any, idx: number) => {
+                const item = normalizeCredential(cred, idx);
+                const hasDoc = Boolean(item.documentUrl);
+                const hasLink = Boolean(item.verificationUrl);
+
+                return (
+                  <div
+                    key={item.id || idx}
+                    className="p-4 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] flex flex-col justify-between gap-3 shadow-2xs hover:border-[#DDD6FE] transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
+                        <Award className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h5 className="text-xs font-bold text-[#18181B] dark:text-white line-clamp-2">
+                          {item.title}
+                        </h5>
+                        <p className="text-[11px] text-[#71717A] dark:text-zinc-400 mt-0.5">
+                          {item.issuer || "Verified Credential"} {item.issueDate ? `• ${item.issueDate}` : ""}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Verified
+                          </span>
+                          {hasDoc && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-950/60 text-[9px] font-semibold text-[#7C3AED] dark:text-[#A78BFA]">
+                              <FileText className="w-2.5 h-2.5" />
+                              Doc Attached
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCredential(item)}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#7C3AED] dark:text-[#A78BFA] hover:underline"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>View Certificate</span>
+                      </button>
+
+                      {hasLink && (
+                        <a
+                          href={item.verificationUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-zinc-400 hover:text-[#7C3AED] transition-colors p-1"
+                          title="External Verification Link"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <h5 className="text-xs font-bold text-[#18181B] dark:text-white">
-                      {cred}
-                    </h5>
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Verified
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+
+            {/* Certificate Preview Modal */}
+            <CertificateModal
+              isOpen={Boolean(selectedCredential)}
+              onClose={() => setSelectedCredential(null)}
+              credential={selectedCredential}
+              recipientName={teacher.name}
+            />
           </div>
         )}
 
