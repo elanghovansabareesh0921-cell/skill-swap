@@ -26,45 +26,36 @@ export async function POST(req: Request) {
       );
     }
 
-    // If live/test Razorpay API credentials are provided in .env.local
-    if (keyId && keySecret) {
-      const razorpay = new Razorpay({
-        key_id: keyId,
-        key_secret: keySecret,
-      });
-
-      const order = await razorpay.orders.create({
-        amount: amountInPaise,
-        currency: "INR",
-        receipt: `rcpt_${Date.now()}_${credits}`,
-        notes: {
-          credits: String(credits),
-          userId: userId || "guest",
-          userEmail: email || "",
-          userName: name || "",
-        },
-      });
-
-      return NextResponse.json({
-        success: true,
-        orderId: order.id,
-        amount: order.amount,
-        currency: order.currency,
-        keyId: keyId,
-        isTestMode: false,
-      });
+    if (!keyId || !keySecret) {
+      return NextResponse.json(
+        { error: "Razorpay keys are not configured. Please restart the dev server so they are loaded from .env.local" },
+        { status: 500 }
+      );
     }
 
-    // Sandbox / Development Simulator Mode (when API keys have not yet been placed in .env.local)
-    return NextResponse.json({
-      success: true,
-      orderId: `order_sim_${Date.now()}`,
+    const razorpay = new Razorpay({
+      key_id: keyId,
+      key_secret: keySecret,
+    });
+
+    const order = await razorpay.orders.create({
       amount: amountInPaise,
       currency: "INR",
-      keyId: keyId || "rzp_test_placeholder",
-      isTestMode: true,
-      message:
-        "Razorpay keys not yet detected in .env.local. Running in demo simulation mode.",
+      receipt: `rcpt_${Date.now()}_${credits}`,
+      notes: {
+        credits: String(credits),
+        userId: userId || "guest",
+        userEmail: email || "",
+        userName: name || "",
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      keyId: keyId,
     });
   } catch (error: any) {
     console.error("Razorpay order creation error:", error);

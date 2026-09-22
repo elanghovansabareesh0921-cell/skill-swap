@@ -68,30 +68,6 @@ export async function processRazorpayCheckout({
       throw new Error(orderData.error || "Failed to create payment order.");
     }
 
-    // 2. If running in sandbox simulator mode (no live keys configured in .env.local yet)
-    if (orderData.isTestMode) {
-      // Complete verified demo transaction
-      const verifyRes = await fetch("/api/payment/razorpay/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          razorpay_order_id: orderData.orderId,
-          razorpay_payment_id: `pay_demo_${Date.now()}`,
-          razorpay_signature: "simulated_signature",
-          amount,
-          credits,
-          userId,
-        }),
-      });
-
-      const verifyData = await verifyRes.json();
-      if (verifyRes.ok && verifyData.success) {
-        onSuccess(credits, amount, "Razorpay (Sandbox)");
-      } else {
-        throw new Error(verifyData.error || "Failed to verify demo payment.");
-      }
-      return;
-    }
 
     // 3. Live / Official Razorpay Checkout Flow
     const isScriptLoaded = await loadRazorpayScript();
