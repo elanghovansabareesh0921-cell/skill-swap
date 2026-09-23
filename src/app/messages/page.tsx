@@ -18,18 +18,27 @@ import {
   MessageSquare,
   ShieldCheck,
   CalendarPlus,
+  Clock,
+  Calendar,
+  X,
+  ArrowRight,
+  ExternalLink,
 } from "lucide-react";
 
 function MessagesContent() {
   const searchParams = useSearchParams();
   const partnerIdParam = searchParams.get("partnerId");
   const partnerNameParam = searchParams.get("partnerName");
+  const roomIdParam = searchParams.get("roomId");
 
   const {
     currentUser,
     conversations,
     messages,
     sendMessage,
+    scheduleSessionRoom,
+    sessionRooms,
+    showToast,
   } = useSkillSwap();
 
   const [activeConvId, setActiveConvId] = useState<string>(
@@ -38,7 +47,14 @@ function MessagesContent() {
   const [inputText, setInputText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
-  const [showProposeModal, setShowProposeModal] = useState(false);
+
+  // In-Chat Session Scheduler State
+  const [showSchedulerModal, setShowSchedulerModal] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState("Tomorrow");
+  const [scheduledTime, setScheduledTime] = useState("6:00 PM – 6:45 PM");
+  const [sessionLength, setSessionLength] = useState<30 | 45 | 60>(45);
+  const [sessionTopic, setSessionTopic] = useState("Skill Swap Hands-on Session");
+  const [schedulingLoading, setSchedulingLoading] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -85,32 +101,45 @@ function MessagesContent() {
     setInputText("");
   };
 
-  const handleProposeSession = async () => {
-    try {
-      const res = await fetch("/api/sessions/propose", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          receiverId: activeConversation.participantId,
-          skillName: "Skill Swap",
-          scheduledAt: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
-          durationMinutes: 45
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert("Session proposed successfully! 10 credits held in escrow.");
-      } else {
-        alert("Failed to propose: " + data.error);
-      }
-    } catch (e) {
-      alert("Error proposing session");
+  // Schedule Session & Generate Dedicated Room
+  const handleConfirmSchedule = () => {
+    setSchedulingLoading(true);
+
+    const start = new Date(Date.now() + 86400000).toISOString();
+    const end = new Date(Date.now() + 86400000 + sessionLength * 60000).toISOString();
+
+    const res = scheduleSessionRoom({
+      chatRoomId: activeConversation.id,
+      scheduledStart: start,
+      scheduledEnd: end,
+      skillName: sessionTopic,
+      peerName: activeConversation.participantName,
+    });
+
+    setSchedulingLoading(false);
+    setShowSchedulerModal(false);
+
+    if (res.success && res.room) {
+      // Send a rich message inside the chat thread with classroom link
+      const inviteMsg = `📅 Session Scheduled!\nTopic: ${sessionTopic}\nDate & Time: ${scheduledDate} at ${scheduledTime} (${sessionLength} mins)\nClassroom Room Link: /learn/${res.room.roomToken}`;
+      sendMessage(activeConversation.participantId, inviteMsg);
+
+      showToast(
+        "Session Room Generated! 🚀",
+        `Unique classroom room link created: /learn/${res.room.roomToken}`,
+        "success"
+      );
     }
   };
 
   const filteredConversations = conversations.filter((c) =>
     c.participantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Active scheduled room for this partner if any
+  const existingRoom = sessionRooms.find(
+    (r) => r.chatRoomId === activeConversation.id || r.peerName === activeConversation.participantName
   );
 
   return (
@@ -243,12 +272,31 @@ function MessagesContent() {
                 </div>
               </div>
 
+              {/* Action Buttons: Scheduler & Room CTA */}
               <div className="flex items-center gap-2">
+                {existingRoom && (
+                  <Link
+                    href={`/learn/${existingRoom.roomToken}`}
+                    className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all animate-pulse"
+                  >
+                    <Video className="w-3.5 h-3.5" />
+                    <span>Enter Classroom</span>
+                  </Link>
+                )}
+
+                <button
+                  onClick={() => setShowSchedulerModal(true)}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] hover:bg-[#DDD6FE] dark:hover:bg-[#2D264E] text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+                >
+                  <CalendarPlus className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Schedule Session</span>
+                </button>
+
                 <Link
                   href={`/profile/${activeConversation.participantId}`}
                   className="px-3 py-1.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] text-xs font-semibold text-[#71717A] hover:text-[#18181B] dark:hover:text-white"
                 >
-                  View Profile
+                  Profile
                 </Link>
               </div>
             </div>
@@ -258,6 +306,8 @@ function MessagesContent() {
               {activeMessages.length > 0 ? (
                 activeMessages.map((msg) => {
                   const isMe = msg.senderId === currentUser.id || msg.senderId === "current-user";
+                  const isRoomLink = msg.content.includes("/learn/");
+
                   return (
                     <div
                       key={msg.id}
@@ -272,13 +322,31 @@ function MessagesContent() {
                           />
                         )}
                         <div
-                          className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm ${
+                          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm ${
                             isMe
                               ? "bg-[#7C3AED] text-white rounded-br-xs"
                               : "bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] text-[#18181B] dark:text-white rounded-bl-xs"
                           }`}
                         >
-                          <p>{msg.content}</p>
+                          <p className="whitespace-pre-line">{msg.content}</p>
+
+                          {/* Interactive Card if message contains a room token */}
+                          {isRoomLink && (
+                            <div className="mt-3 pt-3 border-t border-white/20 dark:border-zinc-700/60">
+                              <Link
+                                href={msg.content.match(/\/learn\/[a-zA-Z0-9_-]+/)?.[0] || "/learn"}
+                                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md ${
+                                  isMe
+                                    ? "bg-white text-[#7C3AED] hover:bg-zinc-100"
+                                    : "bg-[#7C3AED] text-white hover:bg-[#6D28D9]"
+                                }`}
+                              >
+                                <Video className="w-3.5 h-3.5" />
+                                <span>Join Live Virtual Classroom</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </Link>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-1 text-[10px] text-[#71717A] mt-1 px-1">
@@ -292,10 +360,10 @@ function MessagesContent() {
                 <div className="h-full flex flex-col items-center justify-center text-center p-8 text-xs text-[#71717A]">
                   <MessageSquare className="w-10 h-10 text-[#7C3AED] opacity-50 mb-2" />
                   <p className="font-bold text-sm text-[#18181B] dark:text-white">
-                    Your conversations will appear here.
+                    Mutual Collaboration Space
                   </p>
-                  <p className="mt-1">
-                    Send a message to arrange your skill swap session timing and topics!
+                  <p className="mt-1 max-w-xs mx-auto">
+                    Coordinate your skill swap and click &ldquo;Schedule Session&rdquo; to generate your dedicated virtual classroom!
                   </p>
                 </div>
               )}
@@ -308,17 +376,17 @@ function MessagesContent() {
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Type a message..."
+                placeholder="Type a message or agree on a session time..."
                 className="flex-1 px-4 py-2.5 rounded-xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] text-xs sm:text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
               />
               <button
                 type="button"
-                onClick={handleProposeSession}
-                className="p-2.5 rounded-xl bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] hover:bg-[#DDD6FE] dark:hover:bg-[#2D264E] transition-colors shadow-sm flex items-center gap-2"
-                title="Propose Session Time"
+                onClick={() => setShowSchedulerModal(true)}
+                className="p-2.5 rounded-xl bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] hover:bg-[#DDD6FE] dark:hover:bg-[#2D264E] transition-colors shadow-sm flex items-center gap-1.5"
+                title="Open Session Scheduler"
               >
                 <CalendarPlus className="w-4 h-4" />
-                <span className="hidden sm:inline text-xs font-semibold">Propose Time</span>
+                <span className="hidden sm:inline text-xs font-semibold">Scheduler</span>
               </button>
               <button
                 type="submit"
@@ -332,6 +400,134 @@ function MessagesContent() {
 
         </div>
       </main>
+
+      {/* IN-CHAT SESSION SCHEDULER MODAL */}
+      {showSchedulerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-lg bg-white dark:bg-[#161327] rounded-3xl border border-[#E4E1F5] dark:border-[#2D264E] shadow-2xl p-6 sm:p-8 relative">
+            <button
+              onClick={() => setShowSchedulerModal(false)}
+              className="absolute top-5 right-5 p-1.5 rounded-full text-[#71717A] hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="space-y-5">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] flex items-center justify-center">
+                  <CalendarPlus className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-[#18181B] dark:text-white">
+                    Schedule Collaboration Session
+                  </h3>
+                  <p className="text-xs text-[#71717A] dark:text-zinc-400">
+                    With {activeConversation.participantName} • Generates dedicated virtual room
+                  </p>
+                </div>
+              </div>
+
+              {/* Topic / Skill */}
+              <div>
+                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block mb-1.5">
+                  Session Topic or Focus
+                </label>
+                <input
+                  type="text"
+                  value={sessionTopic}
+                  onChange={(e) => setSessionTopic(e.target.value)}
+                  placeholder="e.g. Next.js Architecture Review, Python ML Setup..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-[#F8F7FF] dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white"
+                />
+              </div>
+
+              {/* Date Selection */}
+              <div>
+                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block mb-1.5">
+                  Agreed Date
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {["Today", "Tomorrow", "This Weekend"].map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setScheduledDate(d)}
+                      className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${
+                        scheduledDate === d
+                          ? "border-[#7C3AED] bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA]"
+                          : "border-[#E4E1F5] dark:border-[#2D264E] text-[#71717A] hover:border-zinc-400"
+                      }`}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Time Slots */}
+              <div>
+                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block mb-1.5">
+                  Preferred Time Slot
+                </label>
+                <select
+                  value={scheduledTime}
+                  onChange={(e) => setScheduledTime(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-[#F8F7FF] dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white"
+                >
+                  <option value="10:00 AM – 10:45 AM">Morning (10:00 AM – 10:45 AM)</option>
+                  <option value="2:00 PM – 2:45 PM">Afternoon (2:00 PM – 2:45 PM)</option>
+                  <option value="6:00 PM – 6:45 PM">Evening (6:00 PM – 6:45 PM)</option>
+                  <option value="8:00 PM – 8:45 PM">Night (8:00 PM – 8:45 PM)</option>
+                </select>
+              </div>
+
+              {/* Session Duration */}
+              <div>
+                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block mb-1.5">
+                  Session Length
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[30, 45, 60].map((len) => (
+                    <button
+                      key={len}
+                      type="button"
+                      onClick={() => setSessionLength(len as any)}
+                      className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                        sessionLength === len
+                          ? "border-[#7C3AED] bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA]"
+                          : "border-[#E4E1F5] dark:border-[#2D264E] text-[#71717A] hover:border-zinc-400"
+                      }`}
+                    >
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>{len} Mins</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-3 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowSchedulerModal(false)}
+                  className="px-4 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] text-xs font-semibold text-[#71717A] hover:bg-zinc-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={schedulingLoading}
+                  onClick={handleConfirmSchedule}
+                  className="px-5 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold shadow-md shadow-[#7C3AED]/25 flex items-center gap-2"
+                >
+                  <span>Confirm & Generate Room</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

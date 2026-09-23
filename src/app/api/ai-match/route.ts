@@ -9,18 +9,16 @@ import {
 } from "@/lib/ai/compatibility";
 
 export async function POST(req: Request) {
+  const startTime = Date.now();
   try {
-    const { userId } = await req.json().catch(() => ({}));
-
-    if (!userId) {
-      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
-    }
+    const body = await req.json().catch(() => ({}));
+    const { userId } = body;
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     let currentUserContext: CurrentUserContext = {
-      userId,
+      userId: userId || "current-user",
       fullName: "Alex Rivera",
       bio: "Fullstack developer passionate about building modern web products and learning machine learning pipelines.",
       teaches: [
@@ -37,13 +35,14 @@ export async function POST(req: Request) {
 
     let candidatePool: CandidateUser[] = [...DEFAULT_CANDIDATE_POOL];
 
-    if (supabaseUrl && supabaseKey) {
+    if (supabaseUrl && supabaseKey && userId) {
       try {
         const supabase = createClient(supabaseUrl, supabaseKey);
 
+        // Fetch user profile
         const { data: userProfile } = await supabase
           .from("profiles")
-          .select("full_name, bio")
+          .select("full_name, bio, role_preference")
           .eq("id", userId)
           .maybeSingle();
 
@@ -52,6 +51,7 @@ export async function POST(req: Request) {
           currentUserContext.bio = userProfile.bio || currentUserContext.bio;
         }
 
+        // Fetch user's registered skills
         const { data: mySkills } = await supabase
           .from("user_skills")
           .select("skill_name, skill_type, proficiency_level, learning_goal, years_experience")
@@ -78,21 +78,24 @@ export async function POST(req: Request) {
           if (learns.length > 0) currentUserContext.learns = learns;
         }
 
-        // Fetch candidate skills
+        // Fetch other users
         const { data: otherSkills } = await supabase
           .from("user_skills")
           .select("user_id, skill_name, skill_type, proficiency_level, years_experience, profiles(full_name, avatar_url, bio, is_verified)")
           .neq("user_id", userId);
 
         if (otherSkills && otherSkills.length > 0) {
-          const dbMap = new Map<string, CandidateUser>();
+          const dbCandidatesMap = new Map<string, CandidateUser>();
+
           for (const s of otherSkills) {
             const uid = s.user_id;
-            if (!dbMap.has(uid)) {
-              dbMap.set(uid, {
+            if (!dbCandidatesMap.has(uid)) {
+              dbCandidatesMap.set(uid, {
                 userId: uid,
-                fullName: (s.profiles as any)?.full_name || "Peer Mentor",
-                avatarUrl: (s.profiles as any)?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+                fullName: (s.profiles as any)?.full_name || "Community Mentor",
+                avatarUrl:
+                  (s.profiles as any)?.avatar_url ||
+                  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
                 bio: (s.profiles as any)?.bio,
                 isVerified: (s.profiles as any)?.is_verified || false,
                 teaches: [],
@@ -101,53 +104,56 @@ export async function POST(req: Request) {
                 learningStyle: "hands-on",
               });
             }
-            const cand = dbMap.get(uid)!;
-            if (s.skill_type?.toLowerCase() === "teach") {
+
+            const cand = dbCandidatesMap.get(uid)!;
+            const skillType = s.skill_type?.toLowerCase();
+            const prof = (s.proficiency_level?.toLowerCase() || "intermediate") as any;
+
+            if (skillType === "teach") {
               cand.teaches.push({
                 skillName: s.skill_name,
-                proficiency: (s.proficiency_level?.toLowerCase() || "intermediate") as any,
+                proficiency: prof,
                 yearsExperience: s.years_experience || 2,
               });
             } else {
               cand.learns.push({
                 skillName: s.skill_name,
-                proficiencyTarget: (s.proficiency_level?.toLowerCase() || "intermediate") as any,
+                proficiencyTarget: prof,
               });
             }
           }
-          if (dbMap.size > 0) {
-            const dbCandidates = Array.from(dbMap.values());
-            candidatePool = [
-              ...dbCandidates,
-              ...DEFAULT_CANDIDATE_POOL.filter((def) => !dbCandidates.some((c) => c.userId === def.userId)),
-            ];
+
+          if (dbCandidatesMap.size > 0) {
+            const dbList = Array.from(dbCandidatesMap.values());
+            // Merge with default candidates to ensure robust discovery pool
+            candidatePool = [...dbList, ...DEFAULT_CANDIDATE_POOL.filter(
+              (def) => !dbList.some((c) => c.userId === def.userId)
+            )];
           }
         }
-      } catch (err) {
-        console.warn("Supabase fetch fallback:", err);
+      } catch (dbErr) {
+        console.warn("DB candidate fetch fallback to default candidate pool:", dbErr);
       }
     }
 
-    const aiMatches: MatchResult[] = await calculateCompatibilityMatches(
+    // Run the AI compatibility calculation
+    const matches: MatchResult[] = await calculateCompatibilityMatches(
       currentUserContext,
       candidatePool
     );
 
-    // Map backwards-compatible fields alongside the exact MatchResult schema
-    const formattedMatches = aiMatches.map((m) => ({
-      ...m,
-      userId: m.matchUserId,
-      name: m.fullName,
-      avatar: m.avatarUrl,
-      compatibilityScore: m.overallScore,
-      matchReason: m.aiExplanation,
-      teaches: m.offeredSkill,
-      wants: m.requestedSkill,
-      isVerified: true,
-    }));
+    const durationMs = Date.now() - startTime;
 
-    return NextResponse.json({ matches: formattedMatches });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({
+      matches,
+      scanMetadata: {
+        scannedCount: candidatePool.length,
+        durationMs,
+        userScanned: currentUserContext.fullName,
+      },
+    });
+  } catch (err: any) {
+    console.error("AI Match route error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

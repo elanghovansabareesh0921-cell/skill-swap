@@ -27,10 +27,41 @@ import {
 export default function SessionRoomPage() {
   const params = useParams();
   const router = useRouter();
-  const { sessions, completeSession, showToast, currentUser } = useSkillSwap();
+  const {
+    sessions,
+    completeSession,
+    creditBookings,
+    sessionRooms,
+    releaseEscrowPayout,
+    showToast,
+    currentUser,
+  } = useSkillSwap();
 
-  const sessionId = (params?.id as string) || "session-python-arun";
-  const session = sessions.find((s) => s.id === sessionId) || sessions[0];
+  const rawId = (params?.id as string) || "session-python-arun";
+
+  // Find matching booking or room
+  const matchingRoom = sessionRooms.find((r) => r.roomToken === rawId || r.id === rawId);
+  const matchingBooking = creditBookings.find((b) => b.roomToken === rawId || b.id === rawId);
+  const foundSession = sessions.find((s) => s.id === rawId || s.roomUrl?.includes(rawId));
+
+  const session = foundSession || {
+    id: rawId,
+    skillTitle: matchingRoom?.skillName || matchingBooking?.skillName || "1-on-1 Skill Swap Session",
+    teacherName: matchingRoom?.peerName || matchingBooking?.teacherName || "Arun Kumar",
+    teacherAvatar: matchingBooking?.teacherAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+    teacherId: matchingBooking?.teacherId || "arun-kumar",
+    date: "Today",
+    time: "Live Classroom",
+    duration: "45 mins",
+    credits: matchingBooking?.creditsAmount || 50,
+    status: (matchingRoom?.status === "completed" ? "completed" : "upcoming") as any,
+    roomUrl: `/learn/${rawId}`,
+    agenda: [
+      `1-on-1 Session for ${matchingRoom?.skillName || matchingBooking?.skillName || "Skill Swap"}`,
+      "Real-time audio/video exchange & shared code scratchpad",
+      "Milestone review and session completion trigger",
+    ],
+  };
 
   // Unique peer identifier per browser window to allow seamless cross-tab & remote testing
   const [peerId, setPeerId] = useState<string>("");
@@ -51,13 +82,13 @@ export default function SessionRoomPage() {
 
   // Scratchpad & Chat
   const [scratchpadText, setScratchpadText] = useState(
-    `# Session Scratchpad: Python Async & Generators\n\n- Key Concept: Yield produces a value and pauses execution state.\n- Coroutines are declared with 'async def' and scheduled on asyncio event loop.\n\n\`\`\`python\nasync def fetch_user_data(user_id):\n    print(f"Fetching {user_id}...")\n    await asyncio.sleep(1)\n    return {"id": user_id, "status": "active"}\n\`\`\`\n\nNext exercise:\nImplement a streaming async generator to process incoming telemetry items.`
+    `# Session Scratchpad: ${session.skillTitle}\n\n- Key Concept: Yield produces a value and pauses execution state.\n- Coroutines are declared with 'async def' and scheduled on asyncio event loop.\n\n\`\`\`python\nasync def fetch_user_data(user_id):\n    print(f"Fetching {user_id}...")\n    await asyncio.sleep(1)\n    return {"id": user_id, "status": "active"}\n\`\`\`\n\nNext exercise:\nImplement a streaming async generator to process incoming telemetry items.`
   );
 
   const [chatMessages, setChatMessages] = useState([
     {
       sender: session?.teacherName || "Arun Kumar",
-      text: "Hey! Welcome to the session. Whenever you're ready, click Join Session and we'll dive right in.",
+      text: "Hey! Welcome to the virtual classroom. Click Join Session to enable audio/video and collaborative whiteboard.",
       time: "6:00 PM",
     },
   ]);
@@ -112,8 +143,17 @@ export default function SessionRoomPage() {
   };
 
   const handleRatingSubmit = (data: { rating: number; comment: string }) => {
-    completeSession(sessionId, data);
-    router.push("/credits");
+    // Release escrow if booked via credits
+    if (matchingBooking && matchingBooking.escrowStatus === "held") {
+      releaseEscrowPayout(matchingBooking.id);
+    }
+    completeSession(session.id, data);
+    showToast(
+      "Session Completed & Escrow Released! 💰",
+      "Held credits have been safely released to the teacher's wallet.",
+      "success"
+    );
+    router.push("/dashboard");
   };
 
   if (!session) {
@@ -201,7 +241,22 @@ export default function SessionRoomPage() {
       </header>
 
       {/* Main Focus Area: Video Stage & Interactive Workspace */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full space-y-4">
+        {matchingBooking && (
+          <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-emerald-800 dark:text-emerald-200">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>
+                <strong>Escrow Active:</strong> 🪙 {matchingBooking.creditsAmount} Credits locked in escrow. Released to {session.teacherName} upon completing the session.
+              </span>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-200/60 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-100 font-bold uppercase tracking-wider text-[10px]">
+              Escrow: {matchingBooking.escrowStatus}
+            </span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left / Center 8 Columns: Live Stage & Collaborative Workspace */}
         <div className="lg:col-span-8 flex flex-col gap-5">
           {/* Video Stream Stage */}
@@ -382,12 +437,13 @@ export default function SessionRoomPage() {
             )}
           </div>
         </div>
+        </div>
       </main>
 
       {/* Native WebRTC VideoRoom Component */}
       {isJoined && (
         <VideoRoom
-          sessionId={sessionId}
+          sessionId={session.id}
           currentUserId={peerId || currentUser?.id || "guest-peer"}
           peerName={session.teacherName || "Arun Kumar"}
           onClose={() => setIsJoined(false)}

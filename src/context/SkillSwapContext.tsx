@@ -164,12 +164,71 @@ export interface CurrentUser {
   learningCount: number;
   teachingCount: number;
   skillsCount: number;
+  referralSource?: string;
+  rolePreference?: "learner" | "teacher" | "both";
+  credentialsUrl?: string;
+  isVerified?: boolean;
   currentActivity?: string; // what they are doing right now (occupation / focus)
   school?: string; // school / university / college
   degree?: string; // field of study / degree
   graduationYear?: string; // graduation year or status
   gender?: string; // gender identity
   credentials?: (string | CredentialItem)[]; // certifications / credentials / degrees with document support
+}
+
+export interface TeacherPackage {
+  id: string;
+  teacherId: string;
+  teacherName?: string;
+  teacherAvatar?: string;
+  skillName: string;
+  sessionRateCredits: number;
+  fullCourseRateCredits?: number;
+  description?: string;
+  createdAt?: string;
+}
+
+export interface CreditBooking {
+  id: string;
+  learnerId: string;
+  teacherId: string;
+  teacherName?: string;
+  teacherAvatar?: string;
+  packageId?: string;
+  skillName: string;
+  bookingType: "per_session" | "full_course";
+  creditsAmount: number;
+  escrowStatus: "held" | "released" | "refunded";
+  chatRoomId?: string;
+  sessionRoomId?: string;
+  roomToken?: string;
+  scheduledStart: string;
+  scheduledEnd: string;
+  createdAt?: string;
+}
+
+export interface ChatRoomItem {
+  id: string;
+  participantOne: string;
+  participantTwo: string;
+  participantName: string;
+  participantAvatar?: string;
+  sourceType: "swap_match" | "credit_booking";
+  createdAt?: string;
+}
+
+export interface SessionRoomItem {
+  id: string;
+  chatRoomId: string;
+  bookingId?: string;
+  scheduledStart: string;
+  scheduledEnd: string;
+  roomToken: string;
+  status: "scheduled" | "in_progress" | "completed" | "cancelled";
+  skillName?: string;
+  peerName?: string;
+  peerAvatar?: string;
+  createdAt?: string;
 }
 
 interface SkillSwapContextType {
@@ -192,6 +251,11 @@ interface SkillSwapContextType {
   conversations: ChatConversation[];
   messages: ChatMessage[];
 
+  teacherPackages: TeacherPackage[];
+  creditBookings: CreditBooking[];
+  chatRooms: ChatRoomItem[];
+  sessionRooms: SessionRoomItem[];
+
   // Auth actions
 
   loginWithGoogle: () => Promise<{ success: boolean; error?: string; requiresConfig?: boolean }>;
@@ -200,6 +264,15 @@ interface SkillSwapContextType {
   signOut: () => Promise<void>;
   refreshUserProfile: () => Promise<void>;
   updateUserProfile: (updates: Partial<CurrentUser>) => Promise<{ success: boolean; error?: string }>;
+  saveOnboardingProfile: (data: {
+    referralSource: string;
+    rolePreference: "learner" | "teacher" | "both";
+    learnSkills: { name: string; level: "Beginner" | "Intermediate" | "Advanced" | "Expert"; goal?: string }[];
+    teachSkills: { name: string; level: "Beginner" | "Intermediate" | "Advanced" | "Expert"; years?: number }[];
+    credentialsUrl?: string;
+    bio?: string;
+    avatar?: string;
+  }) => Promise<{ success: boolean; error?: string }>;
 
   // Swap Requests
   sendSwapRequest: (data: {
@@ -213,6 +286,35 @@ interface SkillSwapContextType {
 
   // Messaging
   sendMessage: (receiverId: string, content: string) => void;
+
+  // Teacher Pricing Packages & Direct Escrow Bookings
+  createTeacherPackage: (data: {
+    skillName: string;
+    sessionRateCredits: number;
+    fullCourseRateCredits?: number;
+    description?: string;
+  }) => { success: boolean; package?: TeacherPackage };
+  deleteTeacherPackage: (packageId: string) => void;
+  bookTeacherPackage: (data: {
+    teacherId: string;
+    teacherName: string;
+    teacherAvatar?: string;
+    packageId?: string;
+    skillName: string;
+    bookingType: "per_session" | "full_course";
+    creditsAmount: number;
+    scheduledStart: string;
+    scheduledEnd: string;
+  }) => { success: boolean; booking?: CreditBooking; roomToken?: string; error?: string };
+  releaseEscrowPayout: (bookingId: string) => { success: boolean; error?: string };
+  refundEscrow: (bookingId: string) => { success: boolean; error?: string };
+  scheduleSessionRoom: (data: {
+    chatRoomId: string;
+    scheduledStart: string;
+    scheduledEnd: string;
+    skillName: string;
+    peerName: string;
+  }) => { success: boolean; room?: SessionRoomItem };
 
   // My Skills actions
   addTeachingSkill: (skill: { name: string; level: "Beginner" | "Intermediate" | "Advanced" | "Expert"; category?: string }) => void;
@@ -260,29 +362,123 @@ const INITIAL_CONVERSATIONS: ChatConversation[] = [];
 const INITIAL_MESSAGES: ChatMessage[] = [];
 
 const DEFAULT_USER: CurrentUser = {
-  id: "",
-  name: "",
-  email: "",
-  avatar: "",
-  role: "",
-  location: "",
-  bio: "",
-  credits: 0,
-  learningCount: 0,
-  teachingCount: 0,
-  skillsCount: 0,
+  id: "user-current",
+  name: "Alex Morgan",
+  email: "alex.morgan@example.com",
+  avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+  role: "Full-Stack Developer & Learner",
+  location: "San Francisco, CA (Remote)",
+  bio: "Passionate about building scalable web apps and learning UI/UX & AI systems.",
+  credits: 100, // Master Specification 100 baseline credits
+  learningCount: 2,
+  teachingCount: 1,
+  skillsCount: 3,
+  referralSource: "Friend/Referral",
+  rolePreference: "both",
+  isVerified: true,
+  credentialsUrl: "https://linkedin.com/in/alexmorgan-dev",
 };
+
+const INITIAL_TEACHER_PACKAGES: TeacherPackage[] = [
+  {
+    id: "pkg-1",
+    teacherId: "arun-kumar",
+    teacherName: "Arun Kumar",
+    teacherAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+    skillName: "Python & Machine Learning",
+    sessionRateCredits: 50,
+    fullCourseRateCredits: 250,
+    description: "Hands-on PyTorch, Pandas data pipelines, and foundational ML modeling for real applications.",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "pkg-2",
+    teacherId: "elena-rostova",
+    teacherName: "Elena Rostova",
+    teacherAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150",
+    skillName: "UI/UX Design Systems in Figma",
+    sessionRateCredits: 40,
+    fullCourseRateCredits: 200,
+    description: "Component tokenization, responsive Auto Layout, and design system governance in Figma.",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "pkg-3",
+    teacherId: "sophia-rivera",
+    teacherName: "Sophia Rivera",
+    teacherAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150",
+    skillName: "Conversational Spanish",
+    sessionRateCredits: 30,
+    fullCourseRateCredits: 150,
+    description: "Fluency practice, colloquial idioms, and professional communication in Spanish.",
+    createdAt: new Date().toISOString(),
+  },
+];
+
+const INITIAL_CREDIT_BOOKINGS: CreditBooking[] = [
+  {
+    id: "book-sample-1",
+    learnerId: "user-current",
+    teacherId: "arun-kumar",
+    teacherName: "Arun Kumar",
+    teacherAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+    packageId: "pkg-1",
+    skillName: "Python & Machine Learning",
+    bookingType: "per_session",
+    creditsAmount: 50,
+    escrowStatus: "held",
+    roomToken: "room-ml-mastery-42",
+    scheduledStart: new Date(Date.now() + 86400000).toISOString(),
+    scheduledEnd: new Date(Date.now() + 86400000 + 2700000).toISOString(),
+    createdAt: new Date().toISOString(),
+  }
+];
+
+const INITIAL_CHAT_ROOMS: ChatRoomItem[] = [
+  {
+    id: "chat-room-1",
+    participantOne: "user-current",
+    participantTwo: "arun-kumar",
+    participantName: "Arun Kumar",
+    participantAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+    sourceType: "swap_match",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "chat-room-2",
+    participantOne: "user-current",
+    participantTwo: "elena-rostova",
+    participantName: "Elena Rostova",
+    participantAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150",
+    sourceType: "credit_booking",
+    createdAt: new Date().toISOString(),
+  }
+];
+
+const INITIAL_SESSION_ROOMS: SessionRoomItem[] = [
+  {
+    id: "sroom-1",
+    chatRoomId: "chat-room-1",
+    scheduledStart: new Date(Date.now() + 86400000).toISOString(),
+    scheduledEnd: new Date(Date.now() + 86400000 + 2700000).toISOString(),
+    roomToken: "room-ml-mastery-42",
+    status: "scheduled",
+    skillName: "Python & Machine Learning",
+    peerName: "Arun Kumar",
+    peerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+  }
+];
 
 const SkillSwapContext = createContext<SkillSwapContextType | undefined>(undefined);
 
 export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
 
-  const [currentUser, setCurrentUser] = useState(DEFAULT_USER);
+  const [currentUser, setCurrentUser] = useState<CurrentUser>(DEFAULT_USER);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(false);
 
-  const [credits, setCredits] = useState<number>(50);
+  const [credits, setCredits] = useState<number>(100);
   const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
   const [skills, setSkills] = useState<SkillListing[]>(INITIAL_SKILLS);
   const [sessions, setSessions] = useState<SessionItem[]>(INITIAL_SESSIONS);
@@ -295,9 +491,19 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
   const [conversations, setConversations] = useState<ChatConversation[]>(INITIAL_CONVERSATIONS);
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
 
-  const [userTaughtSkillsList, setUserTaughtSkillsList] = useState<UserSkillItem[]>([]);
+  const [teacherPackages, setTeacherPackages] = useState<TeacherPackage[]>(INITIAL_TEACHER_PACKAGES);
+  const [creditBookings, setCreditBookings] = useState<CreditBooking[]>(INITIAL_CREDIT_BOOKINGS);
+  const [chatRooms, setChatRooms] = useState<ChatRoomItem[]>(INITIAL_CHAT_ROOMS);
+  const [sessionRooms, setSessionRooms] = useState<SessionRoomItem[]>(INITIAL_SESSION_ROOMS);
 
-  const [userLearningSkillsList, setUserLearningSkillsList] = useState<UserSkillItem[]>([]);
+  const [userTaughtSkillsList, setUserTaughtSkillsList] = useState<UserSkillItem[]>([
+    { id: "uts-1", name: "React & Next.js", level: "Advanced", category: "Technology" }
+  ]);
+
+  const [userLearningSkillsList, setUserLearningSkillsList] = useState<UserSkillItem[]>([
+    { id: "uls-1", name: "Python", level: "Beginner", goal: "Build AI models" },
+    { id: "uls-2", name: "UI/UX Design", level: "Intermediate", goal: "Master Figma design systems" }
+  ]);
 
   const userTaughtSkills = userTaughtSkillsList.map((s) => s.name);
 
@@ -315,15 +521,20 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
           .maybeSingle();
 
         if (profile) {
+          const profileBalance = profile.credits_balance ?? profile.credits ?? 100;
           setCurrentUser((prev) => ({
             ...prev,
             id: profile.id,
             name: profile.full_name || userMeta.full_name || session.user.user_metadata?.full_name || "User",
             email: profile.email || session.user.email || "",
-            credits: profile.credits ?? prev.credits,
+            credits: profileBalance,
             bio: profile.bio || prev.bio,
-            avatar: userMeta.avatar_url || userMeta.avatar || prev.avatar,
+            avatar: profile.avatar_url || userMeta.avatar_url || userMeta.avatar || prev.avatar,
             location: userMeta.location ?? prev.location,
+            referralSource: profile.referral_source ?? prev.referralSource,
+            rolePreference: profile.role_preference ?? prev.rolePreference,
+            credentialsUrl: profile.credentials_url ?? prev.credentialsUrl,
+            isVerified: profile.is_verified ?? prev.isVerified,
             currentActivity: userMeta.current_activity ?? prev.currentActivity,
             school: userMeta.school ?? prev.school,
             degree: userMeta.degree ?? prev.degree,
@@ -331,9 +542,7 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
             gender: userMeta.gender ?? prev.gender,
             credentials: userMeta.credentials ?? prev.credentials,
           }));
-          if (profile.credits !== undefined && profile.credits !== null) {
-            setCredits(profile.credits);
-          }
+          setCredits(profileBalance);
         } else {
           setCurrentUser((prev) => ({
             ...prev,
@@ -732,6 +941,18 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
       };
       setConversations((prev) => [newConv, ...prev]);
 
+      // Provision chat room for Master Specification compliance
+      const newChatRoom: ChatRoomItem = {
+        id: `chat-${Date.now()}`,
+        participantOne: request.fromUserId,
+        participantTwo: currentUser.id,
+        participantName: request.fromUserName,
+        participantAvatar: request.fromUserAvatar,
+        sourceType: "swap_match",
+        createdAt: new Date().toISOString(),
+      };
+      setChatRooms((prev) => [newChatRoom, ...prev]);
+
       showToast(
         "Swap Accepted! 🎉",
         `You connected with ${request.fromUserName}. A chat has been opened.`,
@@ -771,6 +992,342 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
           : c
       )
     );
+  };
+
+  // Onboarding wizard profile persistence
+  const saveOnboardingProfile = async ({
+    referralSource,
+    rolePreference,
+    learnSkills,
+    teachSkills,
+    credentialsUrl,
+    bio,
+    avatar,
+  }: {
+    referralSource: string;
+    rolePreference: "learner" | "teacher" | "both";
+    learnSkills: { name: string; level: "Beginner" | "Intermediate" | "Advanced" | "Expert"; goal?: string }[];
+    teachSkills: { name: string; level: "Beginner" | "Intermediate" | "Advanced" | "Expert"; years?: number }[];
+    credentialsUrl?: string;
+    bio?: string;
+    avatar?: string;
+  }) => {
+    try {
+      const updatedUser: CurrentUser = {
+        ...currentUser,
+        referralSource,
+        rolePreference,
+        credentialsUrl,
+        isVerified: !!credentialsUrl,
+        bio: bio || currentUser.bio,
+        avatar: avatar || currentUser.avatar,
+        credits: 100, // 100 baseline credits on completing profile verification
+        learningCount: learnSkills.length,
+        teachingCount: teachSkills.length,
+        skillsCount: learnSkills.length + teachSkills.length,
+      };
+
+      setCurrentUser(updatedUser);
+      setCredits(100);
+
+      const newTeachItems: UserSkillItem[] = teachSkills.map((t, idx) => ({
+        id: `ts-${Date.now()}-${idx}`,
+        name: t.name,
+        level: t.level,
+        category: "General",
+      }));
+      setUserTaughtSkillsList(newTeachItems);
+
+      const newLearnItems: UserSkillItem[] = learnSkills.map((l, idx) => ({
+        id: `ls-${Date.now()}-${idx}`,
+        name: l.name,
+        level: l.level,
+        goal: l.goal || "Master skill",
+      }));
+      setUserLearningSkillsList(newLearnItems);
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("skillswap_user", JSON.stringify(updatedUser));
+      }
+
+      // Supabase sync
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from("profiles").upsert({
+            id: user.id,
+            full_name: updatedUser.name,
+            avatar_url: updatedUser.avatar,
+            referral_source: referralSource,
+            role_preference: rolePreference,
+            credits_balance: 100,
+            credentials_url: credentialsUrl,
+            is_verified: !!credentialsUrl,
+            bio: updatedUser.bio,
+          });
+
+          const skillsToInsert = [
+            ...teachSkills.map((t) => ({
+              user_id: user.id,
+              skill_name: t.name,
+              skill_type: "teach" as const,
+              proficiency_level: t.level.toLowerCase(),
+              years_experience: t.years || 1,
+            })),
+            ...learnSkills.map((l) => ({
+              user_id: user.id,
+              skill_name: l.name,
+              skill_type: "learn" as const,
+              proficiency_level: l.level.toLowerCase(),
+              learning_goal: l.goal || "",
+            })),
+          ];
+
+          if (skillsToInsert.length > 0) {
+            await supabase.from("user_skills").insert(skillsToInsert);
+          }
+        }
+      } catch (dbErr) {
+        console.warn("Supabase onboarding sync:", dbErr);
+      }
+
+      showToast("Profile Verified! 🎉", "Granted 100 baseline credits to your wallet.", "success");
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  };
+
+  // Teacher Pricing Packages
+  const createTeacherPackage = (data: {
+    skillName: string;
+    sessionRateCredits: number;
+    fullCourseRateCredits?: number;
+    description?: string;
+  }) => {
+    const newPkg: TeacherPackage = {
+      id: `pkg-${Date.now()}`,
+      teacherId: currentUser.id,
+      teacherName: currentUser.name,
+      teacherAvatar: currentUser.avatar,
+      skillName: data.skillName,
+      sessionRateCredits: data.sessionRateCredits,
+      fullCourseRateCredits: data.fullCourseRateCredits,
+      description: data.description,
+      createdAt: new Date().toISOString(),
+    };
+    setTeacherPackages((prev) => [newPkg, ...prev]);
+    showToast("Package Created! 📦", `Pricing package set for ${data.skillName}.`, "success");
+    return { success: true, package: newPkg };
+  };
+
+  const deleteTeacherPackage = (packageId: string) => {
+    setTeacherPackages((prev) => prev.filter((p) => p.id !== packageId));
+    showToast("Package Removed", "Teacher pricing package deleted.", "info");
+  };
+
+  // Direct Credit Booking with Escrow Handling
+  const bookTeacherPackage = ({
+    teacherId,
+    teacherName,
+    teacherAvatar,
+    packageId,
+    skillName,
+    bookingType,
+    creditsAmount,
+    scheduledStart,
+    scheduledEnd,
+  }: {
+    teacherId: string;
+    teacherName: string;
+    teacherAvatar?: string;
+    packageId?: string;
+    skillName: string;
+    bookingType: "per_session" | "full_course";
+    creditsAmount: number;
+    scheduledStart: string;
+    scheduledEnd: string;
+  }) => {
+    if (credits < creditsAmount) {
+      showToast(
+        "Insufficient Balance",
+        `Booking requires ${creditsAmount} credits. Your balance is ${credits}.`,
+        "error"
+      );
+      return { success: false, error: "Insufficient credits" };
+    }
+
+    setCredits((prev) => prev - creditsAmount);
+
+    const token = `room-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 7)}`;
+    const chatRoomId = `chat-booking-${Date.now()}`;
+    const bookingId = `book-${Date.now()}`;
+
+    const newBooking: CreditBooking = {
+      id: bookingId,
+      learnerId: currentUser.id,
+      teacherId,
+      teacherName,
+      teacherAvatar,
+      packageId,
+      skillName,
+      bookingType,
+      creditsAmount,
+      escrowStatus: "held",
+      chatRoomId,
+      roomToken: token,
+      scheduledStart,
+      scheduledEnd,
+      createdAt: new Date().toISOString(),
+    };
+    setCreditBookings((prev) => [newBooking, ...prev]);
+
+    const newChatRoom: ChatRoomItem = {
+      id: chatRoomId,
+      participantOne: currentUser.id,
+      participantTwo: teacherId,
+      participantName: teacherName,
+      participantAvatar: teacherAvatar,
+      sourceType: "credit_booking",
+      createdAt: new Date().toISOString(),
+    };
+    setChatRooms((prev) => [newChatRoom, ...prev]);
+
+    const newSessionRoom: SessionRoomItem = {
+      id: `sroom-${Date.now()}`,
+      chatRoomId,
+      bookingId,
+      scheduledStart,
+      scheduledEnd,
+      roomToken: token,
+      status: "scheduled",
+      skillName,
+      peerName: teacherName,
+      peerAvatar: teacherAvatar,
+      createdAt: new Date().toISOString(),
+    };
+    setSessionRooms((prev) => [newSessionRoom, ...prev]);
+
+    const newSessionItem: SessionItem = {
+      id: token,
+      skillTitle: skillName,
+      teacherName,
+      teacherAvatar: teacherAvatar || "",
+      teacherId,
+      date: new Date(scheduledStart).toLocaleDateString(),
+      time: new Date(scheduledStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      duration: bookingType === "full_course" ? "6-Session Bundle" : "45 mins",
+      credits: creditsAmount,
+      status: "upcoming",
+      roomUrl: `/learn/${token}`,
+      agenda: [
+        `1-on-1 Mentorship session for ${skillName}`,
+        "Hands-on exercises and code review",
+        "Curriculum milestones & Q&A"
+      ],
+    };
+    setSessions((prev) => [newSessionItem, ...prev]);
+
+    const newTx: Transaction = {
+      id: `tx-${Date.now()}`,
+      type: "SPENT",
+      amount: -creditsAmount,
+      title: `${skillName} Booking`,
+      detail: `${bookingType === "full_course" ? "Full Course Bundle" : "Single Session"} with ${teacherName} (Held in Escrow)`,
+      date: "Just now",
+      category: "learning",
+    };
+    setTransactions((prev) => [newTx, ...prev]);
+
+    showToast("Booking Confirmed 🪙", `${creditsAmount} credits held safely in escrow.`, "success");
+    return { success: true, booking: newBooking, roomToken: token };
+  };
+
+  // Escrow Release
+  const releaseEscrowPayout = (bookingId: string) => {
+    const booking = creditBookings.find((b) => b.id === bookingId);
+    if (!booking) return { success: false, error: "Booking not found" };
+    if (booking.escrowStatus !== "held") return { success: false, error: "Escrow already settled" };
+
+    setCreditBookings((prev) =>
+      prev.map((b) => (b.id === bookingId ? { ...b, escrowStatus: "released" as const } : b))
+    );
+
+    if (booking.teacherId === currentUser.id) {
+      setCredits((prev) => prev + booking.creditsAmount);
+    }
+
+    setSessionRooms((prev) =>
+      prev.map((r) => (r.bookingId === bookingId ? { ...r, status: "completed" as const } : r))
+    );
+
+    showToast("Escrow Released! 💰", `${booking.creditsAmount} credits paid to teacher.`, "success");
+    return { success: true };
+  };
+
+  // Escrow Refund
+  const refundEscrow = (bookingId: string) => {
+    const booking = creditBookings.find((b) => b.id === bookingId);
+    if (!booking) return { success: false, error: "Booking not found" };
+    if (booking.escrowStatus !== "held") return { success: false, error: "Escrow cannot be refunded" };
+
+    setCreditBookings((prev) =>
+      prev.map((b) => (b.id === bookingId ? { ...b, escrowStatus: "refunded" as const } : b))
+    );
+
+    if (booking.learnerId === currentUser.id) {
+      setCredits((prev) => prev + booking.creditsAmount);
+    }
+
+    setSessionRooms((prev) =>
+      prev.map((r) => (r.bookingId === bookingId ? { ...r, status: "cancelled" as const } : r))
+    );
+
+    showToast("Escrow Refunded 🪙", `${booking.creditsAmount} credits returned to learner.`, "info");
+    return { success: true };
+  };
+
+  // In-Chat Session Scheduler Room Generation
+  const scheduleSessionRoom = (data: {
+    chatRoomId: string;
+    scheduledStart: string;
+    scheduledEnd: string;
+    skillName: string;
+    peerName: string;
+  }) => {
+    const token = `room-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+    const newRoom: SessionRoomItem = {
+      id: `sroom-${Date.now()}`,
+      chatRoomId: data.chatRoomId,
+      scheduledStart: data.scheduledStart,
+      scheduledEnd: data.scheduledEnd,
+      roomToken: token,
+      status: "scheduled",
+      skillName: data.skillName,
+      peerName: data.peerName,
+      createdAt: new Date().toISOString(),
+    };
+
+    setSessionRooms((prev) => [newRoom, ...prev]);
+
+    const newSessionItem: SessionItem = {
+      id: token,
+      skillTitle: data.skillName,
+      teacherName: data.peerName,
+      teacherAvatar: "",
+      teacherId: "peer",
+      date: new Date(data.scheduledStart).toLocaleDateString(),
+      time: new Date(data.scheduledStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      duration: "45 mins",
+      credits: 0,
+      status: "upcoming",
+      roomUrl: `/learn/${token}`,
+      agenda: ["Agreed swap session", "Live WebRTC collaboration & whiteboard", "Feedback & completion"],
+    };
+    setSessions((prev) => [newSessionItem, ...prev]);
+
+    showToast("Session Room Scheduled! 🎯", `Classroom link: /learn/${token}`, "success");
+    return { success: true, room: newRoom };
   };
 
   // My Skills Management
@@ -1072,15 +1629,27 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
         conversations,
         messages,
 
+        teacherPackages,
+        creditBookings,
+        chatRooms,
+        sessionRooms,
+
         loginWithGoogle,
         loginWithGoogleEmail,
         loginWithGoogleCredential,
         signOut,
         refreshUserProfile,
         updateUserProfile,
+        saveOnboardingProfile,
         sendSwapRequest,
         respondToSwapRequest,
         sendMessage,
+        createTeacherPackage,
+        deleteTeacherPackage,
+        bookTeacherPackage,
+        releaseEscrowPayout,
+        refundEscrow,
+        scheduleSessionRoom,
         addTeachingSkill,
         removeTeachingSkill,
         addLearningSkill,

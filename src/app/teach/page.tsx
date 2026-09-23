@@ -53,14 +53,16 @@ const AVAILABILITY_DAYS = [
 
 export default function TeachPage() {
   const router = useRouter();
-  const { publishSkill } = useSkillSwap();
+  const { publishSkill, createTeacherPackage, teacherPackages } = useSkillSwap();
 
   const [step, setStep] = useState<number>(1);
   const [skillTitle, setSkillTitle] = useState("");
   const [category, setCategory] = useState("Programming");
   const [experienceLevel, setExperienceLevel] = useState<"Beginner" | "Intermediate" | "Advanced" | "All Levels">("Beginner");
   const [format, setFormat] = useState("One-on-one");
-  const [credits, setCredits] = useState(10);
+  const [credits, setCredits] = useState(50); // Per session rate
+  const [fullCourseCredits, setFullCourseCredits] = useState(250); // Full course rate
+  const [packageDescription, setPackageDescription] = useState("");
   const [availability, setAvailability] = useState("Flexible / Anytime");
   const [isBuyCreditsOpen, setIsBuyCreditsOpen] = useState(false);
 
@@ -74,6 +76,13 @@ export default function TeachPage() {
       credits,
       format,
       availability,
+    });
+
+    createTeacherPackage({
+      skillName: skillTitle.trim(),
+      sessionRateCredits: credits,
+      fullCourseRateCredits: fullCourseCredits,
+      description: packageDescription.trim() || `Comprehensive curriculum and personalized mentorship in ${skillTitle.trim()}.`,
     });
 
     setStep(6); // Success confirmation step
@@ -320,44 +329,119 @@ export default function TeachPage() {
             </div>
           )}
 
-          {/* Step 4: How many credits do you want to charge? */}
+          {/* Step 4: Configure Teacher Pricing Model */}
           {step === 4 && (
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                Step 4
-              </span>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                How many credits to charge?
-              </h2>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Standard sessions are 60 minutes and typically charge 10 credits.
-              </p>
+            <div className="space-y-5">
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                  Step 4 • Teacher Pricing Model
+                </span>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                  Configure Your Pricing Packages
+                </h2>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Set your single session rate and complete curriculum package rate for learners booking directly via credits.
+                </p>
+              </div>
 
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                {CREDIT_OPTIONS.map((val) => {
-                  const isSelected = credits === val;
-                  return (
+              {/* Per-Session Rate */}
+              <div className="p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/40 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-xs font-bold text-gray-900 dark:text-white block">
+                      Per-Session Rate (45-Minute Session)
+                    </label>
+                    <span className="text-[11px] text-gray-500">Credits charged per individual teaching session</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 font-mono text-base font-bold text-indigo-600 dark:text-indigo-400">
+                    <span>🪙</span>
+                    <input
+                      type="number"
+                      min={10}
+                      max={200}
+                      value={credits}
+                      onChange={(e) => setCredits(Math.max(5, Number(e.target.value)))}
+                      className="w-16 px-2 py-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-center text-sm font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  {[25, 40, 50, 75].map((val) => (
                     <button
                       key={val}
                       type="button"
                       onClick={() => setCredits(val)}
-                      className={`p-4 rounded-2xl border text-center flex-1 min-w-[90px] transition-all ${
-                        isSelected
-                          ? "border-indigo-600 dark:border-indigo-500 bg-indigo-50/60 dark:bg-indigo-950/50 ring-1 ring-indigo-600 text-indigo-900 dark:text-indigo-200"
-                          : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
+                        credits === val
+                          ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400"
+                          : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400"
                       }`}
                     >
-                      <span className="text-xl font-bold font-mono block">🪙 {val}</span>
-                      <span className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 block">credits</span>
+                      {val} cr
                     </button>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
 
-              <div className="mt-6 p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-800 flex items-start gap-2 text-xs text-gray-600 dark:text-gray-300 leading-normal">
+              {/* Full Course / Curriculum Rate */}
+              <div className="p-4 rounded-2xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50/40 dark:bg-emerald-950/20 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-xs font-bold text-gray-900 dark:text-white block">
+                      Full Course / Curriculum Rate (6-Session Bundle)
+                    </label>
+                    <span className="text-[11px] text-gray-500">Comprehensive end-to-end learning package</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 font-mono text-base font-bold text-emerald-600 dark:text-emerald-400">
+                    <span>🪙</span>
+                    <input
+                      type="number"
+                      min={50}
+                      max={1000}
+                      value={fullCourseCredits}
+                      onChange={(e) => setFullCourseCredits(Math.max(25, Number(e.target.value)))}
+                      className="w-20 px-2 py-1 rounded-lg border border-emerald-300 dark:border-emerald-800 bg-white dark:bg-gray-900 text-center text-sm font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  {[150, 200, 250, 350].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setFullCourseCredits(val)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
+                        fullCourseCredits === val
+                          ? "border-emerald-600 bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200"
+                          : "border-emerald-200 dark:border-emerald-800 text-gray-600 dark:text-gray-400"
+                      }`}
+                    >
+                      {val} cr
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Package Description */}
+              <div>
+                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">
+                  Curriculum or Package Description
+                </label>
+                <textarea
+                  rows={2}
+                  value={packageDescription}
+                  onChange={(e) => setPackageDescription(e.target.value)}
+                  placeholder="Outline what learners will build and master across the sessions..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-xs text-gray-900 dark:text-white"
+                />
+              </div>
+
+              <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-800 flex items-start gap-2 text-xs text-gray-600 dark:text-gray-300 leading-normal">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                 <span>
-                  When a learner books this session, <strong>{credits} credits</strong> are automatically placed into escrow and safely awarded to you upon completion.
+                  <strong>Escrow Guarantee:</strong> When a learner books, credits are held in escrow and automatically transferred to your wallet when you or the learner completes the session.
                 </span>
               </div>
 
