@@ -101,6 +101,9 @@ export default function SignupPage() {
         return;
       }
 
+      if (typeof window !== "undefined") {
+        document.cookie = "skillswap_session=true; path=/; max-age=2592000; SameSite=Lax";
+      }
       showToast("Account Created! 🎉", "Welcome to Skill Swap. Let's customize your profile.", "success");
       router.push("/onboarding");
     } catch (err: any) {

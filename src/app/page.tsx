@@ -1,11 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import ActivityCard from "@/components/gamification/ActivityCard";
 import CoinIcon from "@/components/common/CoinIcon";
 import VerifiedBadge from "@/components/common/VerifiedBadge";
+import { useSkillSwap } from "@/context/SkillSwapContext";
 import {
   ArrowRight,
   Sparkles,
@@ -22,6 +24,26 @@ import {
 } from "lucide-react";
 
 export default function HomePage() {
+  const router = useRouter();
+  const { isAuthenticated, isLoadingAuth } = useSkillSwap();
+
+  useEffect(() => {
+    if (!isLoadingAuth && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isAuthenticated, isLoadingAuth, router]);
+
+  if (isLoadingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f5f2fc] dark:bg-[#130f26]">
+        <div className="w-8 h-8 rounded-full border-2 border-[#7d6ce8] border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
   const featuredMentors = [
     {
       id: "arun-kumar",

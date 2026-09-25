@@ -33,26 +33,43 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const hasSessionCookie =
+    request.cookies.get("skillswap_session")?.value === "true" ||
+    request.cookies.getAll().some((c) => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"));
+
+  const isAuthenticated = !!user || hasSessionCookie;
+
   const isProtectedRoute = 
+    request.nextUrl.pathname === '/' ||
     request.nextUrl.pathname.startsWith('/dashboard') ||
     request.nextUrl.pathname.startsWith('/matches') ||
     request.nextUrl.pathname.startsWith('/session') ||
-    request.nextUrl.pathname.startsWith('/credits');
+    request.nextUrl.pathname.startsWith('/credits') ||
+    request.nextUrl.pathname.startsWith('/discover') ||
+    request.nextUrl.pathname.startsWith('/skills') ||
+    request.nextUrl.pathname.startsWith('/messages') ||
+    request.nextUrl.pathname.startsWith('/settings') ||
+    request.nextUrl.pathname.startsWith('/teach') ||
+    request.nextUrl.pathname.startsWith('/learn');
 
   const isAuthRoute = 
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/signup');
 
-  if (isProtectedRoute && !user) {
+  // New unauthenticated users must see the login page first
+  if (isProtectedRoute && !isAuthenticated) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
-    url.searchParams.set('redirect', request.nextUrl.pathname);
+    if (request.nextUrl.pathname !== '/') {
+      url.searchParams.set('redirect', request.nextUrl.pathname);
+    }
     return NextResponse.redirect(url);
   }
 
-  if (isAuthRoute && user) {
+  // Existing authenticated users face the homepage ('/')
+  if (isAuthRoute && isAuthenticated) {
     const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
+    url.pathname = '/';
     return NextResponse.redirect(url);
   }
 

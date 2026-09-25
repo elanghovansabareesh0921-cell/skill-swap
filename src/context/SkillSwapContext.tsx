@@ -475,8 +475,8 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
 
   const [currentUser, setCurrentUser] = useState<CurrentUser>(DEFAULT_USER);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
-  const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(true);
 
   const [credits, setCredits] = useState<number>(100);
   const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
@@ -509,10 +509,14 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
 
   // Sync Supabase Auth & Profile
   const refreshUserProfile = useCallback(async () => {
+    setIsLoadingAuth(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setIsAuthenticated(true);
+        if (typeof window !== "undefined") {
+          document.cookie = "skillswap_session=true; path=/; max-age=2592000; SameSite=Lax";
+        }
         const userMeta = session.user.user_metadata || {};
         const { data: profile } = await supabase
           .from("profiles")
@@ -559,9 +563,35 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
             credentials: userMeta.credentials ?? prev.credentials,
           }));
         }
+      } else {
+        // No active Supabase session -> check local storage
+        if (typeof window !== "undefined") {
+          const savedUserStr = localStorage.getItem("skillswap_user");
+          if (savedUserStr) {
+            try {
+              const parsed = JSON.parse(savedUserStr);
+              if (parsed?.id && parsed.email) {
+                setCurrentUser(parsed);
+                setIsAuthenticated(true);
+                document.cookie = "skillswap_session=true; path=/; max-age=2592000; SameSite=Lax";
+              } else {
+                setIsAuthenticated(false);
+              }
+            } catch {
+              setIsAuthenticated(false);
+            }
+          } else {
+            setIsAuthenticated(false);
+          }
+        } else {
+          setIsAuthenticated(false);
+        }
       }
     } catch (err) {
       console.warn("Auth sync check:", err);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoadingAuth(false);
     }
   }, [supabase]);
 
@@ -744,6 +774,7 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
       if (typeof window !== "undefined") {
         localStorage.setItem("skillswap_user", JSON.stringify(resolvedUser));
         localStorage.setItem("skillswap_credits", String(resolvedUser.credits));
+        document.cookie = "skillswap_session=true; path=/; max-age=2592000; SameSite=Lax";
       }
       showToast("Welcome back! 👋", `Logged in with Google as ${resolvedUser.name}`, "success");
       return { success: true };
@@ -780,6 +811,7 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
     }
     if (typeof window !== "undefined") {
       localStorage.removeItem("skillswap_user");
+      document.cookie = "skillswap_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     }
     setIsAuthenticated(false);
     showToast("Signed Out", "You have successfully logged out.", "info");

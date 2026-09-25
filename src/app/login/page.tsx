@@ -23,7 +23,7 @@ import {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTarget = searchParams.get("redirect") || "/dashboard";
+  const redirectTarget = searchParams.get("redirect") || "/";
 
   const { loginWithGoogle, showToast } = useSkillSwap();
   const supabase = createClient();
@@ -105,6 +105,9 @@ function LoginForm() {
         return;
       }
 
+      if (typeof window !== "undefined") {
+        document.cookie = "skillswap_session=true; path=/; max-age=2592000; SameSite=Lax";
+      }
       showToast("Welcome back!", "Successfully signed in.", "success");
       router.push(redirectTarget);
     } catch (err: any) {
