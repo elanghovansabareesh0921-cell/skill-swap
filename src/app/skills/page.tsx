@@ -72,7 +72,7 @@ export default function MySkillsPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass border-white/10 text-xs font-semibold text-white/80 mb-3">
               <CoinIcon size={13} />
-              <span className="bg-gradient-to-r from-violet-300 via-white to-cyan-300 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-violet-300 via-white to-cyan-300 bg-clip-text text-transparent">
                 1 Hour Taught = 10 Credits Earned
               </span>
             </div>

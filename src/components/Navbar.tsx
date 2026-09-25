@@ -155,7 +155,7 @@ export default function Navbar({
               <Link
                 key={link.name}
                 href={link.href}
-                className={`relative px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CF6]/50 ${
+                className={`relative px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50 ${
                   active
                     ? "text-white"
                     : "text-white/50 hover:text-white/80"
@@ -186,14 +186,14 @@ export default function Navbar({
                   onOpenBuyCredits ? onOpenBuyCredits() : router.push("/credits")
                 }
                 title="View wallet"
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-150 hover:bg-white/[0.06] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CF6]/50"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-150 hover:bg-white/6 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50"
                 style={{
                   background: "rgba(245,165,36,0.1)",
                   border: "1px solid rgba(245,165,36,0.2)",
                 }}
               >
                 <CoinIcon size={14} />
-                <span className="font-mono text-[#f5a524] text-xs">{credits}</span>
+                <span className="font-mono text-brand-gold text-xs">{credits}</span>
                 <span className="text-white/40 text-xs font-medium">cr</span>
               </button>
 
@@ -205,7 +205,7 @@ export default function Navbar({
                     setShowProfileMenu(false);
                   }}
                   aria-label="Notifications"
-                  className="relative p-2 rounded-full text-white/50 hover:text-white/80 hover:bg-white/[0.06] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CF6]/50"
+                  className="relative p-2 rounded-full text-white/50 hover:text-white/80 hover:bg-white/6 transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50"
                 >
                   <Bell className="w-5 h-5" />
                   {unreadNotifsCount > 0 && (
@@ -251,7 +251,7 @@ export default function Navbar({
                         {unreadNotifsCount > 0 && (
                           <button
                             onClick={markNotificationsAsRead}
-                            className="flex items-center gap-1.5 text-xs font-semibold text-[#7C6CF6] hover:text-[#9b8ef8] transition-colors"
+                            className="flex items-center gap-1.5 text-xs font-semibold text-brand-accent hover:text-[#9b8ef8] transition-colors"
                           >
                             <CheckCheck className="w-3.5 h-3.5" />
                             Mark all read
@@ -260,13 +260,13 @@ export default function Navbar({
                       </div>
 
                       {/* Items */}
-                      <div className="max-h-72 overflow-y-auto divide-y divide-white/[0.05]">
+                      <div className="max-h-72 overflow-y-auto divide-y divide-white/5">
                         {notifications.length > 0 ? (
                           notifications.map((notif) => (
                             <div
                               key={notif.id}
-                              className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-white/[0.03] ${
-                                !notif.read ? "bg-white/[0.02]" : ""
+                              className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-white/3 ${
+                                !notif.read ? "bg-white/2" : ""
                               }`}
                             >
                               <span className="text-base shrink-0 mt-0.5">
@@ -320,7 +320,7 @@ export default function Navbar({
                     setShowProfileMenu((v) => !v);
                     setShowNotifications(false);
                   }}
-                  className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-white/[0.06] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CF6]/50"
+                  className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-white/6 transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50"
                   style={{ border: "1px solid rgba(255,255,255,0.08)" }}
                 >
                   <img
@@ -388,7 +388,7 @@ export default function Navbar({
                             key={href}
                             href={href}
                             onClick={() => setShowProfileMenu(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/60 hover:text-white/90 hover:bg-white/[0.04] transition-all duration-150"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/60 hover:text-white/90 hover:bg-white/4 transition-all duration-150"
                           >
                             <Icon className="w-4 h-4 shrink-0 text-white/35" />
                             {label}
@@ -399,7 +399,7 @@ export default function Navbar({
                       <div className="border-t border-white/[0.07] py-1.5">
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400/80 hover:text-red-400 hover:bg-red-500/[0.06] transition-all duration-150"
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400/80 hover:text-red-400 hover:bg-red-500/6 transition-all duration-150"
                         >
                           <LogOut className="w-4 h-4 shrink-0" />
                           Sign out
@@ -415,13 +415,13 @@ export default function Navbar({
             <div className="flex items-center gap-2">
               <Link
                 href="/login"
-                className="px-4 py-1.5 rounded-full text-sm font-medium text-white/60 hover:text-white/90 hover:bg-white/[0.06] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CF6]/50"
+                className="px-4 py-1.5 rounded-full text-sm font-medium text-white/60 hover:text-white/90 hover:bg-white/6 transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50"
               >
                 Log in
               </Link>
               <Link
                 href="/signup"
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold text-white transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CF6]/50 hover:opacity-90"
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold text-white transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50 hover:opacity-90"
                 style={{
                   background: "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
                   boxShadow: "0 4px 14px rgba(124,108,246,0.3)",

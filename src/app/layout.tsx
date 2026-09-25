@@ -75,7 +75,7 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
       <body
-        className="min-h-full flex flex-col bg-background text-foreground selection:bg-[#7C6CF6]/40 selection:text-white font-sans"
+        className="min-h-full flex flex-col bg-background text-foreground selection:bg-brand-accent/40 selection:text-white font-sans"
         style={{ fontFamily: "var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif" }}
       >
         <ThemeProvider>

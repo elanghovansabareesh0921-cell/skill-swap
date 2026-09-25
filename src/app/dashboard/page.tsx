@@ -131,7 +131,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2.5 shrink-0">
             <Link
               href="/discover"
-              className="glass px-4 py-2 rounded-xl text-sm font-medium text-white/70 hover:text-white transition-all duration-150 hover:bg-white/[0.08] flex items-center gap-1.5"
+              className="glass px-4 py-2 rounded-xl text-sm font-medium text-white/70 hover:text-white transition-all duration-150 hover:bg-white/8 flex items-center gap-1.5"
             >
               <Search className="w-4 h-4" />
               Explore
@@ -159,13 +159,13 @@ export default function DashboardPage() {
           onSubmit={handleSearch}
           className="relative group"
         >
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-[#7C6CF6] transition-colors" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-brand-accent transition-colors" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search for a skill, topic or person..."
-            className="w-full pl-12 pr-32 py-4 rounded-2xl text-sm text-white placeholder-white/30 bg-white/[0.04] border border-white/[0.08] focus:outline-none focus:border-[#7C6CF6]/50 focus:bg-white/[0.06] focus:ring-1 focus:ring-[#7C6CF6]/30 transition-all duration-200"
+            className="w-full pl-12 pr-32 py-4 rounded-2xl text-sm text-white placeholder:text-white/30 bg-white/4 border border-white/8 focus:outline-none focus:border-brand-accent/50 focus:bg-white/6 focus:ring-1 focus:ring-brand-accent/30 transition-all duration-200"
             style={{ backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
           />
           <button
@@ -209,7 +209,7 @@ export default function DashboardPage() {
               label: "Sessions",
               value: upcomingSessions.length,
               sub: "Upcoming sessions",
-              icon: <Calendar className="w-5 h-5 text-[#7C6CF6]" />,
+              icon: <Calendar className="w-5 h-5 text-brand-accent" />,
               accent: "#7C6CF6",
               href: "/learn",
             },
@@ -217,7 +217,7 @@ export default function DashboardPage() {
               label: "Swap Requests",
               value: swapRequests?.length ?? 0,
               sub: "Pending review",
-              icon: <Repeat2 className="w-5 h-5 text-[#06B6D4]" />,
+              icon: <Repeat2 className="w-5 h-5 text-brand-accent-light" />,
               accent: "#06B6D4",
               href: "/matches",
             },
@@ -231,10 +231,10 @@ export default function DashboardPage() {
                   ? () => router.push(stat.href as string)
                   : undefined
               }
-              className="glass rounded-2xl p-5 text-left transition-all duration-200 hover:bg-white/[0.07] hover:border-white/[0.14] group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CF6]/50"
+              className="glass rounded-2xl p-5 text-left transition-all duration-200 hover:bg-white/[0.07] hover:border-white/[0.14] group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50"
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="p-2 rounded-lg bg-white/[0.05]">{stat.icon}</div>
+                <div className="p-2 rounded-lg bg-white/5">{stat.icon}</div>
                 <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
               </div>
               <p
@@ -263,7 +263,7 @@ export default function DashboardPage() {
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.07]">
               <div className="flex items-center gap-2.5">
-                <GraduationCap className="w-5 h-5 text-[#7C6CF6]" />
+                <GraduationCap className="w-5 h-5 text-brand-accent" />
                 <h2 className="text-base font-bold text-white">Upcoming Sessions</h2>
                 {upcomingSessions.length > 0 && (
                   <span
@@ -278,18 +278,18 @@ export default function DashboardPage() {
               </div>
               <Link
                 href="/learn"
-                className="text-xs font-semibold text-[#7C6CF6] hover:text-[#9b8ef8] transition-colors flex items-center gap-1"
+                className="text-xs font-semibold text-brand-accent hover:text-[#9b8ef8] transition-colors flex items-center gap-1"
               >
                 View all <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
-            <div className="divide-y divide-white/[0.05]">
+            <div className="divide-y divide-white/5">
               {upcomingSessions.length > 0 ? (
                 upcomingSessions.map((session) => (
                   <div
                     key={session.id}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/[0.03] transition-colors group"
+                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/3 transition-colors group"
                   >
                     <div className="relative shrink-0">
                       <img
@@ -330,7 +330,7 @@ export default function DashboardPage() {
                     className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
                     style={{ background: "rgba(124,108,246,0.1)" }}
                   >
-                    <Calendar className="w-6 h-6 text-[#7C6CF6]" />
+                    <Calendar className="w-6 h-6 text-brand-accent" />
                   </div>
                   <p className="text-sm font-semibold text-white/60">
                     No sessions scheduled
@@ -340,7 +340,7 @@ export default function DashboardPage() {
                   </p>
                   <Link
                     href="/discover"
-                    className="inline-flex items-center gap-1.5 mt-4 text-sm font-semibold text-[#7C6CF6] hover:text-[#9b8ef8] transition-colors"
+                    className="inline-flex items-center gap-1.5 mt-4 text-sm font-semibold text-brand-accent hover:text-[#9b8ef8] transition-colors"
                   >
                     Browse skills <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -359,7 +359,7 @@ export default function DashboardPage() {
           >
             <div className="px-6 py-4 border-b border-white/[0.07]">
               <div className="flex items-center gap-2.5">
-                <Zap className="w-5 h-5 text-[#f5a524]" />
+                <Zap className="w-5 h-5 text-brand-gold" />
                 <h2 className="text-base font-bold text-white">Quick Actions</h2>
               </div>
             </div>
@@ -402,7 +402,7 @@ export default function DashboardPage() {
                       ? action.onClick
                       : () => router.push(action.href)
                   }
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/[0.05] transition-all duration-150 group text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CF6]/50"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all duration-150 group text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50"
                 >
                   <div
                     className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
@@ -432,7 +432,7 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-xs font-semibold text-[#7C6CF6] uppercase tracking-widest mb-1">
+              <p className="text-xs font-semibold text-brand-accent uppercase tracking-widest mb-1">
                 AI Personalized
               </p>
               <h2 className="text-xl font-bold text-white tracking-tight">
@@ -441,7 +441,7 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/discover"
-              className="text-sm font-semibold text-[#7C6CF6] hover:text-[#9b8ef8] transition-colors flex items-center gap-1"
+              className="text-sm font-semibold text-brand-accent hover:text-[#9b8ef8] transition-colors flex items-center gap-1"
             >
               View all <ChevronRight className="w-4 h-4" />
             </Link>
@@ -455,7 +455,7 @@ export default function DashboardPage() {
                 variants={fadeUp}
                 initial="hidden"
                 animate="visible"
-                className="glass rounded-2xl p-5 flex flex-col gap-4 transition-all duration-200 hover:bg-white/[0.07] hover:border-white/[0.14] hover:-translate-y-0.5 group"
+                className="glass rounded-2xl p-5 flex flex-col gap-4 transition-all duration-200 hover:bg-white/7 hover:border-white/14 hover:-translate-y-0.5 group"
               >
                 {/* Teacher */}
                 <div className="flex items-center gap-3">
@@ -467,7 +467,7 @@ export default function DashboardPage() {
                   <div className="min-w-0">
                     <Link
                       href={`/profile/${item.teacher.id}`}
-                      className="text-sm font-semibold text-white/90 hover:text-[#7C6CF6] transition-colors truncate block"
+                      className="text-sm font-semibold text-white/90 hover:text-brand-accent transition-colors truncate block"
                     >
                       {item.teacher.name}
                     </Link>
@@ -509,7 +509,7 @@ export default function DashboardPage() {
                 >
                   <div className="flex items-center gap-1">
                     <CoinIcon size={14} />
-                    <span className="text-xs font-bold text-[#f5a524] font-mono">
+                    <span className="text-xs font-bold text-brand-gold font-mono">
                       {item.creditsPerSession} cr
                     </span>
                   </div>
@@ -549,22 +549,22 @@ export default function DashboardPage() {
           <div className="glass rounded-2xl overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.07]">
               <div className="flex items-center gap-2.5">
-                <GraduationCap className="w-5 h-5 text-[#7C6CF6]" />
+                <GraduationCap className="w-5 h-5 text-brand-accent" />
                 <h2 className="text-base font-bold text-white">Your Learning</h2>
               </div>
               <Link
                 href="/learn"
-                className="text-xs font-semibold text-[#7C6CF6] hover:text-[#9b8ef8] transition-colors flex items-center gap-1"
+                className="text-xs font-semibold text-brand-accent hover:text-[#9b8ef8] transition-colors flex items-center gap-1"
               >
                 View all <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
-            <div className="divide-y divide-white/[0.05]">
+            <div className="divide-y divide-white/5">
               {userLearningSkillsList.length > 0 ? (
                 userLearningSkillsList.slice(0, 4).map((skill) => (
                   <div
                     key={skill.id}
-                    className="flex items-center gap-3 px-6 py-3.5 hover:bg-white/[0.03] transition-colors"
+                    className="flex items-center gap-3 px-6 py-3.5 hover:bg-white/3 transition-colors"
                   >
                     <div
                       className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-[11px] font-bold text-white"
@@ -596,7 +596,7 @@ export default function DashboardPage() {
                   <p className="text-sm text-white/45">No learning goals added yet.</p>
                   <Link
                     href="/discover"
-                    className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-[#7C6CF6] hover:text-[#9b8ef8] transition-colors"
+                    className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-brand-accent hover:text-[#9b8ef8] transition-colors"
                   >
                     Browse skills <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -609,22 +609,22 @@ export default function DashboardPage() {
           <div className="glass rounded-2xl overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.07]">
               <div className="flex items-center gap-2.5">
-                <BookOpen className="w-5 h-5 text-[#06B6D4]" />
+                <BookOpen className="w-5 h-5 text-brand-accent-light" />
                 <h2 className="text-base font-bold text-white">Your Teaching</h2>
               </div>
               <Link
                 href="/skills"
-                className="text-xs font-semibold text-[#7C6CF6] hover:text-[#9b8ef8] transition-colors flex items-center gap-1"
+                className="text-xs font-semibold text-brand-accent hover:text-[#9b8ef8] transition-colors flex items-center gap-1"
               >
                 Edit skills <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
-            <div className="divide-y divide-white/[0.05]">
+            <div className="divide-y divide-white/5">
               {userTaughtSkillsList.length > 0 ? (
                 userTaughtSkillsList.slice(0, 4).map((skill) => (
                   <div
                     key={skill.id}
-                    className="flex items-center gap-3 px-6 py-3.5 hover:bg-white/[0.03] transition-colors"
+                    className="flex items-center gap-3 px-6 py-3.5 hover:bg-white/3 transition-colors"
                   >
                     <div
                       className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-[11px] font-bold text-white"
@@ -658,7 +658,7 @@ export default function DashboardPage() {
                   <p className="text-sm text-white/45">No teaching skills added yet.</p>
                   <Link
                     href="/skills"
-                    className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-[#7C6CF6] hover:text-[#9b8ef8] transition-colors"
+                    className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-brand-accent hover:text-[#9b8ef8] transition-colors"
                   >
                     Add skills <ArrowRight className="w-4 h-4" />
                   </Link>

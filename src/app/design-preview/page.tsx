@@ -31,7 +31,7 @@ export default function DesignPreviewPage() {
   const [inputValue, setInputValue] = useState("")
 
   return (
-    <div className="relative min-h-screen w-full bg-[#08090D] text-[#F3F4F6] selection:bg-[#7C6CF6]/30 selection:text-white pb-24 overflow-x-hidden">
+    <div className="relative min-h-screen w-full bg-[#08090D] text-[#F3F4F6] selection:bg-brand-accent/30 selection:text-white pb-24 overflow-x-hidden">
       {/* Background Glow Layer */}
       <GradientGlow variant="default" />
 
@@ -40,11 +40,11 @@ export default function DesignPreviewPage() {
         {/* Navigation & Breadcrumb */}
         <div className="flex items-center justify-between border-b border-white/10 pb-6 mb-12">
           <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-tr from-[#7C6CF6] to-[#06B6D4] text-white shadow-lg shadow-[#7C6CF6]/30">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-linear-to-tr from-brand-accent to-brand-accent-light text-white shadow-lg shadow-brand-accent/30">
               <Layers className="size-5" />
             </div>
             <div>
-              <span className="text-xs uppercase tracking-widest text-[#06B6D4] font-semibold">
+              <span className="text-xs uppercase tracking-widest text-brand-accent-light font-semibold">
                 SkillSwap System
               </span>
               <h2 className="text-sm font-medium text-white/90">
@@ -67,7 +67,7 @@ export default function DesignPreviewPage() {
         <div className="mb-16 text-center sm:text-left">
           <div className="inline-flex items-center gap-2 mb-4">
             <Badge variant="outline" className="px-3 py-1 text-xs">
-              <Sparkles className="size-3 text-[#7C6CF6]" />
+              <Sparkles className="size-3 text-brand-accent" />
               Dark Glassmorphism Preview
             </Badge>
           </div>
@@ -123,7 +123,7 @@ export default function DesignPreviewPage() {
 
             {/* Primary Violet Token */}
             <div className="glass rounded-xl p-4 flex flex-col gap-2">
-              <div className="h-12 w-full rounded-lg bg-[#7C6CF6] shadow-md shadow-[#7C6CF6]/40" />
+              <div className="h-12 w-full rounded-lg bg-brand-accent shadow-md shadow-brand-accent/40" />
               <div className="text-xs font-semibold text-white">Primary Indigo</div>
               <div className="text-[11px] font-mono text-white/50">#7C6CF6</div>
               <div className="text-[10px] text-white/40">Gradient start</div>
@@ -131,7 +131,7 @@ export default function DesignPreviewPage() {
 
             {/* Cyan Token */}
             <div className="glass rounded-xl p-4 flex flex-col gap-2">
-              <div className="h-12 w-full rounded-lg bg-[#06B6D4] shadow-md shadow-[#06B6D4]/40" />
+              <div className="h-12 w-full rounded-lg bg-brand-accent-light shadow-md shadow-brand-accent-light/40" />
               <div className="text-xs font-semibold text-white">Cyan Accent</div>
               <div className="text-[11px] font-mono text-white/50">#06B6D4</div>
               <div className="text-[10px] text-white/40">Gradient stop</div>
@@ -139,7 +139,7 @@ export default function DesignPreviewPage() {
 
             {/* Gradient Swatch */}
             <div className="glass rounded-xl p-4 flex flex-col gap-2">
-              <div className="h-12 w-full rounded-lg bg-gradient-to-r from-[#7C6CF6] via-[#6857F3] to-[#06B6D4] shadow-md shadow-indigo-500/30" />
+              <div className="h-12 w-full rounded-lg bg-linear-to-r from-brand-accent via-[#6857F3] to-brand-accent-light shadow-md shadow-indigo-500/30" />
               <div className="text-xs font-semibold text-white">Accent Gradient</div>
               <div className="text-[11px] font-mono text-white/50">Indigo → Cyan</div>
               <div className="text-[10px] text-white/40">CTA & highlights</div>
@@ -428,7 +428,7 @@ export default function DesignPreviewPage() {
                     <span className="font-semibold text-white">45 credits</span>
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
-                    <div className="h-full w-3/4 rounded-full bg-gradient-to-r from-[#7C6CF6] to-[#06B6D4]" />
+                    <div className="h-full w-3/4 rounded-full bg-linear-to-r from-brand-accent to-brand-accent-light" />
                   </div>
                 </div>
               </CardContent>
@@ -519,7 +519,7 @@ export default function DesignPreviewPage() {
                 <span className="font-semibold text-white block">Focus Behavior:</span>
                 <p>
                   Click into any input above to see the sharp focus ring transition to{" "}
-                  <span className="font-mono text-[#7C6CF6]">#7C6CF6</span> with ambient glow.
+                  <span className="font-mono text-brand-accent">#7C6CF6</span> with ambient glow.
                 </p>
               </div>
             </Card>
@@ -631,11 +631,11 @@ export default function DesignPreviewPage() {
           </div>
 
           <Card className="max-w-2xl mx-auto p-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 -mt-8 -mr-8 size-40 rounded-full bg-[#7C6CF6]/20 blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 -mt-8 -mr-8 size-40 rounded-full bg-brand-accent/20 blur-3xl pointer-events-none" />
 
             <div className="flex items-start justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
-                <div className="size-12 rounded-2xl bg-gradient-to-tr from-[#7C6CF6] to-[#06B6D4] p-0.5 shadow-lg shadow-indigo-500/25">
+                <div className="size-12 rounded-2xl bg-linear-to-tr from-brand-accent to-brand-accent-light p-0.5 shadow-lg shadow-indigo-500/25">
                   <div className="h-full w-full rounded-[14px] bg-[#08090D] flex items-center justify-center font-bold text-white">
                     JS
                   </div>
@@ -670,7 +670,7 @@ export default function DesignPreviewPage() {
 
             <div className="glass rounded-xl p-4 mb-6 flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs text-white/70">
-                <Clock className="size-4 text-[#06B6D4]" />
+                <Clock className="size-4 text-brand-accent-light" />
                 <span>Next Available: Today at 4:00 PM EST</span>
               </div>
               <span className="text-xs font-semibold text-white">

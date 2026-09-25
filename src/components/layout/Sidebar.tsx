@@ -72,7 +72,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`hidden lg:flex flex-col flex-shrink-0 h-full sticky top-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+      className={`hidden lg:flex flex-col shrink-0 h-full sticky top-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
         collapsed ? "w-16" : "w-60"
       }`}
     >
@@ -87,7 +87,7 @@ export default function Sidebar() {
         }}
       >
         {/* Logo row */}
-        <div className="flex items-center gap-3 px-4 h-16 border-b border-white/[0.06] shrink-0">
+        <div className="flex items-center gap-3 px-4 h-16 border-b border-white/6 shrink-0">
           <Link
             href="/dashboard"
             className="flex items-center gap-2.5 group focus:outline-none min-w-0"
@@ -128,7 +128,7 @@ export default function Sidebar() {
                       <Link
                         href={item.href}
                         title={collapsed ? item.name : undefined}
-                        className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CF6]/60 ${
+                        className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/60 ${
                           active
                             ? "text-white"
                             : "text-white/50 hover:text-white/80"
@@ -145,12 +145,12 @@ export default function Sidebar() {
                       >
                         {/* Hover bg */}
                         {!active && (
-                          <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150 bg-white/[0.04]" />
+                          <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150 bg-white/4" />
                         )}
                         <Icon
                           className={`shrink-0 w-4 h-4 transition-colors ${
                             active
-                              ? "text-[#7C6CF6]"
+                              ? "text-brand-accent"
                               : "text-white/40 group-hover:text-white/60"
                           }`}
                         />
@@ -178,19 +178,19 @@ export default function Sidebar() {
         </nav>
 
         {/* Bottom: credits + user */}
-        <div className="shrink-0 border-t border-white/[0.06] p-3 space-y-2">
+        <div className="shrink-0 border-t border-white/6 p-3 space-y-2">
           {/* Credits pill */}
           <Link
             href="/credits"
             title={collapsed ? `${credits} Credits` : undefined}
-            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/[0.05] transition-colors group ${
+            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors group ${
               collapsed ? "justify-center" : ""
             }`}
           >
             <CoinIcon size={18} className="shrink-0" />
             {!collapsed && (
               <div className="min-w-0">
-                <p className="text-xs font-bold text-[#f5a524] leading-none">
+                <p className="text-xs font-bold text-brand-gold leading-none">
                   {credits}
                 </p>
                 <p className="text-[10px] text-white/40 mt-0.5">Credits</p>
@@ -201,7 +201,7 @@ export default function Sidebar() {
           {/* Help */}
           <button
             title={collapsed ? "Help" : undefined}
-            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/[0.05] transition-colors text-white/40 hover:text-white/60 ${
+            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors text-white/40 hover:text-white/60 ${
               collapsed ? "justify-center" : ""
             }`}
           >
@@ -215,7 +215,7 @@ export default function Sidebar() {
           <Link
             href="/profile"
             title={collapsed ? currentUser?.name || "Profile" : undefined}
-            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/[0.05] transition-colors group ${
+            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors group ${
               collapsed ? "justify-center" : ""
             }`}
           >
@@ -244,7 +244,7 @@ export default function Sidebar() {
         <button
           onClick={() => setCollapsed((c) => !c)}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="absolute -right-3 top-20 z-10 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CF6]/60"
+          className="absolute -right-3 top-20 z-10 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/60"
           style={{
             background: "#0D0F17",
             border: "1px solid rgba(255,255,255,0.12)",

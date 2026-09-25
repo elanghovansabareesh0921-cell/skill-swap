@@ -202,7 +202,7 @@ export default function CreditsWalletPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass border-white/10 text-xs font-semibold text-white/80 mb-3 shadow-inner">
               <CoinIcon size={13} />
-              <span className="bg-gradient-to-r from-violet-300 via-white to-cyan-300 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-violet-300 via-white to-cyan-300 bg-clip-text text-transparent">
                 1 Hour = 10 Credits · Escrow Protected
               </span>
             </div>
@@ -353,7 +353,7 @@ export default function CreditsWalletPage() {
               return (
                 <div
                   key={sess.id}
-                  className="rounded-2xl bg-white/[0.02] border border-white/8 p-4.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-white/15 transition-colors"
+                  className="rounded-2xl bg-white/2 border border-white/8 p-4.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-white/15 transition-colors"
                 >
                   <div className="flex items-center gap-3.5">
                     <img

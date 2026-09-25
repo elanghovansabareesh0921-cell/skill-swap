@@ -45,7 +45,7 @@ export default function MobileNav() {
             <Link
               key={item.name}
               href={item.href}
-              className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CF6]/60 min-w-[48px]"
+              className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/60 min-w-12"
               style={
                 active
                   ? {
@@ -57,12 +57,12 @@ export default function MobileNav() {
             >
               <Icon
                 className={`w-5 h-5 transition-colors ${
-                  active ? "text-[#7C6CF6]" : "text-white/40"
+                  active ? "text-brand-accent" : "text-white/40"
                 }`}
               />
               <span
                 className={`text-[10px] font-medium transition-colors leading-none ${
-                  active ? "text-[#7C6CF6]" : "text-white/35"
+                  active ? "text-brand-accent" : "text-white/35"
                 }`}
               >
                 {item.name}

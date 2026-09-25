@@ -205,7 +205,7 @@ export default function MatchesPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass border-white/10 text-xs font-semibold text-white/80 mb-3">
               <Repeat className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="bg-gradient-to-r from-violet-300 via-white to-cyan-300 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-violet-300 via-white to-cyan-300 bg-clip-text text-transparent">
                 Reciprocal Matching · 1 Hour = 10 Credits
               </span>
             </div>

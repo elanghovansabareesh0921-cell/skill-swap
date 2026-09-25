@@ -11,7 +11,7 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "glass group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-2xl text-card-foreground [--card-spacing:--spacing(5)] p-(--card-spacing) data-[size=sm]:[--card-spacing:--spacing(3.5)] data-[size=sm]:p-4",
+        "glass group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-2xl text-card-foreground [--card-spacing:--spacing(5)] p-(--card-spacing) data-[size=sm]:[--card-spacing:--spacing(3.5)]",
         className
       )}
       {...props}
@@ -83,7 +83,7 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-footer"
       className={cn(
-        "flex items-center -mx-(--card-spacing) -mb-(--card-spacing) mt-2 rounded-b-2xl border-t border-white/10 bg-white/[0.02] p-(--card-spacing)",
+        "flex items-center -mx-(--card-spacing) -mb-(--card-spacing) mt-2 rounded-b-2xl border-t border-white/10 bg-white/2 p-(--card-spacing)",
         className
       )}
       {...props}
