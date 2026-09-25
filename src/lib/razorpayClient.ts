@@ -81,11 +81,11 @@ export async function processRazorpayCheckout({
       currency: orderData.currency || "INR",
       name: "Skill Swap",
       description: `Purchase of ${credits} Swap Credits (1 Credit = ₹1)`,
-      image: "https://skillswap.example.com/logo.png",
+      image: "/favicon.ico",
       order_id: orderData.orderId,
       prefill: {
         name: userName || "Skill Swap Learner",
-        email: userEmail || "user@skillswap.com",
+        email: userEmail || "",
       },
       theme: {
         color: "#7C3AED", // Skill Swap brand violet

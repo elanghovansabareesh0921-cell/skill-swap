@@ -324,7 +324,8 @@ function SettingsContent() {
                 <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">Email Address</label>
                 <input
                   type="email"
-                  value={currentUser.email || "demo@skillswap.com"}
+                  value={currentUser.email || ""}
+                  placeholder="No email configured"
                   disabled
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-[#F8F7FF] dark:bg-[#0E0C1B] text-sm text-[#71717A] cursor-not-allowed"
                 />

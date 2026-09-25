@@ -255,7 +255,7 @@ export default function SignupPage() {
                   setEmail(e.target.value);
                   if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: undefined }));
                 }}
-                placeholder="you@example.com"
+                placeholder="name@email.com"
                 className={`w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#161327] border text-sm text-[#18181B] dark:text-white transition-all focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40 ${
                   fieldErrors.email
                     ? "border-red-500 focus:border-red-500"
@@ -415,7 +415,6 @@ export default function SignupPage() {
       <GoogleOAuthModal
         isOpen={isGoogleModalOpen}
         onClose={() => setIsGoogleModalOpen(false)}
-        defaultEmail="elanghovansabareesh0921@gmail.com"
       />
     </div>
   );

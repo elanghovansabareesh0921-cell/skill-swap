@@ -25,13 +25,13 @@ interface GoogleOAuthModalProps {
 export function GoogleOAuthModal({
   isOpen,
   onClose,
-  defaultEmail = "elanghovansabareesh0921@gmail.com",
+  defaultEmail = "",
 }: GoogleOAuthModalProps) {
   const router = useRouter();
   const { loginWithGoogleEmail } = useSkillSwap();
 
   const [emailInput, setEmailInput] = useState(defaultEmail);
-  const [nameInput, setNameInput] = useState(defaultEmail.includes("sabareesh") ? "SABBY" : "");
+  const [nameInput, setNameInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"instant" | "setup">("instant");
@@ -175,39 +175,15 @@ export function GoogleOAuthModal({
               {/* Fast 1-Click Action for User's detected email */}
               <form onSubmit={handleInstantGoogleLogin} className="space-y-3.5">
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block">
-                      Google Account Email
-                    </label>
-                    <div className="flex items-center gap-1.5 text-[11px]">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEmailInput("sabareesh092107@gmail.com");
-                          setNameInput("Sabareesh");
-                        }}
-                        className="px-2 py-0.5 rounded-md bg-[#EDE9FE] dark:bg-[#2D264E] text-[#7C3AED] dark:text-[#EDE9FE] font-medium hover:bg-[#DDD6FE]"
-                      >
-                        sabareesh092107@gmail.com
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEmailInput("elanghovansabareesh0921@gmail.com");
-                          setNameInput("SABBY");
-                        }}
-                        className="px-2 py-0.5 rounded-md bg-[#EDE9FE] dark:bg-[#2D264E] text-[#7C3AED] dark:text-[#EDE9FE] font-medium hover:bg-[#DDD6FE]"
-                      >
-                        SABBY
-                      </button>
-                    </div>
-                  </div>
+                  <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block">
+                    Google Account Email
+                  </label>
                   <input
                     type="email"
                     value={emailInput}
                     onChange={(e) => setEmailInput(e.target.value)}
                     required
-                    placeholder="e.g. sabareesh092107@gmail.com"
+                    placeholder="Enter your Google email"
                     className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
                   />
                 </div>
