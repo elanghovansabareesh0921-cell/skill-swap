@@ -21,6 +21,8 @@ import {
   Check,
 } from "lucide-react";
 
+import BuyCreditsModal from "@/components/BuyCreditsModal";
+
 interface ActiveSessionItem {
   id: string;
   partnerName: string;
@@ -36,8 +38,9 @@ interface ActiveSessionItem {
 export default function CreditsWalletPage() {
   const { credits, showToast } = useSkillSwap();
 
-  const [availableBalance, setAvailableBalance] = useState(30);
+  const availableBalance = credits;
   const [escrowBalance, setEscrowBalance] = useState(10);
+  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
 
   const [sessions, setSessions] = useState<ActiveSessionItem[]>([
     {
@@ -151,21 +154,31 @@ export default function CreditsWalletPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f5f2fc] dark:bg-[#130f26] text-[#241b3d] dark:text-[#f4f0ff] transition-colors duration-200">
-      <Navbar />
+      <Navbar onOpenBuyCredits={() => setIsBuyModalOpen(true)} />
 
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-10">
         {/* Header */}
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-semibold text-[#7d6ce8] dark:text-[#ac98f2] mb-2">
-            <CoinIcon size={12} />
-            <span>1 Hour = 10 Credits · Escrow Protected</span>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-semibold text-[#7d6ce8] dark:text-[#ac98f2] mb-2">
+              <CoinIcon size={12} />
+              <span>1 Hour = 10 Credits · Escrow Protected</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#241b3d] dark:text-[#f4f0ff]">
+              Credits & wallet
+            </h1>
+            <p className="text-xs sm:text-sm text-[#7a719c] dark:text-[#a99ed4] mt-1">
+              Track your hours taught and learned, active escrow, and credit transactions.
+            </p>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#241b3d] dark:text-[#f4f0ff]">
-            Credits & wallet
-          </h1>
-          <p className="text-xs sm:text-sm text-[#7a719c] dark:text-[#a99ed4] mt-1">
-            Track your hours taught and learned, active escrow, and credit transactions.
-          </p>
+
+          <button
+            onClick={() => setIsBuyModalOpen(true)}
+            className="self-start sm:self-auto inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer"
+          >
+            <CoinIcon size={16} />
+            <span>Top up credits</span>
+          </button>
         </div>
 
         {/* 1. TOP ACTIVITY CARD (Same as Home Screen) */}
@@ -188,24 +201,33 @@ export default function CreditsWalletPage() {
         {/* 2. BALANCE SUMMARY CARDS */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card A: Available Balance */}
-          <div className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#7a719c] dark:text-[#a99ed4]">
-                Available Balance
-              </span>
-              <CoinIcon size={22} />
+          <div className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 space-y-3 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#7a719c] dark:text-[#a99ed4]">
+                  Available Balance
+                </span>
+                <CoinIcon size={22} />
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-extrabold text-[#f5a524] font-mono">
+                  {availableBalance}
+                </span>
+                <span className="text-sm font-semibold text-[#7a719c] dark:text-[#a99ed4]">
+                  Credits
+                </span>
+              </div>
+              <p className="text-xs text-[#7a719c] dark:text-[#a99ed4]">
+                Enough for <strong>{Math.floor(availableBalance / 10)} hours</strong> of peer learning.
+              </p>
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-extrabold text-[#f5a524] font-mono">
-                {availableBalance}
-              </span>
-              <span className="text-sm font-semibold text-[#7a719c] dark:text-[#a99ed4]">
-                Credits
-              </span>
-            </div>
-            <p className="text-xs text-[#7a719c] dark:text-[#a99ed4]">
-              Enough for <strong>{Math.floor(availableBalance / 10)} hours</strong> of peer learning.
-            </p>
+
+            <button
+              onClick={() => setIsBuyModalOpen(true)}
+              className="mt-2 w-full inline-flex items-center justify-center gap-1.5 py-2 px-4 rounded-full bg-[#ede8fb] dark:bg-[#282147] hover:bg-[#7d6ce8] hover:text-white dark:hover:bg-[#7d6ce8] text-xs font-bold text-[#7d6ce8] dark:text-[#ac98f2] border border-[#ddd4f5] dark:border-[#362c5e] transition-colors"
+            >
+              <span>+ Buy credits (₹1 = 1 Credit)</span>
+            </button>
           </div>
 
           {/* Card B: In Escrow */}
@@ -404,6 +426,11 @@ export default function CreditsWalletPage() {
           </div>
         </section>
       </main>
+
+      <BuyCreditsModal
+        isOpen={isBuyModalOpen}
+        onClose={() => setIsBuyModalOpen(false)}
+      />
     </div>
   );
 }
