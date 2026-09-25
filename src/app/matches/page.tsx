@@ -22,7 +22,19 @@ import {
   ArrowRight,
   Zap,
   CheckCircle2,
+  X,
+  SlidersHorizontal,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.05, duration: 0.35, ease: [0.16, 1, 0.3, 1] as const },
+  }),
+};
 
 export default function MatchesPage() {
   const { currentUser, swapRequests, respondToSwapRequest } = useSkillSwap();
@@ -32,7 +44,8 @@ export default function MatchesPage() {
     {
       matchUserId: "arun-kumar",
       fullName: "Arun Kumar",
-      avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
       overallScore: 98,
       synergyHighlights: [
         "Direct Swap: Python for React & Next.js",
@@ -42,12 +55,14 @@ export default function MatchesPage() {
       offeredSkill: "Python & Machine Learning",
       requestedSkill: "React & Next.js",
       sessionRateCredits: 10,
-      aiExplanation: "High mutual synergy! Arun is an expert in Python looking to learn Next.js, which matches your exact profile for a direct 1-hour swap or 10-credit session.",
+      aiExplanation:
+        "High mutual synergy! Arun is an expert in Python looking to learn Next.js, which matches your exact profile for a direct 1-hour swap or 10-credit session.",
     },
     {
       matchUserId: "elena-rostova",
       fullName: "Elena Rostova",
-      avatarUrl: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
       overallScore: 94,
       synergyHighlights: [
         "Direct Swap: Figma for TypeScript",
@@ -57,12 +72,14 @@ export default function MatchesPage() {
       offeredSkill: "UI/UX Design Systems in Figma",
       requestedSkill: "TypeScript & Web Architecture",
       sessionRateCredits: 10,
-      aiExplanation: "Elena offers design systems and auto-layout expertise in exchange for TypeScript architecture mentorship.",
+      aiExplanation:
+        "Elena offers design systems and auto-layout expertise in exchange for TypeScript architecture mentorship.",
     },
     {
       matchUserId: "sophia-rivera",
       fullName: "Sophia Rivera",
-      avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80",
       overallScore: 89,
       synergyHighlights: [
         "Direct Swap: Spanish for Web Development",
@@ -71,12 +88,14 @@ export default function MatchesPage() {
       offeredSkill: "Conversational Spanish & Idioms",
       requestedSkill: "Web Development & Frontend",
       sessionRateCredits: 10,
-      aiExplanation: "Practice conversational Spanish in exchange for web frontend guidance with zero fees or gatekeeping.",
+      aiExplanation:
+        "Practice conversational Spanish in exchange for web frontend guidance with zero fees or gatekeeping.",
     },
     {
       matchUserId: "marcus-chen",
       fullName: "Marcus Chen",
-      avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
       overallScore: 88,
       synergyHighlights: [
         "Direct Swap: Docker for Figma UX",
@@ -85,7 +104,8 @@ export default function MatchesPage() {
       offeredSkill: "Docker & Kubernetes Architecture",
       requestedSkill: "UI/UX Design in Figma",
       sessionRateCredits: 10,
-      aiExplanation: "Marcus teaches containerization and backend scalability in exchange for UX review and wireframes.",
+      aiExplanation:
+        "Marcus teaches containerization and backend scalability in exchange for UX review and wireframes.",
     },
   ]);
 
@@ -100,7 +120,8 @@ export default function MatchesPage() {
   const [selectedTargetUser, setSelectedTargetUser] = useState<any>({
     id: "arun-kumar",
     name: "Arun Kumar",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    avatar:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
     skillToTeach: "Python & Machine Learning",
   });
 
@@ -108,7 +129,9 @@ export default function MatchesPage() {
   useEffect(() => {
     async function loadMatches() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         const activeUserId = user?.id || currentUser.id;
 
         const res = await fetch("/api/ai-match", {
@@ -132,7 +155,9 @@ export default function MatchesPage() {
   const handleRadarScanComplete = (discoveredMatches: MatchResult[]) => {
     if (discoveredMatches && discoveredMatches.length > 0) {
       setMatches(discoveredMatches);
-      setScanNotification(`AI Radar scan complete: Discovered ${discoveredMatches.length} high-synergy reciprocal matches!`);
+      setScanNotification(
+        `AI Radar scan complete: Discovered ${discoveredMatches.length} high-synergy reciprocal matches!`
+      );
       setTimeout(() => setScanNotification(null), 5000);
     }
     setIsScanning(false);
@@ -171,124 +196,187 @@ export default function MatchesPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f5f2fc] dark:bg-[#130f26] text-[#241b3d] dark:text-[#f4f0ff] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col ambient-bg text-white pb-20 lg:pb-0">
       <Navbar />
 
-      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-8">
-        {/* Header & Subhead */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
+        {/* ── HEADER & RADAR CTA ── */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-semibold text-[#7d6ce8] dark:text-[#ac98f2] mb-2">
-              <Repeat className="w-3.5 h-3.5" />
-              <span>Reciprocal Matching · 1 Hour = 10 Credits</span>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass border-white/10 text-xs font-semibold text-white/80 mb-3">
+              <Repeat className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="bg-gradient-to-r from-violet-300 via-white to-cyan-300 bg-clip-text text-transparent">
+                Reciprocal Matching · 1 Hour = 10 Credits
+              </span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#241b3d] dark:text-[#f4f0ff]">
-              Matches
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
+              Reciprocal <span className="text-gradient">matches</span>
             </h1>
-            <p className="text-xs sm:text-sm text-[#7a719c] dark:text-[#a99ed4] mt-1">
-              People who teach what you want to learn, and want what you can teach.
+            <p className="text-sm text-white/50 mt-2 max-w-xl">
+              AI-scored peers who teach what you want to learn, and are actively seeking what you can teach.
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsScanning(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#ede8fb] dark:bg-[#282147] hover:bg-[#ddd4f5] dark:hover:bg-[#362c5e] text-[#7d6ce8] dark:text-[#ac98f2] border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-bold transition-all self-start sm:self-auto"
-          >
-            <Compass className="w-4 h-4 text-[#7d6ce8]" />
-            <span>AI Radar Search</span>
-          </button>
-        </div>
-
-        {/* NOTIFICATION TOAST */}
-        {scanNotification && (
-          <div className="p-4 rounded-2xl bg-[#ede8fb] dark:bg-[#282147] border border-[#7d6ce8]/40 text-[#7d6ce8] dark:text-[#ac98f2] text-xs sm:text-sm font-semibold flex items-center justify-between shadow-sm animate-in fade-in">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-[#7d6ce8]" />
-              <span>{scanNotification}</span>
-            </div>
+          <div className="flex items-center gap-3 self-start sm:self-auto">
             <button
-              onClick={() => setScanNotification(null)}
-              className="text-xs underline font-bold ml-4"
+              type="button"
+              onClick={() => setIsScanning(true)}
+              className="relative group inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold text-white transition-all cursor-pointer overflow-hidden shadow-lg active:scale-[0.98]"
+              style={{
+                background: "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                boxShadow: "0 4px 18px rgba(124,108,246,0.35)",
+              }}
             >
-              Dismiss
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+              <Compass className="w-4 h-4 text-white relative z-10 animate-spin-slow" />
+              <span className="relative z-10">AI Radar Scanner</span>
+              <span className="relative z-10 px-1.5 py-0.5 rounded-full bg-white/20 text-[10px]">
+                Live
+              </span>
             </button>
           </div>
-        )}
+        </div>
 
-        {/* SEARCH BAR */}
-        <div className="relative">
-          <Search className="w-5 h-5 text-[#7a719c] dark:text-[#a99ed4] absolute left-4 top-1/2 -translate-y-1/2" />
+        {/* ── NOTIFICATION TOAST ── */}
+        <AnimatePresence>
+          {scanNotification && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="p-4 rounded-2xl glass border-cyan-500/30 text-cyan-200 text-xs sm:text-sm font-semibold flex items-center justify-between shadow-xl"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(6,182,212,0.12) 0%, rgba(124,108,246,0.12) 100%)",
+              }}
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                  <CheckCircle2 className="w-4 h-4 text-cyan-400" />
+                </div>
+                <span>{scanNotification}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setScanNotification(null)}
+                className="text-xs text-white/60 hover:text-white underline ml-4 cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── SEARCH BAR ── */}
+        <div className="relative group max-w-2xl">
+          <Search className="w-5 h-5 text-white/40 absolute left-4.5 top-1/2 -translate-y-1/2 pointer-events-none group-focus-within:text-violet-400 transition-colors" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filter matches by name or skill..."
-            className="w-full pl-12 pr-4 py-3.5 rounded-full bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] text-sm text-[#241b3d] dark:text-[#f4f0ff] placeholder-[#7a719c] dark:placeholder-[#a99ed4] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7d6ce8]/40"
+            placeholder="Filter matches by peer name or offered/requested skill..."
+            className="w-full pl-12 pr-12 py-3.5 rounded-2xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-white/30 backdrop-blur-xl focus:outline-none focus:border-violet-500/50 focus:bg-white/[0.06] focus:ring-2 focus:ring-violet-500/20 transition-all shadow-lg"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
-        {/* MATCHES LIST */}
+        {/* ── MATCHES LIST ── */}
         {filteredMatches.length > 0 ? (
           <div className="space-y-5">
-            {filteredMatches.map((match) => (
-              <div
+            {filteredMatches.map((match, i) => (
+              <motion.div
                 key={match.matchUserId}
-                className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 sm:p-7 space-y-5 hover:border-[#7d6ce8] transition-all"
+                custom={i}
+                variants={fadeUp}
+                initial="hidden"
+                animate="visible"
+                className="glass-interactive rounded-2xl p-6 sm:p-7 space-y-5 relative overflow-hidden"
               >
                 {/* Header: User Info & Compatibility Badge */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <img
-                      src={match.avatarUrl}
-                      alt={match.fullName}
-                      className="w-14 h-14 rounded-full object-cover border border-[#ddd4f5] dark:border-[#362c5e]"
-                    />
+                    <div className="relative">
+                      <img
+                        src={match.avatarUrl}
+                        alt={match.fullName}
+                        className="w-14 h-14 rounded-2xl object-cover border border-white/10 ring-2 ring-violet-500/20"
+                      />
+                      <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#08090D]" />
+                    </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <Link
                           href={`/profile/${match.matchUserId}`}
-                          className="text-base font-extrabold text-[#241b3d] dark:text-[#f4f0ff] hover:text-[#7d6ce8] transition-colors"
+                          className="text-base sm:text-lg font-bold text-white hover:text-violet-400 transition-colors"
                         >
                           {match.fullName}
                         </Link>
                         <VerifiedBadge size="sm" showLabel />
                       </div>
-                      <p className="text-xs text-[#7a719c] dark:text-[#a99ed4] mt-0.5">
+                      <p className="text-xs text-white/45 mt-0.5">
                         Active Skill Trader · Reciprocal Match
                       </p>
                     </div>
                   </div>
 
                   {/* Compatibility Score */}
-                  <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-[#7d6ce8] dark:text-[#ac98f2] text-xs font-bold self-start sm:self-auto">
-                    <Zap className="w-3.5 h-3.5 fill-current" />
-                    <span>{match.overallScore}% Synergy</span>
+                  <div
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold self-start sm:self-auto shadow-md"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, rgba(124,108,246,0.25) 0%, rgba(6,182,212,0.2) 100%)",
+                      border: "1px solid rgba(124,108,246,0.4)",
+                      boxShadow: "0 0 16px rgba(124,108,246,0.15)",
+                    }}
+                  >
+                    <Zap className="w-3.5 h-3.5 text-cyan-400 fill-current" />
+                    <span className="text-white">
+                      <strong className="text-cyan-300 font-extrabold">{match.overallScore}%</strong> Synergy Score
+                    </span>
                   </div>
                 </div>
 
                 {/* Reciprocal Skills Matrix */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-2xl bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs">
-                  <div>
-                    <span className="text-[#7a719c] dark:text-[#a99ed4] block text-[11px] font-medium">Teaches (what you want to learn)</span>
-                    <strong className="text-[#241b3d] dark:text-[#f4f0ff] text-sm block mt-0.5">{match.offeredSkill}</strong>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/8 text-xs">
+                  <div className="space-y-1">
+                    <span className="text-white/40 block text-[11px] font-medium uppercase tracking-wider">
+                      Teaches (What you want to learn)
+                    </span>
+                    <strong className="text-white text-sm block font-semibold">
+                      {match.offeredSkill}
+                    </strong>
                   </div>
-                  <div className="pt-2 md:pt-0 md:pl-3 border-t md:border-t-0 md:border-l border-[#ddd4f5]/60 dark:border-[#362c5e]/60">
-                    <span className="text-[#7a719c] dark:text-[#a99ed4] block text-[11px] font-medium">Wants (what you can teach)</span>
-                    <strong className="text-[#7d6ce8] dark:text-[#ac98f2] text-sm block mt-0.5">{match.requestedSkill}</strong>
+                  <div className="pt-3 md:pt-0 md:pl-4 border-t md:border-t-0 md:border-l border-white/8 space-y-1">
+                    <span className="text-cyan-400/80 block text-[11px] font-medium uppercase tracking-wider">
+                      Wants (What you can teach)
+                    </span>
+                    <strong className="text-cyan-300 text-sm block font-semibold">
+                      {match.requestedSkill}
+                    </strong>
                   </div>
                 </div>
 
-                {/* AI Explanation / Highlights */}
-                <div className="p-3.5 rounded-2xl bg-[#ede8fb]/40 dark:bg-[#282147]/40 border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#7a719c] dark:text-[#a99ed4] leading-relaxed">
-                  <p className="italic text-[#241b3d] dark:text-[#f4f0ff]">
-                    &ldquo;{match.aiExplanation}&rdquo;
-                  </p>
-                  <div className="flex flex-wrap gap-2 mt-2">
+                {/* AI Explanation & Synergy Badges */}
+                <div className="p-4 rounded-xl bg-violet-500/[0.04] border border-violet-500/15 space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <Sparkles className="w-4 h-4 text-violet-400 shrink-0 mt-0.5" />
+                    <p className="text-xs text-white/70 italic leading-relaxed">
+                      &ldquo;{match.aiExplanation}&rdquo;
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 pt-1 border-t border-white/6">
                     {match.synergyHighlights.map((hl, idx) => (
                       <span
                         key={idx}
-                        className="px-2.5 py-0.5 rounded-full bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] text-[10px] font-semibold text-[#7d6ce8] dark:text-[#ac98f2]"
+                        className="px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-[11px] font-medium text-white/70"
                       >
                         {hl}
                       </span>
@@ -296,44 +384,51 @@ export default function MatchesPage() {
                   </div>
                 </div>
 
-                {/* Actions: "Start direct swap" or "Pay 10 credits instead" */}
+                {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-1">
                   <button
                     type="button"
                     onClick={() => handleStartDirectSwap(match)}
-                    className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"
+                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer hover:opacity-95 active:scale-[0.99]"
+                    style={{
+                      background: "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                      boxShadow: "0 4px 14px rgba(124,108,246,0.3)",
+                    }}
                   >
                     <Repeat className="w-3.5 h-3.5" />
-                    <span>Start direct swap</span>
+                    <span>Start Direct Swap (0 Credits)</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handlePayCredits(match)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-white dark:bg-[#1e1938] hover:bg-[#ede8fb]/60 dark:hover:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-[#241b3d] dark:text-[#f4f0ff] text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl glass hover:bg-white/[0.08] border-white/10 text-white/80 hover:text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <CoinIcon size={14} />
-                    <span>Pay 10 credits instead</span>
+                    <span>Pay 10 Credits Instead</span>
                   </button>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         ) : (
-          <div className="p-12 text-center rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] space-y-3">
-            <Users className="w-10 h-10 text-[#7a719c] mx-auto opacity-70" />
-            <h3 className="text-base font-bold text-[#241b3d] dark:text-[#f4f0ff]">
-              No matches found
-            </h3>
-            <p className="text-xs text-[#7a719c] dark:text-[#a99ed4] max-w-sm mx-auto">
-              Add more skills you can teach and want to learn to unlock reciprocal peer matches.
+          <div className="p-16 text-center rounded-3xl glass border-white/10 space-y-4 max-w-lg mx-auto">
+            <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center mx-auto text-white/40">
+              <Users className="w-7 h-7" />
+            </div>
+            <h3 className="text-lg font-bold text-white">No matches found</h3>
+            <p className="text-xs text-white/50 max-w-sm mx-auto leading-relaxed">
+              Add more skills you can teach and want to learn to unlock reciprocal peer matches with maximum synergy.
             </p>
             <div className="pt-2">
               <Link
                 href="/skills"
-                className="px-5 py-2 rounded-full bg-[#7d6ce8] text-white text-xs font-bold inline-block"
+                className="px-5 py-2.5 rounded-xl text-xs font-bold text-white transition-all inline-block shadow-lg"
+                style={{
+                  background: "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                }}
               >
-                Update my skills
+                Update My Skills
               </Link>
             </div>
           </div>

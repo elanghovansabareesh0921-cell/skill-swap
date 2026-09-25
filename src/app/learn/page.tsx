@@ -5,6 +5,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import BookingModal from "@/components/BookingModal";
 import BuyCreditsModal from "@/components/BuyCreditsModal";
+import CoinIcon from "@/components/common/CoinIcon";
 import { useSkillSwap, SkillListing } from "@/context/SkillSwapContext";
 import {
   GraduationCap,
@@ -15,7 +16,9 @@ import {
   CheckCircle2,
   Play,
   Compass,
+  Video,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function LearnIndexPage() {
   const { sessions, skills } = useSkillSwap();
@@ -26,104 +29,119 @@ export default function LearnIndexPage() {
   const completedSessions = sessions.filter((s) => s.status === "completed");
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F7FF] dark:bg-[#0E0C1B] text-[#18181B] dark:text-[#F4F3FA] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col ambient-bg text-white pb-20 lg:pb-0">
       <Navbar onOpenBuyCredits={() => setIsBuyCreditsOpen(true)} />
 
-      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E4E1F5] dark:border-[#2D264E]">
+      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
+        {/* ── HEADER ── */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-white/8">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] text-xs font-semibold mb-2">
-              <GraduationCap className="w-3.5 h-3.5" />
-              <span>Learning Hub</span>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass border-white/10 text-xs font-semibold text-white/80 mb-3">
+              <GraduationCap className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="bg-gradient-to-r from-violet-300 via-white to-cyan-300 bg-clip-text text-transparent">
+                Virtual Classroom &amp; Sessions Hub
+              </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#18181B] dark:text-white mt-1">
-              Active Learning & Sessions
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
+              Learning &amp; <span className="text-gradient">sessions</span>
             </h1>
-            <p className="text-xs sm:text-sm text-[#71717A] dark:text-zinc-400 mt-1">
+            <p className="text-sm text-white/50 mt-2 max-w-xl">
               Join upcoming 1-on-1 calls, access notes, or schedule new topics.
             </p>
           </div>
 
           <Link
             href="/discover"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm transition-all w-fit"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold text-white shadow-xl transition-all cursor-pointer hover:opacity-95 active:scale-[0.99] w-fit"
+            style={{
+              background: "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+              boxShadow: "0 4px 18px rgba(124,108,246,0.35)",
+            }}
           >
-            <Compass className="w-3.5 h-3.5" />
+            <Compass className="w-4 h-4" />
             <span>Discover More Skills</span>
           </Link>
         </div>
 
-        {/* Section: Upcoming Sessions */}
-        <div>
-          <h2 className="text-sm font-bold uppercase tracking-wider text-[#71717A] dark:text-zinc-300 mb-4 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[#7C3AED] dark:text-[#A78BFA]" />
-            <span>Upcoming Sessions ({upcomingSessions.length})</span>
-          </h2>
+        {/* ── SECTION: UPCOMING SESSIONS ── */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-white/40 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-violet-400" />
+              <span>Upcoming Sessions ({upcomingSessions.length})</span>
+            </h2>
+            <span className="text-xs text-cyan-300 font-medium">1 Hour = 10 Credits</span>
+          </div>
 
           {upcomingSessions.length > 0 ? (
             <div className="space-y-4">
               {upcomingSessions.map((session) => (
                 <div
                   key={session.id}
-                  className="p-5 sm:p-6 bg-white dark:bg-[#161327] rounded-3xl border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-[#A78BFA] transition-colors"
+                  className="p-5 sm:p-6 glass-interactive rounded-3xl border-white/10 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 relative overflow-hidden"
                 >
                   <div className="flex items-start gap-4">
                     <img
                       src={session.teacherAvatar}
                       alt={session.teacherName}
-                      className="w-12 h-12 rounded-full object-cover border border-[#E4E1F5] shrink-0"
+                      className="w-13 h-13 rounded-2xl object-cover border border-white/10 ring-2 ring-violet-500/20 shrink-0"
                     />
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20">
                           {session.date}
                         </span>
-                        <span className="text-xs text-[#71717A]">•</span>
-                        <span className="text-xs text-[#71717A] font-mono">{session.time}</span>
+                        <span className="text-xs text-white/30">•</span>
+                        <span className="text-xs text-white/60 font-mono">
+                          {session.time}
+                        </span>
                       </div>
-                      <h3 className="text-base font-bold text-[#18181B] dark:text-white mt-1.5">
+                      <h3 className="text-base sm:text-lg font-bold text-white mt-1.5">
                         {session.skillTitle}
                       </h3>
-                      <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-0.5">
-                        Teacher: <span className="font-semibold text-[#18181B] dark:text-white">{session.teacherName}</span>
+                      <p className="text-xs text-white/50 mt-0.5">
+                        Teacher: <span className="font-semibold text-white">{session.teacherName}</span>
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                     <div className="text-right hidden sm:block mr-2">
-                      <span className="text-xs font-bold text-[#7C3AED] dark:text-[#A78BFA] font-mono block">
-                        🪙 {session.credits} credits
+                      <span className="text-xs font-bold text-amber-300 flex items-center justify-end gap-1">
+                        <CoinIcon size={12} /> {session.credits} credits
                       </span>
-                      <span className="text-[10px] text-[#71717A]">{session.duration}</span>
+                      <span className="text-[10px] text-white/40">{session.duration}</span>
                     </div>
 
                     <Link
                       href={session.roomUrl || `/learn/${session.id}`}
-                      className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm transition-all flex items-center justify-center gap-2"
+                      className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-white text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-2 hover:opacity-95 cursor-pointer"
+                      style={{
+                        background: "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                        boxShadow: "0 4px 14px rgba(124,108,246,0.3)",
+                      }}
                     >
                       <Play className="w-3.5 h-3.5 fill-current" />
-                      <span>Join Room</span>
+                      <span>Join Classroom</span>
                     </Link>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="p-8 text-center bg-white dark:bg-[#161327] rounded-3xl border border-[#E4E1F5] dark:border-[#2D264E] text-xs text-[#71717A]">
+            <div className="p-12 text-center glass rounded-3xl border-white/10 text-xs text-white/50 space-y-2">
               <p>No upcoming sessions scheduled right now.</p>
-              <Link href="/discover" className="text-[#7C3AED] font-semibold hover:underline mt-1 block">
+              <Link href="/discover" className="text-violet-400 font-semibold hover:underline block">
                 Find a mentor to schedule a swap →
               </Link>
             </div>
           )}
         </div>
 
-        {/* Section: Completed Sessions */}
-        <div>
-          <h2 className="text-sm font-bold uppercase tracking-wider text-[#71717A] dark:text-zinc-300 mb-4 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+        {/* ── SECTION: COMPLETED SESSIONS ── */}
+        <div className="space-y-4">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-white/40 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             <span>Completed Swaps ({completedSessions.length})</span>
           </h2>
 
@@ -132,27 +150,31 @@ export default function LearnIndexPage() {
               {completedSessions.map((session) => (
                 <div
                   key={session.id}
-                  className="p-4 bg-white dark:bg-[#161327] rounded-2xl border border-[#E4E1F5] dark:border-[#2D264E] flex items-center justify-between"
+                  className="p-4 glass rounded-2xl border-white/8 flex items-center justify-between hover:border-white/15 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3.5">
                     <img
                       src={session.teacherAvatar}
                       alt={session.teacherName}
-                      className="w-10 h-10 rounded-full object-cover border border-[#E4E1F5]"
+                      className="w-10 h-10 rounded-xl object-cover border border-white/10"
                     />
                     <div>
-                      <h4 className="text-xs font-bold text-[#18181B] dark:text-white">{session.skillTitle}</h4>
-                      <p className="text-[11px] text-[#71717A]">{session.teacherName} • Completed</p>
+                      <h4 className="text-xs font-bold text-white">
+                        {session.skillTitle}
+                      </h4>
+                      <p className="text-[11px] text-white/40">
+                        {session.teacherName} • Completed
+                      </p>
                     </div>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+                  <span className="px-3 py-1 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-xs font-semibold">
                     Completed ✓
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="p-6 text-center bg-white dark:bg-[#161327] rounded-2xl border border-[#E4E1F5] dark:border-[#2D264E] text-xs text-[#71717A]">
+            <div className="p-8 text-center glass rounded-2xl border-white/8 text-xs text-white/40">
               No completed sessions yet.
             </div>
           )}

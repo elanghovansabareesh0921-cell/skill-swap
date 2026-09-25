@@ -38,6 +38,7 @@ import {
   Sparkles,
   Plus,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const AVATAR_PRESETS = [
   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
@@ -56,8 +57,14 @@ function SettingsContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const initialTab = (searchParams.get("tab") as any) || "profile";
-  const [activeTab, setActiveTab] = useState<"account" | "profile" | "security" | "notifications" | "preferences">(
-    ["account", "profile", "security", "notifications", "preferences"].includes(initialTab) ? initialTab : "profile"
+  const [activeTab, setActiveTab] = useState<
+    "account" | "profile" | "security" | "notifications" | "preferences"
+  >(
+    ["account", "profile", "security", "notifications", "preferences"].includes(
+      initialTab
+    )
+      ? initialTab
+      : "profile"
   );
 
   // Account / Profile State
@@ -65,12 +72,20 @@ function SettingsContent() {
   const [fullName, setFullName] = useState(currentUser.name);
   const [bio, setBio] = useState(currentUser.bio);
   const [location, setLocation] = useState(currentUser.location || "");
-  const [currentActivity, setCurrentActivity] = useState(currentUser.currentActivity || "");
+  const [currentActivity, setCurrentActivity] = useState(
+    currentUser.currentActivity || ""
+  );
   const [school, setSchool] = useState(currentUser.school || "");
   const [degree, setDegree] = useState(currentUser.degree || "");
-  const [graduationYear, setGraduationYear] = useState(currentUser.graduationYear || "");
-  const [gender, setGender] = useState(currentUser.gender || "Prefer not to say");
-  const [credentials, setCredentials] = useState<(string | CredentialItem)[]>(currentUser.credentials || []);
+  const [graduationYear, setGraduationYear] = useState(
+    currentUser.graduationYear || ""
+  );
+  const [gender, setGender] = useState(
+    currentUser.gender || "Prefer not to say"
+  );
+  const [credentials, setCredentials] = useState<
+    (string | CredentialItem)[]
+  >(currentUser.credentials || []);
   const [newCred, setNewCred] = useState("");
 
   // Rich Certificate Attachment State
@@ -81,7 +96,8 @@ function SettingsContent() {
   const [newCredVerifyUrl, setNewCredVerifyUrl] = useState("");
   const [newCredDocUrl, setNewCredDocUrl] = useState<string | null>(null);
   const [newCredDocName, setNewCredDocName] = useState<string>("");
-  const [selectedPreviewCred, setSelectedPreviewCred] = useState<CredentialItem | null>(null);
+  const [selectedPreviewCred, setSelectedPreviewCred] =
+    useState<CredentialItem | null>(null);
 
   const [githubUrl, setGithubUrl] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
@@ -99,95 +115,139 @@ function SettingsContent() {
   const [marketingUpdates, setMarketingUpdates] = useState(false);
 
   useEffect(() => {
-    setAvatar(currentUser.avatar);
-    setFullName(currentUser.name);
-    setBio(currentUser.bio);
-    setLocation(currentUser.location || "");
-    setCurrentActivity(currentUser.currentActivity || "");
-    setSchool(currentUser.school || "");
-    setDegree(currentUser.degree || "");
-    setGraduationYear(currentUser.graduationYear || "");
-    setGender(currentUser.gender || "Prefer not to say");
-    setCredentials(currentUser.credentials || []);
-  }, [currentUser]);
+    async function loadSocials() {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase
+            .from("profiles")
+            .select("github_url, linkedin_url, website_url")
+            .eq("id", user.id)
+            .single();
+
+          if (data) {
+            setGithubUrl(data.github_url || "");
+            setLinkedinUrl(data.linkedin_url || "");
+            setWebsiteUrl(data.website_url || "");
+          }
+        }
+      } catch (err) {
+        // Fallback silently
+      }
+    }
+    loadSocials();
+  }, [supabase]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      showToast("Image Too Large", "Please choose an image under 5MB.", "warning");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setAvatar(event.target.result as string);
-        showToast("Photo Loaded", "Preview updated! Click 'Save Profile Changes' to apply.", "info");
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        showToast(
+          "File Too Large",
+          "Avatar image must be under 5MB.",
+          "warning"
+        );
+        return;
       }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleAddCredential = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const trimmed = newCred.trim();
-    if (!trimmed) return;
-    const exists = credentials.some((c) => {
-      const norm = normalizeCredential(c);
-      return norm.title.toLowerCase() === trimmed.toLowerCase();
-    });
-    if (exists) {
-      showToast("Already Added", "This credential is already in your profile list.", "info");
-      return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setAvatar(event.target.result as string);
+          showToast(
+            "Photo Ready",
+            "Photo selected. Click Save to persist.",
+            "info"
+          );
+        }
+      };
+      reader.readAsDataURL(file);
     }
-    setCredentials((prev) => [...prev, trimmed]);
-    setNewCred("");
-    showToast("Credential Added", `Added "${trimmed}" to your profile.`, "success");
   };
 
   const handleCertDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 8 * 1024 * 1024) {
-      showToast("File Too Large", "Please upload a document under 8MB.", "warning");
+    if (file) {
+      if (file.size > 8 * 1024 * 1024) {
+        showToast(
+          "File Too Large",
+          "Certificate file must be under 8MB.",
+          "warning"
+        );
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setNewCredDocUrl(event.target.result as string);
+          setNewCredDocName(file.name);
+          showToast(
+            "Document Attached",
+            `Attached "${file.name}".`,
+            "success"
+          );
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAddCredential = (titleToAdd?: string) => {
+    const title = titleToAdd || newCred.trim();
+    if (!title) return;
+    const exists = credentials.some(
+      (c) => normalizeCredential(c).title.toLowerCase() === title.toLowerCase()
+    );
+    if (exists) {
+      showToast(
+        "Already Added",
+        `"${title}" is already in your credentials.`,
+        "warning"
+      );
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setNewCredDocUrl(event.target.result as string);
-        setNewCredDocName(file.name);
-        showToast("Certificate Attached", `${file.name} loaded successfully.`, "info");
-      }
-    };
-    reader.readAsDataURL(file);
+    setCredentials((prev) => [...prev, title]);
+    if (!titleToAdd) setNewCred("");
+    showToast("Credential Added", `Added "${title}".`, "success");
   };
 
   const handleAddRichCredential = () => {
     const title = newCredTitle.trim();
     if (!title) {
-      showToast("Title Required", "Please enter the certificate or credential title.", "warning");
+      showToast(
+        "Title Required",
+        "Please provide a certification title.",
+        "warning"
+      );
       return;
     }
-    const newCredItem: CredentialItem = {
+
+    const richItem: CredentialItem = {
       id: `cred-${Date.now()}`,
       title,
       issuer: newCredIssuer.trim() || undefined,
       issueDate: newCredYear.trim() || undefined,
-      documentUrl: newCredDocUrl || undefined,
       verificationUrl: newCredVerifyUrl.trim() || undefined,
-      fileName: newCredDocName || undefined,
+      documentUrl: newCredDocUrl || undefined,
     };
 
-    setCredentials((prev) => [...prev, newCredItem]);
+    setCredentials((prev) => [...prev, richItem]);
+    setShowAddDocModal(false);
+
+    // Reset modal form
     setNewCredTitle("");
     setNewCredIssuer("");
     setNewCredYear("");
     setNewCredVerifyUrl("");
     setNewCredDocUrl(null);
     setNewCredDocName("");
-    setShowAddDocModal(false);
-    showToast("Certificate Saved", `"${title}" has been attached with proof documents.`, "success");
+
+    showToast(
+      "Certificate Saved",
+      `"${title}" has been attached with proof documents.`,
+      "success"
+    );
   };
 
   const handleRemoveCredential = (indexToRemove: number) => {
@@ -215,13 +275,18 @@ function SettingsContent() {
 
       // Also sync social links to Supabase if logged in
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (user) {
-          await supabase.from("profiles").update({
-            github_url: githubUrl,
-            linkedin_url: linkedinUrl,
-            website_url: websiteUrl,
-          }).eq("id", user.id);
+          await supabase
+            .from("profiles")
+            .update({
+              github_url: githubUrl,
+              linkedin_url: linkedinUrl,
+              website_url: websiteUrl,
+            })
+            .eq("id", user.id);
         }
       } catch (err) {
         console.warn(err);
@@ -234,7 +299,11 @@ function SettingsContent() {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword.length < 6) {
-      showToast("Weak Password", "Password must be at least 6 characters.", "warning");
+      showToast(
+        "Weak Password",
+        "Password must be at least 6 characters.",
+        "warning"
+      );
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -251,9 +320,17 @@ function SettingsContent() {
 
       setNewPassword("");
       setConfirmPassword("");
-      showToast("Password Updated! 🔒", "Your new password is now active.", "success");
+      showToast(
+        "Password Updated! 🔒",
+        "Your new password is now active.",
+        "success"
+      );
     } catch (err: any) {
-      showToast("Password Update Failed", err.message || "Could not update password.", "error");
+      showToast(
+        "Password Update Failed",
+        err.message || "Could not update password.",
+        "error"
+      );
     } finally {
       setSavingPassword(false);
     }
@@ -265,21 +342,21 @@ function SettingsContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F7FF] dark:bg-[#0E0C1B] text-[#18181B] dark:text-[#F4F3FA] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col ambient-bg text-white pb-20 lg:pb-0">
       <Navbar />
 
-      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-8">
+      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#18181B] dark:text-white tracking-tight">
-            Settings
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Settings &amp; <span className="text-gradient">Preferences</span>
           </h1>
-          <p className="text-xs sm:text-sm text-[#71717A] dark:text-zinc-400 mt-1">
+          <p className="text-xs sm:text-sm text-white/50 mt-1">
             Manage your account preferences, profile details, security, and interface settings.
           </p>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex items-center gap-2 border-b border-[#E4E1F5] dark:border-[#2D264E] overflow-x-auto pb-px">
+        {/* ── TAB NAVIGATION ── */}
+        <div className="flex items-center gap-2 border-b border-white/8 overflow-x-auto pb-px">
           {[
             { id: "account", label: "Account", icon: User },
             { id: "profile", label: "Profile", icon: Sliders },
@@ -292,11 +369,12 @@ function SettingsContent() {
             return (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-2.5 text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-2 border-b-2 transition-all ${
+                className={`px-4 py-2.5 text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
                   isActive
-                    ? "border-[#7C3AED] text-[#7C3AED] dark:text-[#A78BFA]"
-                    : "border-transparent text-[#71717A] hover:text-[#18181B] dark:hover:text-white"
+                    ? "border-violet-400 text-violet-300 font-bold"
+                    : "border-transparent text-white/50 hover:text-white"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -306,37 +384,43 @@ function SettingsContent() {
           })}
         </div>
 
-        {/* TAB 1: ACCOUNT */}
+        {/* ── TAB 1: ACCOUNT ── */}
         {activeTab === "account" && (
-          <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-6">
-            <h2 className="text-base font-bold text-[#18181B] dark:text-white">Account Information</h2>
+          <div className="p-6 sm:p-8 rounded-3xl glass border-white/10 shadow-xl space-y-6">
+            <h2 className="text-base font-bold text-white">Account Information</h2>
             <div className="space-y-4 max-w-lg">
               <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">Full Name</label>
+                <label className="text-xs font-semibold text-white/70 block mb-1">
+                  Full Name
+                </label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-sm text-white focus:outline-none focus:border-violet-500/50"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">Email Address</label>
+                <label className="text-xs font-semibold text-white/70 block mb-1">
+                  Email Address
+                </label>
                 <input
                   type="email"
                   value={currentUser.email || "demo@skillswap.com"}
                   disabled
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-[#F8F7FF] dark:bg-[#0E0C1B] text-sm text-[#71717A] cursor-not-allowed"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/5 bg-white/[0.02] text-sm text-white/40 cursor-not-allowed"
                 />
-                <span className="text-[11px] text-[#71717A] mt-1 block">Account authentication email is verified</span>
+                <span className="text-[11px] text-cyan-300/80 mt-1 block">
+                  Account authentication email is verified
+                </span>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+            <div className="pt-4 border-t border-white/8 flex items-center justify-between">
               <button
                 type="button"
                 onClick={handleLogout}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 border border-red-200 dark:border-red-900 transition-colors flex items-center gap-1.5"
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Logout</span>
@@ -345,19 +429,24 @@ function SettingsContent() {
           </div>
         )}
 
-        {/* TAB 2: PROFILE */}
+        {/* ── TAB 2: PROFILE ── */}
         {activeTab === "profile" && (
-          <form onSubmit={handleSaveProfile} className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-8">
+          <form
+            onSubmit={handleSaveProfile}
+            className="p-6 sm:p-8 rounded-3xl glass border-white/10 shadow-xl space-y-8"
+          >
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-[#18181B] dark:text-white">Public Profile Details</h2>
-              <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-0.5">
+              <h2 className="text-base sm:text-lg font-bold text-white">
+                Public Profile Details
+              </h2>
+              <p className="text-xs text-white/50 mt-0.5">
                 Customize how other members see you across Skill Swap, search results, and mentor listings.
               </p>
             </div>
 
             {/* 1. PROFILE PICTURE / AVATAR */}
-            <div className="p-5 rounded-2xl bg-[#F8F7FF] dark:bg-[#131022] border border-[#E4E1F5] dark:border-[#2D264E] space-y-4">
-              <label className="text-xs font-bold uppercase tracking-wider text-[#7C3AED] dark:text-[#A78BFA] block">
+            <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/8 space-y-4">
+              <label className="text-xs font-bold uppercase tracking-wider text-violet-400 block">
                 Profile Picture
               </label>
 
@@ -366,12 +455,12 @@ function SettingsContent() {
                   <img
                     src={avatar}
                     alt={fullName}
-                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#7C3AED] shadow-md"
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border border-white/15 ring-2 ring-violet-500/20 shadow-md"
                   />
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-semibold"
+                    className="absolute inset-0 rounded-2xl bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-semibold cursor-pointer"
                   >
                     <Camera className="w-5 h-5 mb-0.5" />
                     <span>Change</span>
@@ -390,20 +479,28 @@ function SettingsContent() {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="px-3.5 py-1.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
+                      className="px-3.5 py-1.5 rounded-xl text-white text-xs font-semibold shadow-md transition-colors flex items-center gap-1.5 cursor-pointer"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                      }}
                     >
                       <Upload className="w-3.5 h-3.5" />
                       <span>Upload Photo</span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => setAvatar("https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80")}
-                      className="px-3 py-1.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#161327] hover:bg-[#EDE9FE]/50 text-[#71717A] dark:text-zinc-300 text-xs font-semibold transition-colors"
+                      onClick={() =>
+                        setAvatar(
+                          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+                        )
+                      }
+                      className="px-3 py-1.5 rounded-xl glass hover:bg-white/10 text-white/70 text-xs font-semibold transition-colors border-white/10 cursor-pointer"
                     >
                       Reset Default
                     </button>
                   </div>
-                  <p className="text-[11px] text-[#71717A] dark:text-zinc-400">
+                  <p className="text-[11px] text-white/40">
                     JPG, PNG or WebP up to 5MB. Or pick a modern avatar preset below:
                   </p>
 
@@ -414,14 +511,16 @@ function SettingsContent() {
                         key={idx}
                         type="button"
                         onClick={() => setAvatar(presetUrl)}
-                        className={`rounded-full p-0.5 transition-all ${
-                          avatar === presetUrl ? "ring-2 ring-[#7C3AED] scale-105" : "opacity-75 hover:opacity-100"
+                        className={`rounded-xl p-0.5 transition-all cursor-pointer ${
+                          avatar === presetUrl
+                            ? "ring-2 ring-violet-400 scale-105"
+                            : "opacity-60 hover:opacity-100"
                         }`}
                       >
                         <img
                           src={presetUrl}
                           alt={`Preset ${idx + 1}`}
-                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border border-[#E4E1F5]"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-cover border border-white/10"
                         />
                       </button>
                     ))}
@@ -433,7 +532,7 @@ function SettingsContent() {
             {/* 2. BASIC INFO & OCCUPATION */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
+                <label className="text-xs font-semibold text-white/70 block mb-1">
                   Full Name
                 </label>
                 <input
@@ -441,50 +540,50 @@ function SettingsContent() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. Sabareesh Elanghovan"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-sm text-white focus:outline-none focus:border-violet-500/50"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1 flex items-center gap-1.5">
-                  <Briefcase className="w-3.5 h-3.5 text-[#7C3AED] dark:text-[#A78BFA]" />
-                  <span>What are you doing right now? (Headline)</span>
+                <label className="text-xs font-semibold text-white/70 block mb-1 flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5 text-violet-400" />
+                  <span>Current Activity / Headline</span>
                 </label>
                 <input
                   type="text"
                   value={currentActivity}
                   onChange={(e) => setCurrentActivity(e.target.value)}
-                  placeholder="e.g. Full-Stack Engineer @ Stripe • Learning AI Agents"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                  placeholder="e.g. Full-Stack Engineer @ Stripe • Learning AI"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-sm text-white focus:outline-none focus:border-violet-500/50"
                 />
               </div>
             </div>
 
             {/* 3. EDUCATION & STUDIES */}
-            <div className="p-5 rounded-2xl bg-[#F8F7FF] dark:bg-[#131022] border border-[#E4E1F5] dark:border-[#2D264E] space-y-3">
+            <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/8 space-y-3">
               <div className="flex items-center gap-2">
-                <GraduationCap className="w-4 h-4 text-[#7C3AED] dark:text-[#A78BFA]" />
-                <label className="text-xs font-bold uppercase tracking-wider text-[#7C3AED] dark:text-[#A78BFA]">
+                <GraduationCap className="w-4 h-4 text-violet-400" />
+                <label className="text-xs font-bold uppercase tracking-wider text-violet-400">
                   Studies &amp; Education
                 </label>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-1">
-                  <label className="text-[11px] font-semibold text-[#71717A] dark:text-zinc-400 block mb-1">
+                  <label className="text-[11px] font-semibold text-white/50 block mb-1">
                     School / University
                   </label>
                   <input
                     type="text"
                     value={school}
                     onChange={(e) => setSchool(e.target.value)}
-                    placeholder="e.g. Stanford, MIT, Anna Univ"
-                    className="w-full px-3 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                    placeholder="e.g. Stanford, MIT"
+                    className="w-full px-3 py-2 rounded-xl border border-white/10 bg-white/[0.04] text-xs text-white focus:outline-none focus:border-violet-500/50"
                   />
                 </div>
 
                 <div className="sm:col-span-1">
-                  <label className="text-[11px] font-semibold text-[#71717A] dark:text-zinc-400 block mb-1">
+                  <label className="text-[11px] font-semibold text-white/50 block mb-1">
                     Degree / Field of Study
                   </label>
                   <input
@@ -492,12 +591,12 @@ function SettingsContent() {
                     value={degree}
                     onChange={(e) => setDegree(e.target.value)}
                     placeholder="e.g. B.S. Computer Science"
-                    className="w-full px-3 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                    className="w-full px-3 py-2 rounded-xl border border-white/10 bg-white/[0.04] text-xs text-white focus:outline-none focus:border-violet-500/50"
                   />
                 </div>
 
                 <div className="sm:col-span-1">
-                  <label className="text-[11px] font-semibold text-[#71717A] dark:text-zinc-400 block mb-1">
+                  <label className="text-[11px] font-semibold text-white/50 block mb-1">
                     Graduation Year / Status
                   </label>
                   <input
@@ -505,7 +604,7 @@ function SettingsContent() {
                     value={graduationYear}
                     onChange={(e) => setGraduationYear(e.target.value)}
                     placeholder="e.g. 2025 or In Progress"
-                    className="w-full px-3 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                    className="w-full px-3 py-2 rounded-xl border border-white/10 bg-white/[0.04] text-xs text-white focus:outline-none focus:border-violet-500/50"
                   />
                 </div>
               </div>
@@ -514,12 +613,12 @@ function SettingsContent() {
             {/* 4. CREDENTIALS & CERTIFICATIONS */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 flex items-center gap-1.5">
-                  <Award className="w-3.5 h-3.5 text-[#7C3AED] dark:text-[#A78BFA]" />
+                <label className="text-xs font-semibold text-white/70 flex items-center gap-1.5">
+                  <Award className="w-3.5 h-3.5 text-cyan-400" />
                   <span>Credentials &amp; Certifications</span>
                 </label>
-                <span className="text-[11px] text-[#71717A]">
-                  Attach certificates, diplomas, or licenses to prove your legibility
+                <span className="text-[11px] text-white/40">
+                  Attach certificates to build credibility
                 </span>
               </div>
 
@@ -535,17 +634,17 @@ function SettingsContent() {
                       return (
                         <div
                           key={item.id || idx}
-                          className="p-3.5 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] flex items-start justify-between gap-3 shadow-2xs hover:border-[#DDD6FE] transition-colors"
+                          className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/8 flex items-start justify-between gap-3 hover:border-violet-500/30 transition-colors"
                         >
                           <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                            <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800/60 flex items-center justify-center text-amber-600 shrink-0 mt-0.5">
+                            <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
                               <Award className="w-4 h-4" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <h5 className="text-xs font-bold text-[#18181B] dark:text-white truncate">
+                              <h5 className="text-xs font-bold text-white truncate">
                                 {item.title}
                               </h5>
-                              <p className="text-[11px] text-[#71717A] dark:text-zinc-400 flex items-center gap-1 mt-0.5">
+                              <p className="text-[11px] text-white/40 flex items-center gap-1 mt-0.5">
                                 <span>{item.issuer || "Verified Credential"}</span>
                                 {item.issueDate && <span>• {item.issueDate}</span>}
                               </p>
@@ -553,7 +652,7 @@ function SettingsContent() {
                               {/* Badges / Document indicator */}
                               <div className="flex flex-wrap items-center gap-1.5 mt-2">
                                 {hasDoc && (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-[10px] font-semibold text-[#7C3AED] dark:text-[#A78BFA]">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-violet-500/10 border border-violet-500/20 text-[10px] font-semibold text-violet-300">
                                     <FileText className="w-3 h-3" />
                                     <span>Doc Attached</span>
                                   </span>
@@ -563,13 +662,13 @@ function SettingsContent() {
                                     href={item.verificationUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/50 text-[10px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20 text-[10px] font-semibold text-cyan-300 hover:underline"
                                   >
                                     <ExternalLink className="w-2.5 h-2.5" />
                                     <span>Verify URL</span>
                                   </a>
                                 )}
-                                <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-semibold">
+                                <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-semibold">
                                   <CheckCircle2 className="w-3 h-3" />
                                   <span>Active</span>
                                 </span>
@@ -581,7 +680,7 @@ function SettingsContent() {
                             <button
                               type="button"
                               onClick={() => setSelectedPreviewCred(item)}
-                              className="p-1.5 rounded-lg text-[#7C3AED] dark:text-[#A78BFA] hover:bg-[#EDE9FE] dark:hover:bg-[#231C3D] transition-colors"
+                              className="p-1.5 rounded-lg text-violet-400 hover:bg-white/10 transition-colors cursor-pointer"
                               title="View Certificate / Document"
                             >
                               <Eye className="w-3.5 h-3.5" />
@@ -589,7 +688,7 @@ function SettingsContent() {
                             <button
                               type="button"
                               onClick={() => handleRemoveCredential(idx)}
-                              className="p-1.5 rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                              className="p-1.5 rounded-lg text-white/40 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                               title="Remove Credential"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -600,18 +699,22 @@ function SettingsContent() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-xs text-[#71717A] italic py-2">
+                  <p className="text-xs text-white/40 italic py-2">
                     No credentials or certificates added yet. Attach one below to build trust with swap partners!
                   </p>
                 )}
               </div>
 
-              {/* Action Buttons: Add Document Modal Button & Quick Single Line Add */}
+              {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowAddDocModal(true)}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#8B5CF6] hover:opacity-95 text-white text-xs font-semibold shadow-xs flex items-center justify-center gap-2 transition-all"
+                  className="px-4 py-2.5 rounded-xl text-white text-xs font-semibold shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer hover:opacity-95"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                  }}
                 >
                   <Paperclip className="w-3.5 h-3.5" />
                   <span>+ Attach Certificate / Document</span>
@@ -629,13 +732,13 @@ function SettingsContent() {
                       }
                     }}
                     placeholder="Quick add credential (e.g. AWS Solutions Architect)"
-                    className="flex-1 px-3.5 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                    className="flex-1 px-3.5 py-2 rounded-xl border border-white/10 bg-white/[0.04] text-xs text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50"
                   />
                   <button
                     type="button"
                     onClick={() => handleAddCredential()}
                     disabled={!newCred.trim()}
-                    className="px-3.5 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-[#18181B] dark:text-zinc-200 text-xs font-semibold disabled:opacity-50 transition-colors"
+                    className="px-3.5 py-2 rounded-xl glass hover:bg-white/10 text-white text-xs font-semibold disabled:opacity-40 transition-colors border-white/10 cursor-pointer"
                   >
                     Add
                   </button>
@@ -644,19 +747,31 @@ function SettingsContent() {
 
               {/* Quick Suggestions */}
               <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                <span className="text-[11px] text-[#71717A]">Quick add:</span>
-                {["AWS Certified", "Google Cloud Pro", "Meta React Certified", "Certified ScrumMaster", "PMP"].map((suggest) => (
+                <span className="text-[11px] text-white/40">Quick add:</span>
+                {[
+                  "AWS Certified",
+                  "Google Cloud Pro",
+                  "Meta React Certified",
+                  "Certified ScrumMaster",
+                  "PMP",
+                ].map((suggest) => (
                   <button
                     key={suggest}
                     type="button"
                     onClick={() => {
-                      const exists = credentials.some((c) => normalizeCredential(c).title === suggest);
+                      const exists = credentials.some(
+                        (c) => normalizeCredential(c).title === suggest
+                      );
                       if (!exists) {
                         setCredentials((prev) => [...prev, suggest]);
-                        showToast("Credential Added", `Added "${suggest}".`, "success");
+                        showToast(
+                          "Credential Added",
+                          `Added "${suggest}".`,
+                          "success"
+                        );
                       }
                     }}
-                    className="text-[11px] px-2 py-0.5 rounded-lg border border-[#E4E1F5] dark:border-[#2D264E] hover:border-[#7C3AED] text-[#71717A] dark:text-zinc-300 hover:text-[#7C3AED] transition-colors"
+                    className="text-[11px] px-2.5 py-0.5 rounded-lg border border-white/10 hover:border-violet-400 text-white/60 hover:text-white glass-subtle transition-colors cursor-pointer"
                   >
                     + {suggest}
                   </button>
@@ -664,155 +779,166 @@ function SettingsContent() {
               </div>
 
               {/* MODAL: ATTACH CERTIFICATE / DOCUMENT */}
-              {showAddDocModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-                  <div className="w-full max-w-lg bg-white dark:bg-[#161327] rounded-3xl border border-[#E4E1F5] dark:border-[#2D264E] shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddDocModal(false)}
-                      className="absolute top-5 right-5 text-[#71717A] hover:text-[#18181B] dark:hover:text-white"
+              <AnimatePresence>
+                {showAddDocModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 animate-in fade-in">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="w-full max-w-lg glass-elevated rounded-3xl border-white/15 shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto"
                     >
-                      <X className="w-5 h-5" />
-                    </button>
-
-                    <div className="flex items-center gap-2.5 mb-4">
-                      <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-[#7C3AED] flex items-center justify-center">
-                        <Award className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h4 className="text-base font-bold text-[#18181B] dark:text-white">
-                          Attach Certificate Document
-                        </h4>
-                        <p className="text-xs text-[#71717A] dark:text-zinc-400">
-                          Upload certificate file or paste verification link to prove legibility.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      {/* Title */}
-                      <div>
-                        <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
-                          Certification / Credential Title *
-                        </label>
-                        <input
-                          type="text"
-                          value={newCredTitle}
-                          onChange={(e) => setNewCredTitle(e.target.value)}
-                          placeholder="e.g. AWS Certified Solutions Architect, Google UX Design"
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-[#F8F7FF] dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
-                        />
-                      </div>
-
-                      {/* Issuer & Year */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
-                            Issuing Body / Institution
-                          </label>
-                          <input
-                            type="text"
-                            value={newCredIssuer}
-                            onChange={(e) => setNewCredIssuer(e.target.value)}
-                            placeholder="e.g. Amazon Web Services, Coursera, MIT"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-[#F8F7FF] dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
-                            Issue Year / Date
-                          </label>
-                          <input
-                            type="text"
-                            value={newCredYear}
-                            onChange={(e) => setNewCredYear(e.target.value)}
-                            placeholder="e.g. 2024, May 2023"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-[#F8F7FF] dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
-                          />
-                        </div>
-                      </div>
-
-                      {/* File Upload for Document / Certificate */}
-                      <div>
-                        <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
-                          Certificate File / Document (PNG, JPG, WebP, or PDF)
-                        </label>
-                        <div className="border-2 border-dashed border-[#DDD6FE] dark:border-[#3B2D66] rounded-2xl p-4 text-center bg-[#F8F7FF] dark:bg-[#0E0C1B] space-y-2 relative hover:bg-purple-50/40 transition-colors">
-                          <input
-                            type="file"
-                            accept="image/*,application/pdf"
-                            onChange={handleCertDocUpload}
-                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                          />
-                          {newCredDocUrl ? (
-                            <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-white dark:bg-[#161327] border border-emerald-300 dark:border-emerald-700 text-xs">
-                              <div className="flex items-center gap-2">
-                                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                                <span className="font-semibold text-[#18181B] dark:text-white truncate max-w-xs">
-                                  {newCredDocName || "Document Attached"}
-                                </span>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setNewCredDocUrl(null);
-                                  setNewCredDocName("");
-                                }}
-                                className="text-red-500 hover:text-red-700 text-xs font-semibold"
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="space-y-1">
-                              <Upload className="w-6 h-6 mx-auto text-[#7C3AED]" />
-                              <p className="text-xs font-semibold text-[#18181B] dark:text-white">
-                                Drag &amp; drop or click to upload certificate document
-                              </p>
-                              <p className="text-[11px] text-[#71717A]">
-                                Max file size: 8MB. Shows in your public profile to prove authenticity.
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* External Verification URL */}
-                      <div>
-                        <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
-                          Certificate Verification Link / URL (Optional)
-                        </label>
-                        <input
-                          type="url"
-                          value={newCredVerifyUrl}
-                          onChange={(e) => setNewCredVerifyUrl(e.target.value)}
-                          placeholder="https://credly.com/badges/... or https://coursera.org/verify/..."
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-[#F8F7FF] dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mt-6 pt-4 border-t border-[#E4E1F5] dark:border-[#2D264E] flex items-center justify-end gap-2.5">
                       <button
                         type="button"
                         onClick={() => setShowAddDocModal(false)}
-                        className="px-4 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] text-xs font-semibold text-[#71717A] hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                        className="absolute top-5 right-5 text-white/40 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
                       >
-                        Cancel
+                        <X className="w-5 h-5" />
                       </button>
-                      <button
-                        type="button"
-                        onClick={handleAddRichCredential}
-                        disabled={!newCredTitle.trim()}
-                        className="px-5 py-2 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold disabled:opacity-50 transition-colors shadow-xs"
-                      >
-                        Save Credential &amp; Document
-                      </button>
-                    </div>
+
+                      <div className="flex items-center gap-2.5 mb-4">
+                        <div className="w-9 h-9 rounded-xl bg-violet-500/20 text-violet-400 flex items-center justify-center">
+                          <Award className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-base font-bold text-white">
+                            Attach Certificate Document
+                          </h4>
+                          <p className="text-xs text-white/50">
+                            Upload certificate file or paste verification link to prove legibility.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        {/* Title */}
+                        <div>
+                          <label className="text-xs font-semibold text-white/70 block mb-1">
+                            Certification / Credential Title *
+                          </label>
+                          <input
+                            type="text"
+                            value={newCredTitle}
+                            onChange={(e) => setNewCredTitle(e.target.value)}
+                            placeholder="e.g. AWS Certified Solutions Architect"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-xs text-white focus:outline-none focus:border-violet-500/50"
+                          />
+                        </div>
+
+                        {/* Issuer & Year */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs font-semibold text-white/70 block mb-1">
+                              Issuing Body / Institution
+                            </label>
+                            <input
+                              type="text"
+                              value={newCredIssuer}
+                              onChange={(e) => setNewCredIssuer(e.target.value)}
+                              placeholder="e.g. Amazon Web Services, Coursera"
+                              className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-xs text-white focus:outline-none focus:border-violet-500/50"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-white/70 block mb-1">
+                              Issue Year / Date
+                            </label>
+                            <input
+                              type="text"
+                              value={newCredYear}
+                              onChange={(e) => setNewCredYear(e.target.value)}
+                              placeholder="e.g. 2024, May 2023"
+                              className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-xs text-white focus:outline-none focus:border-violet-500/50"
+                            />
+                          </div>
+                        </div>
+
+                        {/* File Upload for Document / Certificate */}
+                        <div>
+                          <label className="text-xs font-semibold text-white/70 block mb-1">
+                            Certificate File / Document (PNG, JPG, WebP, or PDF)
+                          </label>
+                          <div className="border-2 border-dashed border-white/15 rounded-2xl p-4 text-center bg-white/[0.02] space-y-2 relative hover:bg-white/[0.04] transition-colors">
+                            <input
+                              type="file"
+                              accept="image/*,application/pdf"
+                              onChange={handleCertDocUpload}
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                            />
+                            {newCredDocUrl ? (
+                              <div className="flex items-center justify-between px-3 py-2 rounded-xl glass border-emerald-500/30 text-xs">
+                                <div className="flex items-center gap-2">
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                  <span className="font-semibold text-white truncate max-w-xs">
+                                    {newCredDocName || "Document Attached"}
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setNewCredDocUrl(null);
+                                    setNewCredDocName("");
+                                  }}
+                                  className="text-rose-400 hover:text-rose-300 text-xs font-semibold"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="space-y-1">
+                                <Upload className="w-6 h-6 mx-auto text-violet-400" />
+                                <p className="text-xs font-semibold text-white">
+                                  Drag &amp; drop or click to upload certificate document
+                                </p>
+                                <p className="text-[11px] text-white/40">
+                                  Max file size: 8MB. Shows in your public profile to prove authenticity.
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* External Verification URL */}
+                        <div>
+                          <label className="text-xs font-semibold text-white/70 block mb-1">
+                            Certificate Verification Link / URL (Optional)
+                          </label>
+                          <input
+                            type="url"
+                            value={newCredVerifyUrl}
+                            onChange={(e) => setNewCredVerifyUrl(e.target.value)}
+                            placeholder="https://credly.com/badges/... or https://coursera.org/verify/..."
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-xs text-white focus:outline-none focus:border-violet-500/50"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-end gap-2.5">
+                        <button
+                          type="button"
+                          onClick={() => setShowAddDocModal(false)}
+                          className="px-4 py-2 rounded-xl glass hover:bg-white/10 text-xs font-semibold text-white/60 hover:text-white transition-colors border-white/10"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleAddRichCredential}
+                          disabled={!newCredTitle.trim()}
+                          className="px-5 py-2 rounded-xl text-white text-xs font-semibold disabled:opacity-40 transition-colors shadow-lg cursor-pointer"
+                          style={{
+                            background:
+                              "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                          }}
+                        >
+                          Save Credential &amp; Document
+                        </button>
+                      </div>
+                    </motion.div>
                   </div>
-                </div>
-              )}
+                )}
+              </AnimatePresence>
 
               {/* Certificate Preview Modal */}
               <CertificateModal
@@ -826,30 +952,32 @@ function SettingsContent() {
             {/* 5. LOCATION & GENDER */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1 flex items-center justify-between">
+                <label className="text-xs font-semibold text-white/70 block mb-1 flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#7C3AED]" />
+                    <MapPin className="w-3.5 h-3.5 text-violet-400" />
                     <span>Location</span>
                   </span>
-                  <span className="text-[11px] text-[#71717A] font-normal">Optional</span>
+                  <span className="text-[11px] text-white/40 font-normal">
+                    Optional
+                  </span>
                 </label>
                 <input
                   type="text"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="e.g. San Francisco, CA or Remote"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-sm text-white focus:outline-none focus:border-violet-500/50"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
+                <label className="text-xs font-semibold text-white/70 block mb-1">
                   Gender Identity
                 </label>
                 <select
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-sm text-white focus:outline-none focus:border-violet-500/50 [&>option]:bg-[#0d0f17] [&>option]:text-white"
                 >
                   <option value="Prefer not to say">Prefer not to say</option>
                   <option value="Male">Male</option>
@@ -862,7 +990,7 @@ function SettingsContent() {
 
             {/* 6. BIO */}
             <div>
-              <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
+              <label className="text-xs font-semibold text-white/70 block mb-1">
                 Bio &amp; About Me
               </label>
               <textarea
@@ -870,14 +998,14 @@ function SettingsContent() {
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="Tell peers what you love teaching, your current tech stack, and what you're excited to learn..."
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-sm text-white focus:outline-none focus:border-violet-500/50 leading-relaxed"
               />
             </div>
 
             {/* 7. SOCIAL LINKS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
+                <label className="text-xs font-semibold text-white/70 block mb-1">
                   GitHub Profile URL
                 </label>
                 <input
@@ -885,12 +1013,12 @@ function SettingsContent() {
                   value={githubUrl}
                   onChange={(e) => setGithubUrl(e.target.value)}
                   placeholder="https://github.com/your-username"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-sm text-white focus:outline-none focus:border-violet-500/50"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
+                <label className="text-xs font-semibold text-white/70 block mb-1">
                   LinkedIn Profile URL
                 </label>
                 <input
@@ -898,20 +1026,24 @@ function SettingsContent() {
                   value={linkedinUrl}
                   onChange={(e) => setLinkedinUrl(e.target.value)}
                   placeholder="https://linkedin.com/in/your-profile"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-sm text-white focus:outline-none focus:border-violet-500/50"
                 />
               </div>
             </div>
 
             {/* SUBMIT BUTTON */}
-            <div className="pt-4 border-t border-[#E4E1F5] dark:border-[#2D264E] flex items-center justify-between">
-              <span className="text-xs text-[#71717A]">
+            <div className="pt-4 border-t border-white/8 flex items-center justify-between">
+              <span className="text-xs text-white/40">
                 Changes are synchronized with your profile and database.
               </span>
               <button
                 type="submit"
                 disabled={savingProfile}
-                className="px-6 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs sm:text-sm font-semibold shadow-sm flex items-center gap-2"
+                className="px-6 py-2.5 rounded-xl text-white text-xs sm:text-sm font-semibold shadow-lg flex items-center gap-2 cursor-pointer hover:opacity-95"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                }}
               >
                 {savingProfile ? (
                   <>
@@ -926,143 +1058,181 @@ function SettingsContent() {
           </form>
         )}
 
-        {/* TAB 3: SECURITY */}
+        {/* ── TAB 3: SECURITY ── */}
         {activeTab === "security" && (
-          <form onSubmit={handleChangePassword} className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-6">
+          <form
+            onSubmit={handleChangePassword}
+            className="p-6 sm:p-8 rounded-3xl glass border-white/10 shadow-xl space-y-6"
+          >
             <div>
-              <h2 className="text-base font-bold text-[#18181B] dark:text-white">Security & Credentials</h2>
-              <p className="text-xs text-[#71717A] mt-0.5">Ensure your account uses a strong password.</p>
+              <h2 className="text-base font-bold text-white">
+                Security &amp; Credentials
+              </h2>
+              <p className="text-xs text-white/50 mt-0.5">
+                Ensure your account uses a strong password.
+              </p>
             </div>
 
             <div className="space-y-4 max-w-md">
               <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">New Password</label>
+                <label className="text-xs font-semibold text-white/70 block mb-1">
+                  New Password
+                </label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="At least 6 characters"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-sm text-white focus:outline-none focus:border-violet-500/50"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">Confirm New Password</label>
+                <label className="text-xs font-semibold text-white/70 block mb-1">
+                  Confirm New Password
+                </label>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repeat new password"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-sm text-white focus:outline-none focus:border-violet-500/50"
                   required
                 />
               </div>
             </div>
 
-            <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
+            <div className="pt-4 border-t border-white/8 flex justify-end">
               <button
                 type="submit"
                 disabled={savingPassword}
-                className="px-6 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs sm:text-sm font-semibold shadow-sm flex items-center gap-2"
+                className="px-6 py-2.5 rounded-xl text-white text-xs sm:text-sm font-semibold shadow-lg flex items-center gap-2 cursor-pointer"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                }}
               >
-                {savingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Update Password</span>}
+                {savingPassword ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <span>Update Password</span>
+                )}
               </button>
             </div>
           </form>
         )}
 
-        {/* TAB 4: NOTIFICATIONS */}
+        {/* ── TAB 4: NOTIFICATIONS ── */}
         {activeTab === "notifications" && (
-          <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-6">
-            <h2 className="text-base font-bold text-[#18181B] dark:text-white">Notification Preferences</h2>
+          <div className="p-6 sm:p-8 rounded-3xl glass border-white/10 shadow-xl space-y-6">
+            <h2 className="text-base font-bold text-white">
+              Notification Preferences
+            </h2>
 
             <div className="space-y-4 max-w-lg">
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B]">
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.02] border border-white/8">
                 <div>
-                  <p className="text-xs font-bold text-[#18181B] dark:text-white">Email Session Reminders</p>
-                  <p className="text-[11px] text-[#71717A]">Receive emails 1 hour before scheduled swap calls</p>
+                  <p className="text-xs font-bold text-white">
+                    Email Session Reminders
+                  </p>
+                  <p className="text-[11px] text-white/45">
+                    Receive emails 1 hour before scheduled swap calls
+                  </p>
                 </div>
                 <input
                   type="checkbox"
                   checked={swapReminders}
                   onChange={(e) => setSwapReminders(e.target.checked)}
-                  className="w-4 h-4 text-[#7C3AED] focus:ring-[#7C3AED] rounded"
+                  className="w-4 h-4 rounded border-white/20 text-violet-500 accent-violet-500"
                 />
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B]">
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.02] border border-white/8">
                 <div>
-                  <p className="text-xs font-bold text-[#18181B] dark:text-white">Swap Request Alerts</p>
-                  <p className="text-[11px] text-[#71717A]">Notify when another member proposes a skill swap</p>
+                  <p className="text-xs font-bold text-white">
+                    Swap Request Alerts
+                  </p>
+                  <p className="text-[11px] text-white/45">
+                    Notify when another member proposes a skill swap
+                  </p>
                 </div>
                 <input
                   type="checkbox"
                   checked={emailAlerts}
                   onChange={(e) => setEmailAlerts(e.target.checked)}
-                  className="w-4 h-4 text-[#7C3AED] focus:ring-[#7C3AED] rounded"
+                  className="w-4 h-4 rounded border-white/20 text-violet-500 accent-violet-500"
                 />
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B]">
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.02] border border-white/8">
                 <div>
-                  <p className="text-xs font-bold text-[#18181B] dark:text-white">Platform Community Updates</p>
-                  <p className="text-[11px] text-[#71717A]">Weekly digest of trending skills and community swaps</p>
+                  <p className="text-xs font-bold text-white">
+                    Platform Community Updates
+                  </p>
+                  <p className="text-[11px] text-white/45">
+                    Weekly digest of trending skills and community swaps
+                  </p>
                 </div>
                 <input
                   type="checkbox"
                   checked={marketingUpdates}
                   onChange={(e) => setMarketingUpdates(e.target.checked)}
-                  className="w-4 h-4 text-[#7C3AED] focus:ring-[#7C3AED] rounded"
+                  className="w-4 h-4 rounded border-white/20 text-violet-500 accent-violet-500"
                 />
               </div>
             </div>
           </div>
         )}
 
-        {/* TAB 5: PREFERENCES / THEME */}
+        {/* ── TAB 5: PREFERENCES / THEME ── */}
         {activeTab === "preferences" && (
-          <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-6">
-            <h2 className="text-base font-bold text-[#18181B] dark:text-white">Interface & Theme</h2>
+          <div className="p-6 sm:p-8 rounded-3xl glass border-white/10 shadow-xl space-y-6">
+            <h2 className="text-base font-bold text-white">
+              Interface &amp; Theme
+            </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg">
               <button
                 type="button"
-                onClick={() => setTheme("light")}
-                className={`p-4 rounded-2xl border text-center transition-all ${
-                  theme === "light"
-                    ? "border-[#7C3AED] bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED]"
-                    : "border-[#E4E1F5] dark:border-[#2D264E] hover:border-[#A78BFA]"
-                }`}
-              >
-                <Sun className="w-6 h-6 mx-auto mb-2" />
-                <span className="text-xs font-bold block">Light Theme</span>
-              </button>
-
-              <button
-                type="button"
                 onClick={() => setTheme("dark")}
-                className={`p-4 rounded-2xl border text-center transition-all ${
-                  theme === "dark"
-                    ? "border-[#7C3AED] bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED]"
-                    : "border-[#E4E1F5] dark:border-[#2D264E] hover:border-[#A78BFA]"
-                }`}
+                className="p-5 rounded-2xl border text-center transition-all cursor-pointer glass"
+                style={{
+                  border: "1px solid rgba(124,108,246,0.5)",
+                  background:
+                    "linear-gradient(135deg, rgba(124,108,246,0.15) 0%, rgba(6,182,212,0.15) 100%)",
+                  boxShadow: "0 0 16px rgba(124,108,246,0.2)",
+                }}
               >
-                <Moon className="w-6 h-6 mx-auto mb-2" />
-                <span className="text-xs font-bold block">Dark Theme</span>
+                <Moon className="w-6 h-6 mx-auto mb-2 text-violet-400" />
+                <span className="text-xs font-bold text-white block">
+                  Dark Glass
+                </span>
+                <span className="text-[10px] text-cyan-300 mt-1 block">
+                  Active (Default)
+                </span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setTheme("system")}
-                className={`p-4 rounded-2xl border text-center transition-all ${
-                  theme === "system"
-                    ? "border-[#7C3AED] bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED]"
-                    : "border-[#E4E1F5] dark:border-[#2D264E] hover:border-[#A78BFA]"
-                }`}
+                className="p-5 rounded-2xl border border-white/10 glass-subtle text-center transition-all cursor-pointer hover:border-white/20"
               >
-                <Monitor className="w-6 h-6 mx-auto mb-2" />
-                <span className="text-xs font-bold block">System Auto</span>
+                <Monitor className="w-6 h-6 mx-auto mb-2 text-white/60" />
+                <span className="text-xs font-bold text-white/80 block">
+                  System Auto
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTheme("light")}
+                className="p-5 rounded-2xl border border-white/10 glass-subtle text-center transition-all cursor-pointer hover:border-white/20"
+              >
+                <Sun className="w-6 h-6 mx-auto mb-2 text-white/60" />
+                <span className="text-xs font-bold text-white/80 block">
+                  Light Mode
+                </span>
               </button>
             </div>
           </div>
@@ -1074,7 +1244,13 @@ function SettingsContent() {
 
 export default function SettingsPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#F8F7FF] dark:bg-[#0E0C1B]"><Loader2 className="w-8 h-8 animate-spin text-[#7C3AED]" /></div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center ambient-bg">
+          <Loader2 className="w-8 h-8 animate-spin text-violet-400" />
+        </div>
+      }
+    >
       <SettingsContent />
     </Suspense>
   );

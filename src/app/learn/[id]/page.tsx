@@ -6,6 +6,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import RatingModal from "@/components/RatingModal";
 import VideoRoom from "@/components/VideoRoom";
+import CoinIcon from "@/components/common/CoinIcon";
 import { useSkillSwap } from "@/context/SkillSwapContext";
 import {
   Mic,
@@ -22,7 +23,9 @@ import {
   Share2,
   Copy,
   Check,
+  Zap,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function SessionRoomPage() {
   const params = useParams();
@@ -40,24 +43,40 @@ export default function SessionRoomPage() {
   const rawId = (params?.id as string) || "session-python-arun";
 
   // Find matching booking or room
-  const matchingRoom = sessionRooms.find((r) => r.roomToken === rawId || r.id === rawId);
-  const matchingBooking = creditBookings.find((b) => b.roomToken === rawId || b.id === rawId);
-  const foundSession = sessions.find((s) => s.id === rawId || s.roomUrl?.includes(rawId));
+  const matchingRoom = sessionRooms.find(
+    (r) => r.roomToken === rawId || r.id === rawId
+  );
+  const matchingBooking = creditBookings.find(
+    (b) => b.roomToken === rawId || b.id === rawId
+  );
+  const foundSession = sessions.find(
+    (s) => s.id === rawId || s.roomUrl?.includes(rawId)
+  );
 
   const session = foundSession || {
     id: rawId,
-    skillTitle: matchingRoom?.skillName || matchingBooking?.skillName || "1-on-1 Skill Swap Session",
-    teacherName: matchingRoom?.peerName || matchingBooking?.teacherName || "Arun Kumar",
-    teacherAvatar: matchingBooking?.teacherAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+    skillTitle:
+      matchingRoom?.skillName ||
+      matchingBooking?.skillName ||
+      "1-on-1 Skill Swap Session",
+    teacherName:
+      matchingRoom?.peerName || matchingBooking?.teacherName || "Arun Kumar",
+    teacherAvatar:
+      matchingBooking?.teacherAvatar ||
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
     teacherId: matchingBooking?.teacherId || "arun-kumar",
     date: "Today",
     time: "Live Classroom",
     duration: "45 mins",
     credits: matchingBooking?.creditsAmount || 50,
-    status: (matchingRoom?.status === "completed" ? "completed" : "upcoming") as any,
+    status: (matchingRoom?.status === "completed"
+      ? "completed"
+      : "upcoming") as any,
     roomUrl: `/learn/${rawId}`,
     agenda: [
-      `1-on-1 Session for ${matchingRoom?.skillName || matchingBooking?.skillName || "Skill Swap"}`,
+      `1-on-1 Session for ${
+        matchingRoom?.skillName || matchingBooking?.skillName || "Skill Swap"
+      }`,
       "Real-time audio/video exchange & shared code scratchpad",
       "Milestone review and session completion trigger",
     ],
@@ -75,7 +94,9 @@ export default function SessionRoomPage() {
 
   // In-session control states
   const [isJoined, setIsJoined] = useState(false);
-  const [activeTab, setActiveTab] = useState<"notes" | "agenda" | "chat">("notes");
+  const [activeTab, setActiveTab] = useState<"notes" | "agenda" | "chat">(
+    "notes"
+  );
 
   // Countdown simulation: starts at 12:34
   const [secondsRemaining, setSecondsRemaining] = useState(12 * 60 + 34);
@@ -158,14 +179,17 @@ export default function SessionRoomPage() {
 
   if (!session) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#F9FAFB] dark:bg-[#090D16] text-gray-900 dark:text-gray-100">
+      <div className="min-h-screen flex flex-col ambient-bg text-white">
         <Navbar />
         <div className="flex-1 flex items-center justify-center text-center p-6">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Session Not Found</h2>
+          <div className="glass p-8 rounded-3xl border-white/10 space-y-4">
+            <h2 className="text-xl font-bold text-white">Session Not Found</h2>
             <Link
               href="/dashboard"
-              className="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold"
+              className="inline-block px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-lg"
+              style={{
+                background: "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+              }}
             >
               Return to Dashboard
             </Link>
@@ -176,27 +200,30 @@ export default function SessionRoomPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F9FAFB] dark:bg-[#090D16] text-gray-900 dark:text-gray-100 transition-colors duration-200">
-      {/* Top Session Header */}
-      <header className="sticky top-0 z-40 w-full bg-white dark:bg-[#0B0F19] border-b border-gray-200/90 dark:border-gray-800 py-3.5 px-4 sm:px-8 flex items-center justify-between transition-colors">
+    <div className="min-h-screen flex flex-col ambient-bg text-white pb-16">
+      {/* ── TOP SESSION HEADER ── */}
+      <header className="sticky top-0 z-40 w-full glass border-b border-white/10 py-3.5 px-4 sm:px-8 flex items-center justify-between backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-2 rounded-xl text-white/50 hover:text-white glass hover:bg-white/10 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white leading-none">
+              <h1 className="text-sm sm:text-base font-bold text-white leading-none">
                 {session.skillTitle}
               </h1>
-              <span className="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-[10px] font-semibold">
+              <span className="px-2 py-0.5 rounded-md glass border-cyan-500/20 text-cyan-300 text-[10px] font-semibold">
                 1-on-1 Swap
               </span>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Teacher: <span className="font-semibold text-gray-700 dark:text-gray-300">{session.teacherName}</span>
+            <p className="text-xs text-white/45 mt-1">
+              Teacher:{" "}
+              <span className="font-semibold text-white/80">
+                {session.teacherName}
+              </span>
             </p>
           </div>
         </div>
@@ -209,20 +236,30 @@ export default function SessionRoomPage() {
               if (typeof window !== "undefined") {
                 navigator.clipboard.writeText(window.location.href);
                 setCopiedLink(true);
-                showToast("Room Link Copied", "Open in a second tab or send to peer to test WebRTC P2P streaming!", "success");
+                showToast(
+                  "Room Link Copied",
+                  "Open in a second tab or send to peer to test WebRTC P2P streaming!",
+                  "success"
+                );
                 setTimeout(() => setCopiedLink(false), 2000);
               }
             }}
-            className="px-3 py-1.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#161327] hover:bg-zinc-50 dark:hover:bg-[#231C3D] text-xs font-semibold text-[#7C3AED] dark:text-[#A78BFA] flex items-center gap-1.5 transition-colors"
+            className="px-3 py-1.5 rounded-xl glass hover:bg-white/10 text-xs font-semibold text-cyan-300 border-cyan-500/20 flex items-center gap-1.5 transition-all cursor-pointer"
             title="Copy room URL to test with peer in another tab"
           >
-            {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Share2 className="w-3.5 h-3.5" />}
-            <span className="hidden sm:inline">{copiedLink ? "Link Copied!" : "Share Room Link"}</span>
+            {copiedLink ? (
+              <Check className="w-3.5 h-3.5 text-emerald-400" />
+            ) : (
+              <Share2 className="w-3.5 h-3.5" />
+            )}
+            <span className="hidden sm:inline">
+              {copiedLink ? "Link Copied!" : "Share Link"}
+            </span>
           </button>
 
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#EDE9FE] dark:bg-[#231C3D] border border-[#DDD6FE] dark:border-[#3B2D66] text-[#7C3AED] dark:text-[#A78BFA] text-xs font-mono font-semibold">
-            <Clock className="w-3.5 h-3.5 text-[#7C3AED]" />
-            <span>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass border-white/10 text-xs font-mono font-semibold">
+            <Clock className="w-3.5 h-3.5 text-violet-400" />
+            <span className="text-white/80">
               {isJoined
                 ? "Live WebRTC P2P Active"
                 : `Session in ${formatCountdown(secondsRemaining)}`}
@@ -232,7 +269,10 @@ export default function SessionRoomPage() {
           <button
             type="button"
             onClick={handleMarkComplete}
-            className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all flex items-center gap-1.5"
+            className="px-4 py-1.5 rounded-xl text-white text-xs font-semibold shadow-md transition-all flex items-center gap-1.5 cursor-pointer hover:opacity-95"
+            style={{
+              background: "linear-gradient(135deg, #10B981 0%, #06B6D4 100%)",
+            }}
           >
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Mark Complete</span>
@@ -240,203 +280,222 @@ export default function SessionRoomPage() {
         </div>
       </header>
 
-      {/* Main Focus Area: Video Stage & Interactive Workspace */}
+      {/* ── MAIN FOCUS AREA: VIDEO STAGE & INTERACTIVE WORKSPACE ── */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full space-y-4">
         {matchingBooking && (
-          <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-emerald-800 dark:text-emerald-200">
+          <div className="p-3.5 rounded-2xl glass border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-emerald-200">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>
                 <strong>Escrow Active:</strong> 🪙 {matchingBooking.creditsAmount} Credits locked in escrow. Released to {session.teacherName} upon completing the session.
               </span>
             </div>
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-200/60 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-100 font-bold uppercase tracking-wider text-[10px]">
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold uppercase tracking-wider text-[10px] border border-emerald-500/30">
               Escrow: {matchingBooking.escrowStatus}
             </span>
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left / Center 8 Columns: Live Stage & Collaborative Workspace */}
-        <div className="lg:col-span-8 flex flex-col gap-5">
-          {/* Video Stream Stage */}
-          <div className="relative aspect-video sm:aspect-[16/9] w-full bg-[#161327] rounded-3xl overflow-hidden shadow-2xl border border-[#2D264E] flex items-center justify-center">
-            {/* Pre-join or Active Preview State */}
-            <div className="text-center p-6 max-w-md space-y-3">
-              <div className="w-16 h-16 rounded-3xl bg-[#231C3D] text-[#A78BFA] border border-[#3B2D66] flex items-center justify-center mx-auto shadow-md">
-                <VideoIcon className="w-8 h-8" />
-              </div>
-              <div>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Encrypted Peer-to-Peer</span>
-                </span>
-                <h3 className="text-xl font-extrabold text-white mt-1">Ready for your swap session?</h3>
-                <p className="text-xs text-zinc-400 mt-1">
-                  Native WebRTC audio, video, screen-sharing, collaborative code notes, whiteboard, and real-time live captions.
-                </p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsJoined(true)}
-                  className="w-full sm:w-auto px-7 py-3 rounded-2xl bg-gradient-to-r from-[#7C3AED] to-[#8B5CF6] hover:opacity-95 text-white font-bold text-xs shadow-lg shadow-[#7C3AED]/25 transition-all flex items-center justify-center gap-2"
-                >
-                  <Play className="w-4 h-4 fill-white" />
-                  <span>Launch WebRTC Session</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Interactive Collaborative Scratchpad & Notes */}
-          <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200/90 dark:border-gray-800 shadow-sm p-5 flex flex-col">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
-              <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-white">
-                <Edit3 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                <span>Collaborative Code & Notes Scratchpad</span>
-              </div>
-              <span className="text-[11px] text-gray-400 dark:text-gray-500 font-mono">Auto-saving live</span>
-            </div>
-            <textarea
-              value={scratchpadText}
-              onChange={(e) => setScratchpadText(e.target.value)}
-              rows={8}
-              className="mt-3 w-full font-mono text-xs text-gray-800 dark:text-gray-200 bg-gray-50/70 dark:bg-gray-800/60 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 resize-y leading-relaxed"
-            />
-          </div>
-        </div>
-
-        {/* Right 4 Columns: Session Details, Agenda, & Chat */}
-        <div className="lg:col-span-4 flex flex-col gap-5">
-          {/* Session Overview Card */}
-          <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200/90 dark:border-gray-800 shadow-sm p-5 sm:p-6">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4">
-              Session Overview
-            </h3>
-
-            <div className="space-y-3.5 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500 dark:text-gray-400">Topic:</span>
-                <span className="font-semibold text-gray-900 dark:text-white">{session.skillTitle}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500 dark:text-gray-400">Instructor:</span>
-                <span className="font-semibold text-gray-900 dark:text-white">{session.teacherName}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500 dark:text-gray-400">Duration:</span>
-                <span className="font-semibold text-gray-900 dark:text-white">{session.duration}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500 dark:text-gray-400">Escrow Value:</span>
-                <span className="font-bold text-indigo-600 dark:text-indigo-400 font-mono">
-                  🪙 {session.credits} Credits
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-start gap-2 text-[11px] text-gray-500 dark:text-gray-400 leading-normal">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-              <span>
-                Credits remain safely locked until you click &quot;Mark Complete&quot;.
-              </span>
-            </div>
-          </div>
-
-          {/* Tabbed Side Panel: Agenda & Live Chat */}
-          <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200/90 dark:border-gray-800 shadow-sm p-5 flex-1 flex flex-col">
-            <div className="flex items-center gap-4 pb-3 border-b border-gray-100 dark:border-gray-800 text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => setActiveTab("notes")}
-                className={`pb-1 transition-colors ${
-                  activeTab === "notes"
-                    ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
-                    : "text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                }`}
-              >
-                Agenda Checklist
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("chat")}
-                className={`pb-1 transition-colors ${
-                  activeTab === "chat"
-                    ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
-                    : "text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                }`}
-              >
-                Session Chat ({chatMessages.length})
-              </button>
-            </div>
-
-            {activeTab === "notes" ? (
-              <div className="mt-4 space-y-2.5 flex-1">
-                {(session.agenda || [
-                  "Warm-up & objectives alignment",
-                  "Core hands-on coding pattern",
-                  "Real-world edge cases",
-                  "Actionable resource checklist",
-                ]).map((item, idx) => (
-                  <label
-                    key={idx}
-                    className="flex items-start gap-2.5 p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer text-xs text-gray-700 dark:text-gray-300 transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      defaultChecked={idx === 0}
-                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"
-                    />
-                    <span className="leading-snug">{item}</span>
-                  </label>
-                ))}
-              </div>
-            ) : (
-              /* Live Chat Panel */
-              <div className="mt-3 flex-1 flex flex-col justify-between h-72">
-                <div className="space-y-2.5 overflow-y-auto pr-1">
-                  {chatMessages.map((msg, i) => (
-                    <div
-                      key={i}
-                      className={`p-2.5 rounded-xl text-xs ${
-                        msg.sender === "You"
-                          ? "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-950 dark:text-indigo-200 ml-6"
-                          : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 mr-6"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between text-[10px] text-gray-400 dark:text-gray-500 mb-1">
-                        <span className="font-semibold">{msg.sender}</span>
-                        <span>{msg.time}</span>
-                      </div>
-                      <p className="leading-normal">{msg.text}</p>
-                    </div>
-                  ))}
+          {/* Left / Center 8 Columns: Live Stage & Collaborative Workspace */}
+          <div className="lg:col-span-8 flex flex-col gap-5">
+            {/* Video Stream Stage */}
+            <div className="relative aspect-video sm:aspect-[16/9] w-full rounded-3xl overflow-hidden shadow-2xl glass-elevated border-white/10 flex items-center justify-center">
+              <div className="text-center p-6 max-w-md space-y-4">
+                <div className="w-16 h-16 rounded-2xl bg-violet-500/10 text-violet-400 border border-violet-500/20 flex items-center justify-center mx-auto shadow-xl ring-4 ring-violet-500/10">
+                  <VideoIcon className="w-8 h-8" />
+                </div>
+                <div>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Encrypted Peer-to-Peer</span>
+                  </span>
+                  <h3 className="text-xl font-extrabold text-white mt-1">
+                    Ready for your swap session?
+                  </h3>
+                  <p className="text-xs text-white/50 mt-1 leading-relaxed">
+                    Native WebRTC audio, video, screen-sharing, collaborative code notes, whiteboard, and real-time live captions.
+                  </p>
                 </div>
 
-                <form
-                  onSubmit={handleSendMessage}
-                  className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center gap-2"
-                >
-                  <input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Send a message..."
-                    className="flex-1 px-3 py-2 text-xs bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-600"
-                  />
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                   <button
-                    type="submit"
-                    className="p-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                    type="button"
+                    onClick={() => setIsJoined(true)}
+                    className="w-full sm:w-auto px-8 py-3 rounded-2xl text-white font-bold text-xs shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer hover:opacity-95 active:scale-[0.99]"
+                    style={{
+                      background: "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                      boxShadow: "0 4px 18px rgba(124,108,246,0.35)",
+                    }}
                   >
-                    <Send className="w-3.5 h-3.5" />
+                    <Play className="w-4 h-4 fill-white" />
+                    <span>Launch WebRTC Session</span>
                   </button>
-                </form>
+                </div>
               </div>
-            )}
+            </div>
+
+            {/* Interactive Collaborative Scratchpad & Notes */}
+            <div className="glass rounded-3xl border-white/10 shadow-xl p-5 flex flex-col">
+              <div className="flex items-center justify-between pb-3 border-b border-white/8">
+                <div className="flex items-center gap-2 text-xs font-semibold text-white">
+                  <Edit3 className="w-4 h-4 text-violet-400" />
+                  <span>Collaborative Code &amp; Notes Scratchpad</span>
+                </div>
+                <span className="text-[11px] text-cyan-400 font-mono">
+                  Auto-saving live
+                </span>
+              </div>
+              <textarea
+                value={scratchpadText}
+                onChange={(e) => setScratchpadText(e.target.value)}
+                rows={8}
+                className="mt-3 w-full font-mono text-xs text-white/90 bg-white/[0.03] p-4 rounded-xl border border-white/10 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30 resize-y leading-relaxed"
+              />
+            </div>
           </div>
-        </div>
+
+          {/* Right 4 Columns: Session Details, Agenda, & Chat */}
+          <div className="lg:col-span-4 flex flex-col gap-5">
+            {/* Session Overview Card */}
+            <div className="glass rounded-3xl border-white/10 shadow-xl p-5 sm:p-6 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">
+                Session Overview
+              </h3>
+
+              <div className="space-y-3 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-white/50">Topic:</span>
+                  <span className="font-semibold text-white truncate max-w-[180px]">
+                    {session.skillTitle}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/50">Instructor:</span>
+                  <span className="font-semibold text-white">
+                    {session.teacherName}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/50">Duration:</span>
+                  <span className="font-semibold text-white">
+                    {session.duration}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/50">Escrow Value:</span>
+                  <span className="font-bold text-amber-300 flex items-center gap-1">
+                    <CoinIcon size={12} /> {session.credits} Credits
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-white/8 flex items-start gap-2 text-[11px] text-white/50 leading-normal">
+                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span>
+                  Credits remain safely locked until you click &quot;Mark Complete&quot;.
+                </span>
+              </div>
+            </div>
+
+            {/* Tabbed Side Panel: Agenda & Live Chat */}
+            <div className="glass rounded-3xl border-white/10 shadow-xl p-5 flex-1 flex flex-col">
+              <div className="flex items-center gap-4 pb-3 border-b border-white/8 text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("notes")}
+                  className={`pb-1 transition-all cursor-pointer ${
+                    activeTab === "notes"
+                      ? "text-cyan-300 border-b-2 border-cyan-400"
+                      : "text-white/40 hover:text-white"
+                  }`}
+                >
+                  Agenda Checklist
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("chat")}
+                  className={`pb-1 transition-all cursor-pointer ${
+                    activeTab === "chat"
+                      ? "text-cyan-300 border-b-2 border-cyan-400"
+                      : "text-white/40 hover:text-white"
+                  }`}
+                >
+                  Session Chat ({chatMessages.length})
+                </button>
+              </div>
+
+              {activeTab === "notes" ? (
+                <div className="mt-4 space-y-2.5 flex-1">
+                  {(
+                    session.agenda || [
+                      "Warm-up & objectives alignment",
+                      "Core hands-on coding pattern",
+                      "Real-world edge cases",
+                      "Actionable resource checklist",
+                    ]
+                  ).map((item, idx) => (
+                    <label
+                      key={idx}
+                      className="flex items-start gap-2.5 p-2 rounded-xl hover:bg-white/[0.04] cursor-pointer text-xs text-white/80 transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        defaultChecked={idx === 0}
+                        className="rounded border-white/20 text-violet-500 focus:ring-violet-400 mt-0.5 accent-violet-500"
+                      />
+                      <span className="leading-snug">{item}</span>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                /* Live Chat Panel */
+                <div className="mt-3 flex-1 flex flex-col justify-between h-72">
+                  <div className="space-y-2.5 overflow-y-auto pr-1">
+                    {chatMessages.map((msg, i) => (
+                      <div
+                        key={i}
+                        className={`p-2.5 rounded-xl text-xs ${
+                          msg.sender === "You"
+                            ? "bg-violet-600/30 border border-violet-500/30 text-white ml-6"
+                            : "bg-white/[0.04] border border-white/8 text-white/90 mr-6"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between text-[10px] text-white/40 mb-1">
+                          <span className="font-semibold">{msg.sender}</span>
+                          <span>{msg.time}</span>
+                        </div>
+                        <p className="leading-normal">{msg.text}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <form
+                    onSubmit={handleSendMessage}
+                    className="mt-3 pt-3 border-t border-white/8 flex items-center gap-2"
+                  >
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Send a message..."
+                      className="flex-1 px-3 py-2 text-xs bg-white/[0.04] rounded-xl border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-violet-500/50"
+                    />
+                    <button
+                      type="submit"
+                      className="p-2 rounded-xl text-white shadow-md cursor-pointer"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                      }}
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </main>
 

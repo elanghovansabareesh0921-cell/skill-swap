@@ -25,6 +25,7 @@ import {
   ArrowRight,
   ExternalLink,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface PeerConversation extends ChatConversation {
   sessionType?: "direct" | "escrow";
@@ -83,7 +84,8 @@ function MessagesContent() {
       id: "conv-fallback",
       participantId: "arun-kumar",
       participantName: partnerNameParam || "Arun Kumar",
-      participantAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+      participantAvatar:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
       participantRole: "Python & Machine Learning",
       lastMessage: "Looking forward to our skill swap session!",
       lastMessageTime: "Just now",
@@ -143,9 +145,10 @@ function MessagesContent() {
     },
   ];
 
-  const filteredConversations = enhancedConversations.filter((c) =>
-    c.participantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.participantRole.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredConversations = enhancedConversations.filter(
+    (c) =>
+      c.participantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.participantRole.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleSend = (e: React.FormEvent) => {
@@ -157,7 +160,10 @@ function MessagesContent() {
       senderId: currentUser.id,
       senderName: currentUser.name,
       text: inputText.trim(),
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       read: true,
     };
 
@@ -190,7 +196,10 @@ function MessagesContent() {
         senderId: currentUser.id,
         senderName: currentUser.name,
         text: `📅 Scheduled a 1-Hour Session for ${scheduledDate} (${scheduledTime}). Join classroom: /learn/${roomToken}`,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
         read: true,
       };
 
@@ -211,7 +220,10 @@ function MessagesContent() {
       senderId: currentUser.id,
       senderName: currentUser.name,
       text: "✅ Session marked complete! Escrow credits released to the teacher.",
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       read: true,
     };
 
@@ -224,21 +236,19 @@ function MessagesContent() {
   };
 
   return (
-    <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex flex-col h-[calc(100vh-80px)]">
-      <div className="flex-1 rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] shadow-sm overflow-hidden flex flex-col md:flex-row">
-        {/* LEFT: THREAD LIST */}
+    <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col h-[calc(100vh-84px)]">
+      <div className="flex-1 rounded-3xl glass border-white/10 shadow-2xl overflow-hidden flex flex-col md:flex-row relative">
+        {/* ── LEFT: THREAD LIST ── */}
         <div
-          className={`w-full md:w-80 lg:w-96 border-r border-[#ddd4f5] dark:border-[#362c5e] flex flex-col bg-[#f5f2fc]/50 dark:bg-[#130f26]/50 ${
+          className={`w-full md:w-80 lg:w-96 border-r border-white/8 flex flex-col bg-white/[0.01] ${
             mobileView === "chat" ? "hidden md:flex" : "flex"
           }`}
         >
           {/* Header */}
-          <div className="p-4 border-b border-[#ddd4f5] dark:border-[#362c5e] space-y-3">
+          <div className="p-4 border-b border-white/8 space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
-                Messages
-              </h2>
-              <div className="inline-flex items-center gap-1 text-[11px] font-bold text-[#7d6ce8] dark:text-[#ac98f2] bg-[#ede8fb] dark:bg-[#282147] px-2.5 py-0.5 rounded-full">
+              <h2 className="text-base font-extrabold text-white">Messages</h2>
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-cyan-300 glass px-2.5 py-1 rounded-full border-cyan-500/20">
                 <CoinIcon size={12} />
                 <span>1h = 10c</span>
               </div>
@@ -246,19 +256,19 @@ function MessagesContent() {
 
             {/* Search Input */}
             <div className="relative">
-              <Search className="w-4 h-4 text-[#7a719c] dark:text-[#a99ed4] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search conversations..."
-                className="w-full pl-9 pr-3 py-2 rounded-full bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#241b3d] dark:text-[#f4f0ff] placeholder-[#7a719c] focus:outline-none focus:ring-2 focus:ring-[#7d6ce8]/40"
+                className="w-full pl-9 pr-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30 transition-all"
               />
             </div>
           </div>
 
           {/* Conversation Items */}
-          <div className="flex-1 overflow-y-auto divide-y divide-[#ddd4f5]/60 dark:divide-[#362c5e]/60">
+          <div className="flex-1 overflow-y-auto divide-y divide-white/5">
             {filteredConversations.length > 0 ? (
               filteredConversations.map((conv) => {
                 const isActive = conv.id === activeConvId;
@@ -269,54 +279,60 @@ function MessagesContent() {
                       setActiveConvId(conv.id);
                       setMobileView("chat");
                     }}
-                    className={`p-4 cursor-pointer transition-colors flex items-start gap-3 ${
+                    className={`p-4 cursor-pointer transition-all flex items-start gap-3 relative ${
                       isActive
-                        ? "bg-[#ede8fb] dark:bg-[#282147] border-l-4 border-l-[#7d6ce8]"
-                        : "hover:bg-white dark:hover:bg-[#1e1938]"
+                        ? "bg-white/[0.07] border-l-2 border-l-violet-400"
+                        : "hover:bg-white/[0.03]"
                     }`}
                   >
                     <div className="relative shrink-0">
                       <img
                         src={conv.participantAvatar}
                         alt={conv.participantName}
-                        className="w-11 h-11 rounded-full object-cover border border-[#ddd4f5] dark:border-[#362c5e]"
+                        className="w-11 h-11 rounded-xl object-cover border border-white/10 ring-1 ring-white/10"
                       />
                       {conv.online && (
-                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#1e1938]" />
+                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#08090D]" />
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#241b3d] dark:text-[#f4f0ff] truncate">
+                        <span className="text-xs font-bold text-white truncate">
                           {conv.participantName}
                         </span>
-                        <span className="text-[10px] text-[#7a719c] dark:text-[#a99ed4] shrink-0">
+                        <span className="text-[10px] text-white/40 shrink-0">
                           {conv.lastMessageTime}
                         </span>
                       </div>
 
                       {/* Session Type & State Pills */}
-                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                          conv.sessionType === "direct"
-                            ? "bg-[#ede8fb] dark:bg-[#282147] text-[#7d6ce8] dark:text-[#ac98f2]"
-                            : "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400"
-                        }`}>
-                          {conv.sessionType === "direct" ? "Direct swap" : "Credit escrow (10c)"}
+                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                        <span
+                          className={`text-[9px] font-bold px-2 py-0.5 rounded-md border ${
+                            conv.sessionType === "direct"
+                              ? "bg-cyan-500/10 text-cyan-300 border-cyan-500/20"
+                              : "bg-amber-500/10 text-amber-300 border-amber-500/20"
+                          }`}
+                        >
+                          {conv.sessionType === "direct"
+                            ? "Direct Swap"
+                            : "Escrow (10c)"}
                         </span>
-                        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
-                          conv.sessionState === "active"
-                            ? "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400"
-                            : conv.sessionState === "requested"
-                            ? "bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300"
-                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-                        }`}>
+                        <span
+                          className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md ${
+                            conv.sessionState === "active"
+                              ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                              : conv.sessionState === "requested"
+                              ? "bg-violet-500/10 text-violet-300 border border-violet-500/20"
+                              : "bg-white/5 text-white/50 border border-white/10"
+                          }`}
+                        >
                           {conv.sessionState}
                         </span>
                       </div>
 
-                      <p className="text-xs text-[#7a719c] dark:text-[#a99ed4] truncate mt-1">
+                      <p className="text-xs text-white/50 truncate mt-1.5">
                         {conv.lastMessage}
                       </p>
                     </div>
@@ -324,25 +340,26 @@ function MessagesContent() {
                 );
               })
             ) : (
-              <div className="p-8 text-center text-xs text-[#7a719c] dark:text-[#a99ed4]">
+              <div className="p-8 text-center text-xs text-white/40">
                 No conversations found.
               </div>
             )}
           </div>
         </div>
 
-        {/* RIGHT: CHAT LOG & COMPOSER */}
+        {/* ── RIGHT: CHAT LOG & COMPOSER ── */}
         <div
-          className={`flex-1 flex flex-col bg-white dark:bg-[#1e1938] ${
+          className={`flex-1 flex flex-col bg-transparent ${
             mobileView === "list" ? "hidden md:flex" : "flex"
           }`}
         >
           {/* Active Chat Header */}
-          <div className="p-4 border-b border-[#ddd4f5] dark:border-[#362c5e] flex items-center justify-between">
+          <div className="p-4 border-b border-white/8 flex items-center justify-between bg-white/[0.02]">
             <div className="flex items-center gap-3">
               <button
+                type="button"
                 onClick={() => setMobileView("list")}
-                className="md:hidden p-1.5 rounded-full text-[#7a719c] hover:bg-[#ede8fb]"
+                className="md:hidden p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
@@ -351,22 +368,25 @@ function MessagesContent() {
                 <img
                   src={activeConversation.participantAvatar}
                   alt={activeConversation.participantName}
-                  className="w-10 h-10 rounded-full object-cover border border-[#ddd4f5] dark:border-[#362c5e]"
+                  className="w-10 h-10 rounded-xl object-cover border border-white/10"
                 />
                 {activeConversation.online && (
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#08090D]" />
                 )}
               </div>
 
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="text-sm font-bold text-[#241b3d] dark:text-[#f4f0ff]">
+                  <h3 className="text-sm font-bold text-white">
                     {activeConversation.participantName}
                   </h3>
                   <VerifiedBadge size="sm" showLabel={false} />
                 </div>
-                <p className="text-[11px] text-[#7a719c] dark:text-[#a99ed4]">
-                  {activeConversation.participantRole} · {activeConversation.sessionType === "direct" ? "Direct swap" : "10 Credits Escrow"}
+                <p className="text-[11px] text-white/45">
+                  {activeConversation.participantRole} ·{" "}
+                  {activeConversation.sessionType === "direct"
+                    ? "Direct Swap"
+                    : "10 Credits Escrow"}
                 </p>
               </div>
             </div>
@@ -376,9 +396,9 @@ function MessagesContent() {
               <button
                 type="button"
                 onClick={() => setShowSchedulerModal(true)}
-                className="px-3.5 py-1.5 rounded-full bg-[#ede8fb] dark:bg-[#282147] hover:bg-[#ddd4f5] text-[#7d6ce8] dark:text-[#ac98f2] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                className="px-3.5 py-1.5 rounded-xl glass hover:bg-white/10 text-white/80 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border-white/10"
               >
-                <Calendar className="w-3.5 h-3.5" />
+                <Calendar className="w-3.5 h-3.5 text-violet-400" />
                 <span className="hidden sm:inline">Schedule 1 Hour</span>
               </button>
 
@@ -386,31 +406,38 @@ function MessagesContent() {
                 <button
                   type="button"
                   onClick={handleMarkComplete}
-                  className="px-3.5 py-1.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1"
+                  className="px-3.5 py-1.5 rounded-xl text-white text-xs font-bold transition-all shadow-md flex items-center gap-1 cursor-pointer"
+                  style={{
+                    background: "linear-gradient(135deg, #10B981 0%, #06B6D4 100%)",
+                  }}
                 >
                   <Check className="w-3.5 h-3.5" />
-                  <span>Mark complete</span>
+                  <span>Mark Complete</span>
                 </button>
               )}
             </div>
           </div>
 
           {/* Session Type Reminder Banner */}
-          <div className="px-4 py-2 bg-[#f5f2fc] dark:bg-[#130f26] border-b border-[#ddd4f5] dark:border-[#362c5e] text-xs flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[#7a719c] dark:text-[#a99ed4]">
+          <div className="px-4 py-2.5 bg-white/[0.015] border-b border-white/6 text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2 text-white/60">
               {activeConversation.sessionType === "direct" ? (
                 <>
-                  <Repeat className="w-3.5 h-3.5 text-[#7d6ce8]" />
-                  <span><strong>Direct swap:</strong> two people teach each other; no credits move.</span>
+                  <Repeat className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>
+                    <strong className="text-white">Direct Swap:</strong> Two peers teach each other; no credits move.
+                  </span>
                 </>
               ) : (
                 <>
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#f5a524]" />
-                  <span><strong>Credit escrow:</strong> 10 credits locked until session is marked complete.</span>
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                  <span>
+                    <strong className="text-white">Credit Escrow:</strong> 10 credits held safely until session completion.
+                  </span>
                 </>
               )}
             </div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#7d6ce8] dark:text-[#ac98f2]">
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/[0.04] text-white/60 border border-white/8">
               State: {activeConversation.sessionState}
             </span>
           </div>
@@ -425,15 +452,23 @@ function MessagesContent() {
                   className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed shadow-sm ${
+                    className={`max-w-[80%] rounded-2xl px-4.5 py-3 text-xs sm:text-sm leading-relaxed shadow-lg ${
                       isMe
-                        ? "bg-[#7d6ce8] text-white rounded-br-none"
-                        : "bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-[#241b3d] dark:text-[#f4f0ff] rounded-bl-none"
+                        ? "text-white rounded-br-sm"
+                        : "glass-subtle text-white/90 rounded-bl-sm border-white/10"
                     }`}
+                    style={
+                      isMe
+                        ? {
+                            background:
+                              "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                          }
+                        : undefined
+                    }
                   >
                     <p>{msg.text}</p>
                   </div>
-                  <span className="text-[10px] text-[#7a719c] dark:text-[#a99ed4] mt-1 px-1">
+                  <span className="text-[10px] text-white/35 mt-1 px-1">
                     {msg.timestamp}
                   </span>
                 </div>
@@ -445,19 +480,22 @@ function MessagesContent() {
           {/* Message Composer */}
           <form
             onSubmit={handleSend}
-            className="p-3 sm:p-4 border-t border-[#ddd4f5] dark:border-[#362c5e] flex items-center gap-2 bg-white dark:bg-[#1e1938]"
+            className="p-3 sm:p-4 border-t border-white/8 flex items-center gap-2 bg-white/[0.02]"
           >
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder={`Message ${activeConversation.participantName}...`}
-              className="flex-1 px-4 py-3 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs sm:text-sm text-[#241b3d] dark:text-[#f4f0ff] placeholder-[#7a719c] focus:outline-none focus:ring-2 focus:ring-[#7d6ce8]/40"
+              className="flex-1 px-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 text-xs sm:text-sm text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all"
             />
             <button
               type="submit"
               disabled={!inputText.trim()}
-              className="p-3 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] disabled:opacity-40 text-white transition-all shadow-sm shrink-0"
+              className="p-3 rounded-2xl text-white transition-all shadow-lg shrink-0 cursor-pointer disabled:opacity-40"
+              style={{
+                background: "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+              }}
               aria-label="Send message"
             >
               <Send className="w-4 h-4" />
@@ -467,106 +505,119 @@ function MessagesContent() {
       </div>
 
       {/* SCHEDULE SESSION MODAL */}
-      {showSchedulerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] shadow-2xl p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-[#ddd4f5] dark:border-[#362c5e]">
-              <div className="flex items-center gap-2">
-                <CalendarPlus className="w-5 h-5 text-[#7d6ce8]" />
-                <h3 className="text-base font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
-                  Schedule 1-Hour Session
-                </h3>
-              </div>
-              <button
-                onClick={() => setShowSchedulerModal(false)}
-                className="text-[#7a719c] hover:text-[#241b3d] dark:hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              <div className="p-3 rounded-2xl bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-[#7d6ce8] dark:text-[#ac98f2] flex items-center gap-2 font-semibold">
-                <CoinIcon size={14} />
-                <span>Standard 1-Hour Session · 10 Credits or Direct Swap</span>
-              </div>
-
-              <div>
-                <label className="block text-[#7a719c] dark:text-[#a99ed4] font-medium mb-1">
-                  Topic / Goal
-                </label>
-                <input
-                  type="text"
-                  value={sessionTopic}
-                  onChange={(e) => setSessionTopic(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#241b3d] dark:text-[#f4f0ff]"
-                />
+      <AnimatePresence>
+        {showSchedulerModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md rounded-3xl glass-elevated border-white/15 shadow-2xl p-6 space-y-5"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-violet-500/20 flex items-center justify-center">
+                    <CalendarPlus className="w-4 h-4 text-violet-400" />
+                  </div>
+                  <h3 className="text-base font-extrabold text-white">
+                    Schedule 1-Hour Session
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSchedulerModal(false)}
+                  className="text-white/40 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[#7a719c] dark:text-[#a99ed4] font-medium mb-1">
-                    Day
-                  </label>
-                  <select
-                    value={scheduledDate}
-                    onChange={(e) => setScheduledDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#241b3d] dark:text-[#f4f0ff]"
-                  >
-                    <option value="Today">Today</option>
-                    <option value="Tomorrow">Tomorrow</option>
-                    <option value="Saturday">Saturday</option>
-                    <option value="Sunday">Sunday</option>
-                  </select>
+              <div className="space-y-4 text-xs">
+                <div className="p-3.5 rounded-xl glass border-cyan-500/20 text-cyan-200 flex items-center gap-2 font-semibold">
+                  <CoinIcon size={14} />
+                  <span>Standard 1-Hour Session · 10 Credits or Direct Swap</span>
                 </div>
 
                 <div>
-                  <label className="block text-[#7a719c] dark:text-[#a99ed4] font-medium mb-1">
-                    Time Slot (1 Hour)
+                  <label className="block text-white/60 font-medium mb-1.5">
+                    Topic / Exchange Goal
                   </label>
-                  <select
-                    value={scheduledTime}
-                    onChange={(e) => setScheduledTime(e.target.value)}
-                    className="w-full px-3 py-2 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#241b3d] dark:text-[#f4f0ff]"
-                  >
-                    <option value="10:00 AM – 11:00 AM">10:00 AM – 11:00 AM</option>
-                    <option value="2:00 PM – 3:00 PM">2:00 PM – 3:00 PM</option>
-                    <option value="6:00 PM – 7:00 PM">6:00 PM – 7:00 PM</option>
-                    <option value="8:00 PM – 9:00 PM">8:00 PM – 9:00 PM</option>
-                  </select>
+                  <input
+                    type="text"
+                    value={sessionTopic}
+                    onChange={(e) => setSessionTopic(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white focus:outline-none focus:border-violet-500/50"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-white/60 font-medium mb-1.5">
+                      Day
+                    </label>
+                    <select
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white focus:outline-none focus:border-violet-500/50 [&>option]:bg-[#0d0f17] [&>option]:text-white"
+                    >
+                      <option value="Today">Today</option>
+                      <option value="Tomorrow">Tomorrow</option>
+                      <option value="Saturday">Saturday</option>
+                      <option value="Sunday">Sunday</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-white/60 font-medium mb-1.5">
+                      Time Slot (1 Hour)
+                    </label>
+                    <select
+                      value={scheduledTime}
+                      onChange={(e) => setScheduledTime(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white focus:outline-none focus:border-violet-500/50 [&>option]:bg-[#0d0f17] [&>option]:text-white"
+                    >
+                      <option value="10:00 AM – 11:00 AM">10:00 AM – 11:00 AM</option>
+                      <option value="2:00 PM – 3:00 PM">2:00 PM – 3:00 PM</option>
+                      <option value="6:00 PM – 7:00 PM">6:00 PM – 7:00 PM</option>
+                      <option value="8:00 PM – 9:00 PM">8:00 PM – 9:00 PM</option>
+                    </select>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowSchedulerModal(false)}
-                className="px-4 py-2 rounded-full text-xs font-semibold text-[#7a719c] hover:bg-[#ede8fb]"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmSchedule}
-                disabled={schedulingLoading}
-                className="px-5 py-2.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs font-bold transition-all shadow-sm"
-              >
-                {schedulingLoading ? "Scheduling..." : "Confirm 1-Hour Session"}
-              </button>
-            </div>
+              <div className="flex items-center justify-end gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSchedulerModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-white/50 hover:text-white glass hover:bg-white/10 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmSchedule}
+                  disabled={schedulingLoading}
+                  className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-lg cursor-pointer hover:opacity-95"
+                  style={{
+                    background: "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                  }}
+                >
+                  {schedulingLoading ? "Scheduling..." : "Confirm 1-Hour Session"}
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </main>
   );
 }
 
 export default function MessagesPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#f5f2fc] dark:bg-[#130f26] text-[#241b3d] dark:text-[#f4f0ff] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col ambient-bg text-white pb-20 lg:pb-0">
       <Navbar />
-      <Suspense fallback={<div className="p-12 text-center">Loading messages...</div>}>
+      <Suspense fallback={<div className="p-12 text-center text-white/40">Loading messages...</div>}>
         <MessagesContent />
       </Suspense>
     </div>
