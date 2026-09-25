@@ -86,18 +86,32 @@ function LoginForm() {
         localStorage.removeItem("skillswap_saved_email");
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // 8-second timeout protection so login never spins indefinitely
+      const authPromise = supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
 
+      const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                "Authentication timed out. Please check your internet connection and try again."
+              )
+            ),
+          8000
+        )
+      );
+
+      const { data, error } = await Promise.race([authPromise, timeoutPromise]);
+
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
-          setErrorMsg("Invalid email or password. If testing, you can use the One-Click Demo Login below.");
+          setErrorMsg("Invalid email or password. Please check your credentials or create a new account.");
         } else {
           setErrorMsg(error.message);
         }
-        setLoading(false);
         return;
       }
 
@@ -108,6 +122,7 @@ function LoginForm() {
       router.push(redirectTarget);
     } catch (err: any) {
       setErrorMsg(err.message || "An unexpected error occurred. Please try again.");
+    } finally {
       setLoading(false);
     }
   };

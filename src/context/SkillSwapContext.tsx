@@ -509,59 +509,75 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
 
   // Sync Supabase Auth & Profile
   const refreshUserProfile = useCallback(async () => {
-    setIsLoadingAuth(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      // 3.5s timeout protection to prevent hanging if Supabase network is slow
+      const sessionPromise = supabase.auth.getSession();
+      const timeoutPromise = new Promise<{ data: { session: null } }>((resolve) =>
+        setTimeout(() => resolve({ data: { session: null } }), 3500)
+      );
+
+      const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
+
       if (session?.user) {
         setIsAuthenticated(true);
         if (typeof window !== "undefined") {
           document.cookie = "skillswap_session=true; path=/; max-age=2592000; SameSite=Lax";
         }
         const userMeta = session.user.user_metadata || {};
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .maybeSingle();
 
-        if (profile) {
-          const profileBalance = profile.credits_balance ?? profile.credits ?? 100;
-          setCurrentUser((prev) => ({
-            ...prev,
-            id: profile.id,
-            name: profile.full_name || userMeta.full_name || session.user.user_metadata?.full_name || "User",
-            email: profile.email || session.user.email || "",
-            credits: profileBalance,
-            bio: profile.bio || prev.bio,
-            avatar: profile.avatar_url || userMeta.avatar_url || userMeta.avatar || prev.avatar,
-            location: userMeta.location ?? prev.location,
-            referralSource: profile.referral_source ?? prev.referralSource,
-            rolePreference: profile.role_preference ?? prev.rolePreference,
-            credentialsUrl: profile.credentials_url ?? prev.credentialsUrl,
-            isVerified: profile.is_verified ?? prev.isVerified,
-            currentActivity: userMeta.current_activity ?? prev.currentActivity,
-            school: userMeta.school ?? prev.school,
-            degree: userMeta.degree ?? prev.degree,
-            graduationYear: userMeta.graduation_year ?? prev.graduationYear,
-            gender: userMeta.gender ?? prev.gender,
-            credentials: userMeta.credentials ?? prev.credentials,
-          }));
-          setCredits(profileBalance);
-        } else {
-          setCurrentUser((prev) => ({
-            ...prev,
-            id: session.user.id,
-            name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
-            email: session.user.email || "",
-            avatar: userMeta.avatar_url || userMeta.avatar || prev.avatar,
-            location: userMeta.location ?? prev.location,
-            currentActivity: userMeta.current_activity ?? prev.currentActivity,
-            school: userMeta.school ?? prev.school,
-            degree: userMeta.degree ?? prev.degree,
-            graduationYear: userMeta.graduation_year ?? prev.graduationYear,
-            gender: userMeta.gender ?? prev.gender,
-            credentials: userMeta.credentials ?? prev.credentials,
-          }));
+        // Fetch profile with 3s timeout
+        try {
+          const profilePromise = supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", session.user.id)
+            .maybeSingle();
+          const profileTimeout = new Promise<{ data: null }>((resolve) =>
+            setTimeout(() => resolve({ data: null }), 3000)
+          );
+          const { data: profile } = await Promise.race([profilePromise, profileTimeout]);
+
+          if (profile) {
+            const profileBalance = profile.credits_balance ?? profile.credits ?? 100;
+            setCurrentUser((prev) => ({
+              ...prev,
+              id: profile.id,
+              name: profile.full_name || userMeta.full_name || session.user.user_metadata?.full_name || "User",
+              email: profile.email || session.user.email || "",
+              credits: profileBalance,
+              bio: profile.bio || prev.bio,
+              avatar: profile.avatar_url || userMeta.avatar_url || userMeta.avatar || prev.avatar,
+              location: userMeta.location ?? prev.location,
+              referralSource: profile.referral_source ?? prev.referralSource,
+              rolePreference: profile.role_preference ?? prev.rolePreference,
+              credentialsUrl: profile.credentials_url ?? prev.credentialsUrl,
+              isVerified: profile.is_verified ?? prev.isVerified,
+              currentActivity: userMeta.current_activity ?? prev.currentActivity,
+              school: userMeta.school ?? prev.school,
+              degree: userMeta.degree ?? prev.degree,
+              graduationYear: userMeta.graduation_year ?? prev.graduationYear,
+              gender: userMeta.gender ?? prev.gender,
+              credentials: userMeta.credentials ?? prev.credentials,
+            }));
+            setCredits(profileBalance);
+          } else {
+            setCurrentUser((prev) => ({
+              ...prev,
+              id: session.user.id,
+              name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
+              email: session.user.email || "",
+              avatar: userMeta.avatar_url || userMeta.avatar || prev.avatar,
+              location: userMeta.location ?? prev.location,
+              currentActivity: userMeta.current_activity ?? prev.currentActivity,
+              school: userMeta.school ?? prev.school,
+              degree: userMeta.degree ?? prev.degree,
+              graduationYear: userMeta.graduation_year ?? prev.graduationYear,
+              gender: userMeta.gender ?? prev.gender,
+              credentials: userMeta.credentials ?? prev.credentials,
+            }));
+          }
+        } catch {
+          // If profile fetch fails, fallback to session metadata
         }
       } else {
         // No active Supabase session -> check local storage
@@ -598,7 +614,7 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     refreshUserProfile();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event: any, session: any) => {
       if (session?.user) {
         setIsAuthenticated(true);
         await refreshUserProfile();
@@ -608,7 +624,7 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
     return () => {
       authListener?.subscription?.unsubscribe();
     };
-  }, [refreshUserProfile, supabase]);
+  }, []);
 
   // Load from localStorage on mount
   useEffect(() => {

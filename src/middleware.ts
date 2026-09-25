@@ -1,77 +1,65 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://nzctpjbsilflawpdicqr.supabase.co";
+
+const SUPABASE_ANON_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56Y3RwamJzaWxmbGF3cGRpY3FyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2Mzg5ODYsImV4cCI6MjEwNTIxNDk4Nn0.g2TSKAgXx7qdkZybse6YWLPLQ5aUwnaZX4olLNHwLI4";
+
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  const { pathname } = request.nextUrl;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+  const isAuthRoute =
+    pathname.startsWith("/login") || pathname.startsWith("/signup");
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const isProtectedRoute =
+    pathname === "/" ||
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/matches") ||
+    pathname.startsWith("/session") ||
+    pathname.startsWith("/credits") ||
+    pathname.startsWith("/discover") ||
+    pathname.startsWith("/skills") ||
+    pathname.startsWith("/messages") ||
+    pathname.startsWith("/settings") ||
+    pathname.startsWith("/teach") ||
+    pathname.startsWith("/learn") ||
+    pathname.startsWith("/onboarding");
 
+  // Fast-path cookie check: zero network latency
   const hasSessionCookie =
     request.cookies.get("skillswap_session")?.value === "true" ||
     request.cookies.getAll().some((c) => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"));
 
-  const isAuthenticated = !!user || hasSessionCookie;
-
-  const isProtectedRoute = 
-    request.nextUrl.pathname === '/' ||
-    request.nextUrl.pathname.startsWith('/dashboard') ||
-    request.nextUrl.pathname.startsWith('/matches') ||
-    request.nextUrl.pathname.startsWith('/session') ||
-    request.nextUrl.pathname.startsWith('/credits') ||
-    request.nextUrl.pathname.startsWith('/discover') ||
-    request.nextUrl.pathname.startsWith('/skills') ||
-    request.nextUrl.pathname.startsWith('/messages') ||
-    request.nextUrl.pathname.startsWith('/settings') ||
-    request.nextUrl.pathname.startsWith('/teach') ||
-    request.nextUrl.pathname.startsWith('/learn');
-
-  const isAuthRoute = 
-    request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/signup');
-
-  // New unauthenticated users must see the login page first
-  if (isProtectedRoute && !isAuthenticated) {
+  // 1. Unauthenticated users trying to access protected routes -> redirect immediately to /login (0ms)
+  if (isProtectedRoute && !hasSessionCookie) {
     const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    if (request.nextUrl.pathname !== '/') {
-      url.searchParams.set('redirect', request.nextUrl.pathname);
+    url.pathname = "/login";
+    if (pathname !== "/") {
+      url.searchParams.set("redirect", pathname);
     }
     return NextResponse.redirect(url);
   }
 
-  // Existing authenticated users face the homepage ('/')
-  if (isAuthRoute && isAuthenticated) {
+  // 2. Unauthenticated users visiting auth routes (/login, /signup) -> render immediately with 0ms network latency
+  if (isAuthRoute && !hasSessionCookie) {
+    return NextResponse.next();
+  }
+
+  // 3. Already authenticated users trying to access /login or /signup -> redirect to homepage
+  if (isAuthRoute && hasSessionCookie) {
     const url = request.nextUrl.clone();
-    url.pathname = '/';
+    url.pathname = "/";
     return NextResponse.redirect(url);
   }
+
+  // 4. Authenticated request on protected route: pass along cookies
+  let supabaseResponse = NextResponse.next({
+    request,
+  });
 
   return supabaseResponse;
 }
