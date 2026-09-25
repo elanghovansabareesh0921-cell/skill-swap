@@ -9,21 +9,13 @@ import CoinIcon from "@/components/common/CoinIcon";
 import {
   Bell,
   Sparkles,
-  Compass,
-  MessageSquare,
-  Users,
   User,
   LogOut,
   CreditCard,
-  CheckCircle2,
-  Calendar,
-  Layers,
   ChevronDown,
-  Home,
   Menu,
   X,
   Settings,
-  ArrowRight,
 } from "lucide-react";
 
 export default function Navbar({ onOpenBuyCredits }: { onOpenBuyCredits?: () => void }) {
@@ -76,7 +68,7 @@ export default function Navbar({ onOpenBuyCredits }: { onOpenBuyCredits?: () => 
   return (
     <>
       {/* Desktop & Mobile Top Bar */}
-      <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-[#1e1938]/95 backdrop-blur-md border-b border-[#ddd4f5] dark:border-[#362c5e] transition-colors duration-200">
+      <header className="sticky top-0 z-40 w-full bg-[#0B0C10] border-b-2 border-black transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Left: Skill Swap Logo & Rule Pill */}
           <div className="flex items-center gap-4 lg:gap-6">
@@ -84,32 +76,32 @@ export default function Navbar({ onOpenBuyCredits }: { onOpenBuyCredits?: () => 
               href="/"
               className="flex items-center gap-2.5 group focus:outline-none"
             >
-              <div className="w-9 h-9 rounded-2xl bg-[#7d6ce8] flex items-center justify-center text-white font-extrabold text-base shadow-sm group-hover:bg-[#6c5bd6] transition-all">
-                <span className="tracking-tight">S</span>
+              <div className="w-9 h-9 border-2 border-black bg-[#FFE600] flex items-center justify-center text-black font-black text-lg shadow-[2px_2px_0px_0px_#000000] group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:shadow-none transition-all">
+                <span>S</span>
               </div>
-              <span className="text-xl font-extrabold tracking-tight text-[#241b3d] dark:text-[#f4f0ff] group-hover:text-[#7d6ce8] dark:group-hover:text-[#ac98f2] transition-colors">
+              <span className="text-xl font-black uppercase tracking-tight text-white group-hover:text-[#FFE600] transition-colors">
                 SkillSwap
               </span>
             </Link>
 
             {/* Economic Rule Eyebrow Pill */}
-            <div className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-semibold text-[#7d6ce8] dark:text-[#ac98f2]">
-              <CoinIcon size={12} />
+            <div className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1 border-2 border-black bg-[#181B22] text-xs font-black uppercase text-[#FFE600] shadow-[2px_2px_0px_0px_#FFE600]">
+              <CoinIcon size={14} />
               <span>1 Hour = 10 Credits</span>
             </div>
 
-            {/* Center: Desktop Navigation Links (Pill-shaped) */}
-            <nav className="hidden md:flex items-center space-x-1 ml-2">
+            {/* Center: Desktop Navigation Links */}
+            <nav className="hidden md:flex items-center space-x-1.5 ml-2">
               {navLinks.map((link) => {
                 const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
                 return (
                   <Link
                     key={link.name}
                     href={link.href}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                    className={`px-3.5 py-1.5 text-xs font-black uppercase tracking-wider transition-all ${
                       isActive
-                        ? "text-[#7d6ce8] dark:text-[#ac98f2] bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e]"
-                        : "text-[#7a719c] dark:text-[#a99ed4] hover:text-[#241b3d] dark:hover:text-[#f4f0ff] hover:bg-[#ede8fb]/50 dark:hover:bg-[#282147]/50"
+                        ? "border-2 border-black bg-[#FFE600] text-black shadow-[2px_2px_0px_0px_#000000]"
+                        : "text-zinc-300 hover:text-white border-2 border-transparent hover:border-black hover:bg-[#181B22] hover:shadow-[2px_2px_0px_0px_#FFE600]"
                     }`}
                   >
                     {link.name}
@@ -121,20 +113,20 @@ export default function Navbar({ onOpenBuyCredits }: { onOpenBuyCredits?: () => 
 
           {/* Right: Actions */}
           <div className="flex items-center gap-2.5 sm:gap-3">
-            {/* Credit Balance Pill */}
+            {/* Credit Balance Box */}
             <button
               onClick={() => {
                 if (onOpenBuyCredits) onOpenBuyCredits();
                 else router.push("/credits");
               }}
               title="Click to view wallet"
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-[#241b3d] dark:text-[#f4f0ff] hover:border-[#7d6ce8] transition-all text-xs font-bold cursor-pointer group"
+              className="flex items-center gap-2 px-3 py-1.5 border-2 border-black bg-[#181B22] hover:bg-[#1F2430] text-white shadow-[3px_3px_0px_0px_#FFE600] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-xs font-black cursor-pointer group"
             >
               <CoinIcon size={16} />
-              <span className="font-mono tracking-tight text-[#f5a524]">
+              <span className="font-mono font-black tracking-tight text-[#FFE600]">
                 {credits}
               </span>
-              <span className="hidden sm:inline font-semibold text-[#7a719c] dark:text-[#a99ed4]">
+              <span className="hidden sm:inline font-black uppercase text-zinc-300">
                 Credits
               </span>
             </button>
@@ -150,21 +142,21 @@ export default function Navbar({ onOpenBuyCredits }: { onOpenBuyCredits?: () => 
                   setShowProfileMenu(false);
                 }}
                 aria-label="Notifications"
-                className="relative p-2 rounded-full text-[#7a719c] dark:text-[#a99ed4] hover:text-[#241b3d] dark:hover:text-[#f4f0ff] hover:bg-[#ede8fb] dark:hover:bg-[#282147] transition-colors"
+                className="relative p-2 border-2 border-black bg-[#181B22] text-zinc-200 hover:text-white shadow-[2px_2px_0px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
               >
-                <Bell className="w-5 h-5" />
+                <Bell className="w-4 h-4" />
                 {unreadNotifsCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#7d6ce8] ring-2 ring-white dark:ring-[#1e1938] animate-pulse" />
+                  <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#FF5E7E] border border-black animate-pulse" />
                 )}
               </button>
 
               {/* Notification Popover Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-[#1e1938] rounded-3xl border border-[#ddd4f5] dark:border-[#362c5e] shadow-xl py-3 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-4 pb-2.5 border-b border-[#ddd4f5] dark:border-[#362c5e] flex items-center justify-between">
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-[#181B22] border-2 border-black shadow-[6px_6px_0px_0px_#FFE600] py-3 z-50">
+                  <div className="px-4 pb-2.5 border-b-2 border-black flex items-center justify-between">
                     <div>
-                      <h3 className="text-sm font-bold text-[#241b3d] dark:text-[#f4f0ff]">Notifications</h3>
-                      <p className="text-xs text-[#7a719c] dark:text-[#a99ed4]">
+                      <h3 className="text-xs font-black uppercase tracking-wider text-white">Notifications</h3>
+                      <p className="text-[11px] text-zinc-400">
                         {unreadNotifsCount > 0
                           ? `${unreadNotifsCount} unread update${unreadNotifsCount > 1 ? "s" : ""}`
                           : "You're all caught up"}
@@ -173,34 +165,34 @@ export default function Navbar({ onOpenBuyCredits }: { onOpenBuyCredits?: () => 
                     {unreadNotifsCount > 0 && (
                       <button
                         onClick={markNotificationsAsRead}
-                        className="text-xs font-semibold text-[#7d6ce8] dark:text-[#ac98f2] hover:underline"
+                        className="text-[10px] font-black uppercase text-[#FFE600] hover:underline"
                       >
-                        Mark all as read
+                        Mark all read
                       </button>
                     )}
                   </div>
 
-                  <div className="max-h-72 overflow-y-auto divide-y divide-[#ddd4f5]/60 dark:divide-[#362c5e]/60">
+                  <div className="max-h-72 overflow-y-auto divide-y-2 divide-black">
                     {notifications.length > 0 ? (
                       notifications.map((notif) => (
                         <div
                           key={notif.id}
-                          className={`p-3.5 hover:bg-[#ede8fb]/30 dark:hover:bg-[#282147]/40 transition-colors flex items-start gap-3 ${
-                            !notif.read ? "bg-[#ede8fb]/20 dark:bg-[#282147]/20" : ""
+                          className={`p-3.5 hover:bg-[#1F2430] transition-colors flex items-start gap-3 ${
+                            !notif.read ? "bg-[#12141C]" : ""
                           }`}
                         >
-                          <div className="mt-0.5 p-1.5 rounded-full bg-[#ede8fb] dark:bg-[#282147] text-[#7d6ce8] dark:text-[#ac98f2]">
+                          <div className="mt-0.5 p-1.5 border border-black bg-[#FFE600] text-black">
                             <Sparkles className="w-3.5 h-3.5" />
                           </div>
                           <div className="flex-1 text-xs">
-                            <p className="font-semibold text-[#241b3d] dark:text-[#f4f0ff]">{notif.title}</p>
-                            <p className="text-[#7a719c] dark:text-[#a99ed4] mt-0.5">{notif.message}</p>
-                            <span className="text-[10px] text-[#7a719c] mt-1 block">{notif.time}</span>
+                            <p className="font-black text-white">{notif.title}</p>
+                            <p className="text-zinc-300 mt-0.5">{notif.message}</p>
+                            <span className="text-[10px] text-zinc-500 font-mono mt-1 block">{notif.time}</span>
                           </div>
                         </div>
                       ))
                     ) : (
-                      <div className="p-6 text-center text-xs text-[#7a719c] dark:text-[#a99ed4]">
+                      <div className="p-6 text-center text-xs text-zinc-400 font-mono uppercase">
                         No notifications yet.
                       </div>
                     )}
@@ -217,24 +209,24 @@ export default function Navbar({ onOpenBuyCredits }: { onOpenBuyCredits?: () => 
                     setShowProfileMenu(!showProfileMenu);
                     setShowNotifications(false);
                   }}
-                  className="flex items-center gap-2 p-1 rounded-full hover:ring-2 hover:ring-[#7d6ce8]/30 transition-all focus:outline-none"
+                  className="flex items-center gap-1.5 p-1 border-2 border-black bg-[#181B22] shadow-[2px_2px_0px_0px_#38BDF8] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all focus:outline-none cursor-pointer"
                 >
                   <img
                     src={currentUser?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"}
                     alt={currentUser?.name || "User"}
-                    className="w-8 h-8 rounded-full object-cover border border-[#ddd4f5] dark:border-[#362c5e]"
+                    className="w-7 h-7 object-cover border border-black"
                   />
-                  <ChevronDown className="w-3.5 h-3.5 text-[#7a719c] dark:text-[#a99ed4] hidden sm:block" />
+                  <ChevronDown className="w-3.5 h-3.5 text-zinc-400 hidden sm:block" />
                 </button>
 
                 {/* Profile Dropdown */}
                 {showProfileMenu && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#1e1938] rounded-3xl border border-[#ddd4f5] dark:border-[#362c5e] shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="px-4 py-2 border-b border-[#ddd4f5] dark:border-[#362c5e]">
-                      <p className="text-sm font-bold text-[#241b3d] dark:text-[#f4f0ff] truncate">
+                  <div className="absolute right-0 mt-2 w-56 bg-[#181B22] border-2 border-black shadow-[6px_6px_0px_0px_#38BDF8] py-2 z-50">
+                    <div className="px-4 py-2 border-b-2 border-black">
+                      <p className="text-xs font-black uppercase text-white truncate">
                         {currentUser?.name}
                       </p>
-                      <p className="text-xs text-[#7a719c] dark:text-[#a99ed4] truncate">
+                      <p className="text-[11px] text-zinc-400 font-mono truncate">
                         {currentUser?.email}
                       </p>
                     </div>
@@ -243,33 +235,33 @@ export default function Navbar({ onOpenBuyCredits }: { onOpenBuyCredits?: () => 
                       <Link
                         href="/profile"
                         onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-[#241b3d] dark:text-[#f4f0ff] hover:bg-[#ede8fb] dark:hover:bg-[#282147] transition-colors"
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-black uppercase text-zinc-200 hover:text-black hover:bg-[#FFE600] transition-colors"
                       >
-                        <User className="w-4 h-4 text-[#7d6ce8]" />
+                        <User className="w-4 h-4" />
                         <span>My Profile</span>
                       </Link>
                       <Link
                         href="/credits"
                         onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-[#241b3d] dark:text-[#f4f0ff] hover:bg-[#ede8fb] dark:hover:bg-[#282147] transition-colors"
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-black uppercase text-zinc-200 hover:text-black hover:bg-[#FFE600] transition-colors"
                       >
-                        <CreditCard className="w-4 h-4 text-[#f5a524]" />
+                        <CreditCard className="w-4 h-4" />
                         <span>Credits & Wallet</span>
                       </Link>
                       <Link
                         href="/settings"
                         onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-[#241b3d] dark:text-[#f4f0ff] hover:bg-[#ede8fb] dark:hover:bg-[#282147] transition-colors"
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-black uppercase text-zinc-200 hover:text-black hover:bg-[#FFE600] transition-colors"
                       >
-                        <Settings className="w-4 h-4 text-[#7a719c]" />
+                        <Settings className="w-4 h-4" />
                         <span>Settings</span>
                       </Link>
                     </div>
 
-                    <div className="pt-1 border-t border-[#ddd4f5] dark:border-[#362c5e]">
+                    <div className="pt-1 border-t-2 border-black">
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
+                        className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-black uppercase text-[#FF5E7E] hover:bg-[#FF5E7E] hover:text-black transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>Log out</span>
@@ -282,13 +274,13 @@ export default function Navbar({ onOpenBuyCredits }: { onOpenBuyCredits?: () => 
               <div className="flex items-center gap-2">
                 <Link
                   href="/login"
-                  className="px-4 py-1.5 rounded-full text-xs font-semibold text-[#241b3d] dark:text-[#f4f0ff] hover:bg-[#ede8fb] dark:hover:bg-[#282147] transition-colors"
+                  className="px-3.5 py-1.5 border-2 border-black bg-[#181B22] text-white text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
                 >
                   Log in
                 </Link>
                 <Link
                   href="/signup"
-                  className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white transition-all shadow-sm"
+                  className="px-4 py-1.5 border-2 border-black bg-[#FFE600] hover:bg-[#FACC15] text-black text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
                 >
                   Get started
                 </Link>
@@ -298,7 +290,7 @@ export default function Navbar({ onOpenBuyCredits }: { onOpenBuyCredits?: () => 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-full text-[#7a719c] dark:text-[#a99ed4] hover:bg-[#ede8fb] dark:hover:bg-[#282147]"
+              className="md:hidden p-2 border-2 border-black bg-[#181B22] text-zinc-200 hover:text-white"
               aria-label="Toggle mobile menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -308,9 +300,9 @@ export default function Navbar({ onOpenBuyCredits }: { onOpenBuyCredits?: () => 
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-[#ddd4f5] dark:border-[#362c5e] bg-white dark:bg-[#1e1938] px-4 pt-3 pb-5 space-y-2">
-            <div className="pb-2 border-b border-[#ddd4f5] dark:border-[#362c5e]">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ede8fb] dark:bg-[#282147] text-xs font-semibold text-[#7d6ce8] dark:text-[#ac98f2]">
+          <div className="md:hidden border-t-2 border-black bg-[#181B22] px-4 pt-3 pb-5 space-y-2">
+            <div className="pb-2 border-b-2 border-black">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 border-2 border-black bg-[#0B0C10] text-xs font-black uppercase text-[#FFE600]">
                 <CoinIcon size={12} />
                 <span>1 Hour = 10 Credits</span>
               </div>
@@ -322,10 +314,10 @@ export default function Navbar({ onOpenBuyCredits }: { onOpenBuyCredits?: () => 
                   key={link.name}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-2.5 rounded-full text-sm font-semibold transition-colors ${
+                  className={`block px-4 py-2 border-2 border-black text-xs font-black uppercase tracking-wider transition-colors ${
                     isActive
-                      ? "bg-[#ede8fb] dark:bg-[#282147] text-[#7d6ce8] dark:text-[#ac98f2]"
-                      : "text-[#241b3d] dark:text-[#f4f0ff] hover:bg-[#ede8fb]/50 dark:hover:bg-[#282147]/50"
+                      ? "bg-[#FFE600] text-black shadow-[3px_3px_0px_0px_#000000]"
+                      : "bg-[#0B0C10] text-white hover:bg-[#1F2430]"
                   }`}
                 >
                   {link.name}

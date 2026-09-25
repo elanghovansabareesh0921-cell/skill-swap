@@ -13,13 +13,9 @@ import { createClient } from "@/lib/supabase";
 import { MatchResult } from "@/lib/ai/compatibility";
 import {
   Users,
-  Sparkles,
   Repeat,
   Search,
-  ShieldCheck,
-  Calendar,
   Compass,
-  ArrowRight,
   Zap,
   CheckCircle2,
 } from "lucide-react";
@@ -171,21 +167,21 @@ export default function MatchesPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f5f2fc] dark:bg-[#130f26] text-[#241b3d] dark:text-[#f4f0ff] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#0B0C10] text-white cyber-grid transition-colors duration-200">
       <Navbar />
 
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-8">
         {/* Header & Subhead */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-semibold text-[#7d6ce8] dark:text-[#ac98f2] mb-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 border-2 border-black bg-[#181B22] text-xs font-black uppercase text-[#FFE600] shadow-[2px_2px_0px_0px_#FFE600] mb-2">
               <Repeat className="w-3.5 h-3.5" />
               <span>Reciprocal Matching · 1 Hour = 10 Credits</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#241b3d] dark:text-[#f4f0ff]">
+            <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white">
               Matches
             </h1>
-            <p className="text-xs sm:text-sm text-[#7a719c] dark:text-[#a99ed4] mt-1">
+            <p className="text-xs sm:text-sm text-zinc-400 font-medium mt-1">
               People who teach what you want to learn, and want what you can teach.
             </p>
           </div>
@@ -193,23 +189,23 @@ export default function MatchesPage() {
           <button
             type="button"
             onClick={() => setIsScanning(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#ede8fb] dark:bg-[#282147] hover:bg-[#ddd4f5] dark:hover:bg-[#362c5e] text-[#7d6ce8] dark:text-[#ac98f2] border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-bold transition-all self-start sm:self-auto"
+            className="inline-flex items-center gap-2 px-5 py-2.5 border-2 border-black bg-[#FFE600] hover:bg-[#FACC15] text-black text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all self-start sm:self-auto cursor-pointer"
           >
-            <Compass className="w-4 h-4 text-[#7d6ce8]" />
+            <Compass className="w-4 h-4 text-black stroke-[2.5]" />
             <span>AI Radar Search</span>
           </button>
         </div>
 
         {/* NOTIFICATION TOAST */}
         {scanNotification && (
-          <div className="p-4 rounded-2xl bg-[#ede8fb] dark:bg-[#282147] border border-[#7d6ce8]/40 text-[#7d6ce8] dark:text-[#ac98f2] text-xs sm:text-sm font-semibold flex items-center justify-between shadow-sm animate-in fade-in">
+          <div className="p-4 border-2 border-black bg-[#A3E635] text-black text-xs sm:text-sm font-black uppercase flex items-center justify-between shadow-[4px_4px_0px_0px_#000000] animate-in fade-in">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-[#7d6ce8]" />
+              <CheckCircle2 className="w-4 h-4 shrink-0 stroke-[3]" />
               <span>{scanNotification}</span>
             </div>
             <button
               onClick={() => setScanNotification(null)}
-              className="text-xs underline font-bold ml-4"
+              className="text-xs underline font-black uppercase ml-4 cursor-pointer"
             >
               Dismiss
             </button>
@@ -218,23 +214,23 @@ export default function MatchesPage() {
 
         {/* SEARCH BAR */}
         <div className="relative">
-          <Search className="w-5 h-5 text-[#7a719c] dark:text-[#a99ed4] absolute left-4 top-1/2 -translate-y-1/2" />
+          <Search className="w-5 h-5 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter matches by name or skill..."
-            className="w-full pl-12 pr-4 py-3.5 rounded-full bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] text-sm text-[#241b3d] dark:text-[#f4f0ff] placeholder-[#7a719c] dark:placeholder-[#a99ed4] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7d6ce8]/40"
+            className="w-full pl-12 pr-4 py-3.5 border-2 border-black bg-[#12141C] text-sm text-white placeholder-zinc-500 font-medium shadow-[4px_4px_0px_0px_#000000] focus:outline-none focus:border-[#FFE600] focus:shadow-[4px_4px_0px_0px_#FFE600] transition-all"
           />
         </div>
 
         {/* MATCHES LIST */}
         {filteredMatches.length > 0 ? (
-          <div className="space-y-5">
+          <div className="space-y-6">
             {filteredMatches.map((match) => (
               <div
                 key={match.matchUserId}
-                className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 sm:p-7 space-y-5 hover:border-[#7d6ce8] transition-all"
+                className="border-2 border-black bg-[#181B22] p-6 sm:p-7 space-y-5 shadow-[6px_6px_0px_0px_#38BDF8] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
               >
                 {/* Header: User Info & Compatibility Badge */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -242,53 +238,53 @@ export default function MatchesPage() {
                     <img
                       src={match.avatarUrl}
                       alt={match.fullName}
-                      className="w-14 h-14 rounded-full object-cover border border-[#ddd4f5] dark:border-[#362c5e]"
+                      className="w-14 h-14 object-cover border-2 border-black shadow-[2px_2px_0px_0px_#000000]"
                     />
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <Link
                           href={`/profile/${match.matchUserId}`}
-                          className="text-base font-extrabold text-[#241b3d] dark:text-[#f4f0ff] hover:text-[#7d6ce8] transition-colors"
+                          className="text-base font-black uppercase text-white hover:text-[#FFE600] transition-colors"
                         >
                           {match.fullName}
                         </Link>
                         <VerifiedBadge size="sm" showLabel />
                       </div>
-                      <p className="text-xs text-[#7a719c] dark:text-[#a99ed4] mt-0.5">
+                      <p className="text-xs text-zinc-400 font-mono mt-0.5">
                         Active Skill Trader · Reciprocal Match
                       </p>
                     </div>
                   </div>
 
                   {/* Compatibility Score */}
-                  <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-[#7d6ce8] dark:text-[#ac98f2] text-xs font-bold self-start sm:self-auto">
+                  <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 border-2 border-black bg-[#FFE600] text-black text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000000] self-start sm:self-auto font-mono">
                     <Zap className="w-3.5 h-3.5 fill-current" />
                     <span>{match.overallScore}% Synergy</span>
                   </div>
                 </div>
 
                 {/* Reciprocal Skills Matrix */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-2xl bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 border-2 border-black bg-[#12141C] text-xs font-mono">
                   <div>
-                    <span className="text-[#7a719c] dark:text-[#a99ed4] block text-[11px] font-medium">Teaches (what you want to learn)</span>
-                    <strong className="text-[#241b3d] dark:text-[#f4f0ff] text-sm block mt-0.5">{match.offeredSkill}</strong>
+                    <span className="text-zinc-400 block text-[10px] font-black uppercase tracking-wider">Teaches (you want to learn)</span>
+                    <strong className="text-white text-xs sm:text-sm font-black block mt-0.5">{match.offeredSkill}</strong>
                   </div>
-                  <div className="pt-2 md:pt-0 md:pl-3 border-t md:border-t-0 md:border-l border-[#ddd4f5]/60 dark:border-[#362c5e]/60">
-                    <span className="text-[#7a719c] dark:text-[#a99ed4] block text-[11px] font-medium">Wants (what you can teach)</span>
-                    <strong className="text-[#7d6ce8] dark:text-[#ac98f2] text-sm block mt-0.5">{match.requestedSkill}</strong>
+                  <div className="pt-2 md:pt-0 md:pl-3 border-t-2 md:border-t-0 md:border-l-2 border-black">
+                    <span className="text-zinc-400 block text-[10px] font-black uppercase tracking-wider">Wants (you can teach)</span>
+                    <strong className="text-[#38BDF8] text-xs sm:text-sm font-black block mt-0.5">{match.requestedSkill}</strong>
                   </div>
                 </div>
 
                 {/* AI Explanation / Highlights */}
-                <div className="p-3.5 rounded-2xl bg-[#ede8fb]/40 dark:bg-[#282147]/40 border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#7a719c] dark:text-[#a99ed4] leading-relaxed">
-                  <p className="italic text-[#241b3d] dark:text-[#f4f0ff]">
+                <div className="p-3.5 border-2 border-black bg-[#12141C] text-xs text-zinc-300 font-mono leading-relaxed shadow-[2px_2px_0px_0px_#000000]">
+                  <p className="italic text-white">
                     &ldquo;{match.aiExplanation}&rdquo;
                   </p>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {match.synergyHighlights.map((hl, idx) => (
                       <span
                         key={idx}
-                        className="px-2.5 py-0.5 rounded-full bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] text-[10px] font-semibold text-[#7d6ce8] dark:text-[#ac98f2]"
+                        className="px-2.5 py-0.5 border border-black bg-[#181B22] text-[10px] font-black uppercase text-[#FFE600]"
                       >
                         {hl}
                       </span>
@@ -301,16 +297,16 @@ export default function MatchesPage() {
                   <button
                     type="button"
                     onClick={() => handleStartDirectSwap(match)}
-                    className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"
+                    className="w-full sm:w-auto px-6 py-2.5 border-2 border-black bg-[#FFE600] hover:bg-[#FACC15] text-black text-xs font-black uppercase tracking-wider transition-all shadow-[3px_3px_0px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <Repeat className="w-3.5 h-3.5" />
+                    <Repeat className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>Start direct swap</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handlePayCredits(match)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-white dark:bg-[#1e1938] hover:bg-[#ede8fb]/60 dark:hover:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-[#241b3d] dark:text-[#f4f0ff] text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                    className="w-full sm:w-auto px-5 py-2.5 border-2 border-black bg-[#12141C] hover:bg-[#1F2430] text-white text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_#38BDF8] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <CoinIcon size={14} />
                     <span>Pay 10 credits instead</span>
@@ -320,18 +316,18 @@ export default function MatchesPage() {
             ))}
           </div>
         ) : (
-          <div className="p-12 text-center rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] space-y-3">
-            <Users className="w-10 h-10 text-[#7a719c] mx-auto opacity-70" />
-            <h3 className="text-base font-bold text-[#241b3d] dark:text-[#f4f0ff]">
+          <div className="p-12 text-center border-2 border-black bg-[#181B22] shadow-[6px_6px_0px_0px_#FFE600] space-y-3">
+            <Users className="w-10 h-10 text-zinc-500 mx-auto" />
+            <h3 className="text-base font-black uppercase text-white">
               No matches found
             </h3>
-            <p className="text-xs text-[#7a719c] dark:text-[#a99ed4] max-w-sm mx-auto">
+            <p className="text-xs text-zinc-400 max-w-sm mx-auto font-medium">
               Add more skills you can teach and want to learn to unlock reciprocal peer matches.
             </p>
             <div className="pt-2">
               <Link
                 href="/skills"
-                className="px-5 py-2 rounded-full bg-[#7d6ce8] text-white text-xs font-bold inline-block"
+                className="px-5 py-2 border-2 border-black bg-[#FFE600] text-black text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000000] inline-block"
               >
                 Update my skills
               </Link>

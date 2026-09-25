@@ -8,8 +8,8 @@ interface CoinIconProps {
 }
 
 /**
- * Standardized SkillSwap Credits Coin Icon
- * Uses the exact gold color #f5a524 strictly for credit representation.
+ * Standardized SkillSwap Credits Coin Icon — Dark Neo-Brutalist Edition
+ * High-contrast Electric Yellow with solid black border & bold glyph.
  */
 export default function CoinIcon({ className = "", size = 18 }: CoinIconProps) {
   return (
@@ -22,12 +22,11 @@ export default function CoinIcon({ className = "", size = 18 }: CoinIconProps) {
       className={`inline-block shrink-0 ${className}`}
       aria-label="SkillSwap Credits"
     >
-      <circle cx="12" cy="12" r="10" fill="#f5a524" />
-      <circle cx="12" cy="12" r="8" stroke="#ffffff" strokeOpacity="0.4" strokeWidth="1.5" />
+      <circle cx="12" cy="12" r="10" fill="#FFE600" stroke="#000000" strokeWidth="2" />
       <path
-        d="M12 7V17M9 9.5C9 8.67 9.8 8 11.5 8H12.5C13.88 8 15 9.12 15 10.5C15 11.88 13.88 13 12.5 13H11.5C10.12 13 9 14.12 9 15.5C9 16.88 10.12 18 11.5 18H12.5C14.2 18 15 17.33 15 16.5"
-        stroke="#ffffff"
-        strokeWidth="1.75"
+        d="M12 6.5V17.5M8.5 9.5C8.5 8.4 9.6 7.5 11.5 7.5H12.5C14.2 7.5 15.5 8.8 15.5 10.5C15.5 12 14.2 13 12.5 13H11.5C9.8 13 8.5 14.2 8.5 15.5C8.5 17 9.8 18 11.5 18H12.5C14.4 18 15.5 17.1 15.5 16"
+        stroke="#000000"
+        strokeWidth="2.4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />

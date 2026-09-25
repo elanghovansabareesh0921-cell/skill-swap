@@ -13,14 +13,7 @@ import {
   Sparkles,
   Repeat,
   ShieldCheck,
-  CheckCircle,
-  Compass,
   Star,
-  Users,
-  Lock,
-  Flame,
-  Award,
-  BookOpen,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -35,8 +28,8 @@ export default function HomePage() {
 
   if (isLoadingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f2fc] dark:bg-[#130f26]">
-        <div className="w-8 h-8 rounded-full border-2 border-[#7d6ce8] border-t-transparent animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0B0C10]">
+        <div className="w-10 h-10 border-4 border-black border-t-[#FFE600] animate-spin" />
       </div>
     );
   }
@@ -44,6 +37,7 @@ export default function HomePage() {
   if (!isAuthenticated) {
     return null;
   }
+
   const featuredMentors = [
     {
       id: "arun-kumar",
@@ -78,39 +72,42 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f5f2fc] dark:bg-[#130f26] text-[#241b3d] dark:text-[#f4f0ff] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#0B0C10] text-white cyber-grid transition-colors duration-200">
       <Navbar />
 
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full space-y-16">
         {/* HERO SECTION */}
         <section className="text-center max-w-3xl mx-auto space-y-6 pt-6 sm:pt-10">
           {/* Eyebrow Pill */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-semibold text-[#7d6ce8] dark:text-[#ac98f2] shadow-sm">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 border-2 border-black bg-[#181B22] text-xs font-black uppercase text-[#FFE600] shadow-[3px_3px_0px_0px_#FFE600]">
             <CoinIcon size={14} />
             <span>Global Skill Exchange · 1 Hour = 10 Credits</span>
           </div>
 
-          {/* Big Bold Headline in Sentence Case */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#241b3d] dark:text-[#f4f0ff] leading-[1.12]">
-            Learn anything. Teach what you love.
+          {/* Big Bold Headline in Uppercase / Chunky weight */}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tight text-white leading-[1.08]">
+            Learn anything. <br />
+            <span className="text-[#FFE600] bg-black px-2 py-0.5 border-2 border-[#FFE600] inline-block mt-1">
+              Teach what you love.
+            </span>
           </h1>
 
           {/* Subhead */}
-          <p className="text-base sm:text-lg text-[#7a719c] dark:text-[#a99ed4] leading-relaxed max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-zinc-300 leading-relaxed max-w-2xl mx-auto font-medium">
             A platform where people exchange skills instead of money. Real-time matching, no fees, no gatekeeping — just people teaching people.
           </p>
 
-          {/* Two CTAs (Pill-shaped buttons) */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          {/* Two CTAs (Tactile Neo-Brutalist Buttons) */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <Link
               href="/discover"
-              className="w-full sm:w-auto px-7 py-3 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] text-center"
+              className="w-full sm:w-auto px-8 py-3.5 border-2 border-black bg-[#FFE600] text-black font-black uppercase text-sm shadow-[4px_4px_0px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-center tracking-wider"
             >
               Get started
             </Link>
             <a
               href="#features"
-              className="w-full sm:w-auto px-6 py-3 rounded-full bg-white dark:bg-[#1e1938] hover:bg-[#ede8fb]/60 dark:hover:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-[#241b3d] dark:text-[#f4f0ff] font-semibold text-sm transition-colors text-center"
+              className="w-full sm:w-auto px-7 py-3.5 border-2 border-black bg-[#181B22] hover:bg-[#1F2430] text-white font-black uppercase text-sm shadow-[4px_4px_0px_0px_#38BDF8] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-center tracking-wider"
             >
               Explore features
             </a>
@@ -121,14 +118,14 @@ export default function HomePage() {
         <section className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#7d6ce8]" />
-              <h2 className="text-sm font-bold uppercase tracking-wider text-[#7a719c] dark:text-[#a99ed4]">
+              <span className="w-3 h-3 border border-black bg-[#FFE600]" />
+              <h2 className="text-xs font-black uppercase tracking-widest text-zinc-300">
                 Your Skill Exchange Activity
               </h2>
             </div>
             <Link
               href="/credits"
-              className="text-xs font-semibold text-[#7d6ce8] dark:text-[#ac98f2] hover:underline flex items-center gap-1"
+              className="text-xs font-black uppercase text-[#FFE600] hover:underline flex items-center gap-1.5"
             >
               <span>View wallet</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -150,64 +147,64 @@ export default function HomePage() {
         {/* SECTION: TWO SESSION TYPES VISUALLY DISTINGUISHED */}
         <section id="features" className="space-y-6 pt-4">
           <div className="text-center max-w-xl mx-auto space-y-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#7d6ce8] dark:text-[#ac98f2]">
+            <span className="text-xs font-black uppercase tracking-widest text-[#38BDF8]">
               Two Flexible Ways to Trade
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+            <h2 className="text-2xl sm:text-3xl font-black uppercase text-white tracking-tight">
               How skill exchange works
             </h2>
-            <p className="text-xs sm:text-sm text-[#7a719c] dark:text-[#a99ed4]">
+            <p className="text-xs sm:text-sm text-zinc-400">
               Trade directly peer-to-peer or spend earned credits with full escrow protection.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Model A: Direct Swap */}
-            <div className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-7 space-y-4 transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-[#ede8fb] dark:bg-[#282147] text-[#7d6ce8] dark:text-[#ac98f2] flex items-center justify-center">
-                <Repeat className="w-6 h-6" />
+            <div className="border-2 border-black bg-[#181B22] p-7 space-y-4 shadow-[6px_6px_0px_0px_#38BDF8] transition-all">
+              <div className="w-12 h-12 border-2 border-black bg-[#38BDF8] text-black flex items-center justify-center shadow-[2px_2px_0px_0px_#000000]">
+                <Repeat className="w-6 h-6 stroke-[2.5]" />
               </div>
 
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#7d6ce8] dark:text-[#ac98f2]">
+                <span className="text-xs font-black uppercase tracking-wider text-[#38BDF8]">
                   Mutual Exchange
                 </span>
-                <h3 className="text-xl font-extrabold text-[#241b3d] dark:text-[#f4f0ff] mt-1">
+                <h3 className="text-xl font-black uppercase text-white mt-1">
                   Direct swap
                 </h3>
               </div>
 
-              <p className="text-sm text-[#7a719c] dark:text-[#a99ed4] leading-relaxed">
+              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
                 Two people teach each other. You teach what you know for an hour, and they teach you their craft in return. No credits move.
               </p>
 
-              <div className="pt-2 flex items-center gap-2 text-xs font-semibold text-[#7d6ce8] dark:text-[#ac98f2]">
-                <span className="w-2 h-2 rounded-full bg-[#7d6ce8]" />
+              <div className="pt-2 flex items-center gap-2 text-xs font-black uppercase text-[#38BDF8]">
+                <span className="w-2 h-2 border border-black bg-[#38BDF8]" />
                 <span>Zero credits required · Pure peer exchange</span>
               </div>
             </div>
 
             {/* Model B: Credit Escrow */}
-            <div className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-7 space-y-4 transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-[#ede8fb] dark:bg-[#282147] text-[#f5a524] flex items-center justify-center">
-                <ShieldCheck className="w-6 h-6" />
+            <div className="border-2 border-black bg-[#181B22] p-7 space-y-4 shadow-[6px_6px_0px_0px_#FFE600] transition-all">
+              <div className="w-12 h-12 border-2 border-black bg-[#FFE600] text-black flex items-center justify-center shadow-[2px_2px_0px_0px_#000000]">
+                <ShieldCheck className="w-6 h-6 stroke-[2.5]" />
               </div>
 
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#f5a524]">
+                <span className="text-xs font-black uppercase tracking-wider text-[#FFE600]">
                   Escrow Protected
                 </span>
-                <h3 className="text-xl font-extrabold text-[#241b3d] dark:text-[#f4f0ff] mt-1">
+                <h3 className="text-xl font-black uppercase text-white mt-1">
                   Credit escrow
                 </h3>
               </div>
 
-              <p className="text-sm text-[#7a719c] dark:text-[#a99ed4] leading-relaxed">
+              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
                 A learner spends 10 credits to book 1 hour. Credits are locked in escrow until the session is marked complete, then released to the teacher.
               </p>
 
-              <div className="pt-2 flex items-center gap-2 text-xs font-semibold text-[#f5a524]">
-                <span className="w-2 h-2 rounded-full bg-[#f5a524]" />
+              <div className="pt-2 flex items-center gap-2 text-xs font-black uppercase text-[#FFE600]">
+                <span className="w-2 h-2 border border-black bg-[#FFE600]" />
                 <span>1 Hour = 10 Credits · Released upon completion</span>
               </div>
             </div>
@@ -218,16 +215,16 @@ export default function HomePage() {
         <section className="space-y-6 pt-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-2xl font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+              <h2 className="text-2xl font-black uppercase tracking-tight text-white">
                 Featured skill traders
               </h2>
-              <p className="text-xs sm:text-sm text-[#7a719c] dark:text-[#a99ed4] mt-0.5">
+              <p className="text-xs sm:text-sm text-zinc-400 mt-0.5">
                 Connect with community members ready for direct swaps or credit sessions.
               </p>
             </div>
             <Link
               href="/discover"
-              className="text-xs font-bold text-[#7d6ce8] dark:text-[#ac98f2] hover:underline flex items-center gap-1 self-start sm:self-auto"
+              className="text-xs font-black uppercase text-[#FFE600] hover:underline flex items-center gap-1.5 self-start sm:self-auto"
             >
               <span>Explore all peers</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -238,7 +235,7 @@ export default function HomePage() {
             {featuredMentors.map((mentor) => (
               <div
                 key={mentor.id}
-                className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 space-y-4 hover:border-[#7d6ce8] transition-all flex flex-col justify-between"
+                className="border-2 border-black bg-[#181B22] p-6 space-y-4 shadow-[5px_5px_0px_0px_#000000] hover:shadow-[5px_5px_0px_0px_#FFE600] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all flex flex-col justify-between"
               >
                 <div className="space-y-3.5">
                   {/* Header */}
@@ -246,32 +243,32 @@ export default function HomePage() {
                     <img
                       src={mentor.avatar}
                       alt={mentor.name}
-                      className="w-12 h-12 rounded-full object-cover border border-[#ddd4f5] dark:border-[#362c5e]"
+                      className="w-12 h-12 object-cover border-2 border-black shadow-[2px_2px_0px_0px_#000000]"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-sm font-bold text-[#241b3d] dark:text-[#f4f0ff] truncate">
+                        <span className="text-sm font-black uppercase text-white truncate">
                           {mentor.name}
                         </span>
                         {mentor.verified && <VerifiedBadge size="sm" showLabel={false} />}
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-[#7a719c] dark:text-[#a99ed4]">
-                        <Star className="w-3.5 h-3.5 text-[#f5a524] fill-current" />
-                        <span className="font-semibold text-[#241b3d] dark:text-[#f4f0ff]">{mentor.rating}</span>
-                        <span>· {mentor.sessionsCompleted} sessions</span>
+                      <div className="flex items-center gap-1 text-xs text-zinc-400">
+                        <Star className="w-3.5 h-3.5 text-[#FFE600] fill-current" />
+                        <span className="font-mono font-black text-white">{mentor.rating}</span>
+                        <span className="font-mono">· {mentor.sessionsCompleted} sessions</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Skills Rows */}
-                  <div className="p-3 rounded-2xl bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] space-y-1.5 text-xs">
+                  <div className="p-3 border-2 border-black bg-[#12141C] space-y-1.5 text-xs font-mono">
                     <div>
-                      <span className="text-[#7a719c] dark:text-[#a99ed4]">Teaches: </span>
-                      <strong className="text-[#241b3d] dark:text-[#f4f0ff]">{mentor.teaches}</strong>
+                      <span className="text-zinc-400 uppercase font-sans font-bold">Teaches: </span>
+                      <strong className="text-white font-black">{mentor.teaches}</strong>
                     </div>
                     <div>
-                      <span className="text-[#7a719c] dark:text-[#a99ed4]">Wants: </span>
-                      <strong className="text-[#7d6ce8] dark:text-[#ac98f2]">{mentor.wants}</strong>
+                      <span className="text-zinc-400 uppercase font-sans font-bold">Wants: </span>
+                      <strong className="text-[#38BDF8] font-black">{mentor.wants}</strong>
                     </div>
                   </div>
                 </div>
@@ -280,13 +277,13 @@ export default function HomePage() {
                 <div className="space-y-2 pt-1">
                   <Link
                     href={`/messages?partnerId=${mentor.id}&partnerName=${encodeURIComponent(mentor.name)}`}
-                    className="w-full py-2.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs font-bold text-center block transition-all"
+                    className="w-full py-2.5 border-2 border-black bg-[#FFE600] text-black text-xs font-black uppercase tracking-wider text-center block shadow-[3px_3px_0px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
                   >
                     Request swap
                   </Link>
                   <Link
                     href="/credits"
-                    className="w-full py-2 rounded-full bg-white dark:bg-[#1e1938] hover:bg-[#ede8fb]/60 dark:hover:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-[#241b3d] dark:text-[#f4f0ff] text-xs font-semibold text-center flex items-center justify-center gap-1.5 transition-colors"
+                    className="w-full py-2 border-2 border-black bg-[#12141C] hover:bg-[#1F2430] text-white text-xs font-black uppercase tracking-wider text-center flex items-center justify-center gap-1.5 shadow-[3px_3px_0px_0px_#38BDF8] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
                   >
                     <CoinIcon size={14} />
                     <span>Learn for 10 credits</span>

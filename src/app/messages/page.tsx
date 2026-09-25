@@ -11,19 +11,12 @@ import {
   Search,
   Send,
   ArrowLeft,
-  Check,
-  CheckCheck,
-  Video,
-  Sparkles,
-  MessageSquare,
   ShieldCheck,
   CalendarPlus,
-  Clock,
   Calendar,
   X,
   Repeat,
-  ArrowRight,
-  ExternalLink,
+  Check,
 } from "lucide-react";
 
 interface PeerConversation extends ChatConversation {
@@ -143,17 +136,12 @@ function MessagesContent() {
     },
   ];
 
-  const filteredConversations = enhancedConversations.filter((c) =>
-    c.participantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.participantRole.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
 
     const newMsg: MessageItem = {
-      id: `m-${Date.now()}`,
+      id: `msg-${Date.now()}`,
       senderId: currentUser.id,
       senderName: currentUser.name,
       text: inputText.trim(),
@@ -166,99 +154,87 @@ function MessagesContent() {
       [activeConvId]: [...(prev[activeConvId] || activeMessages), newMsg],
     }));
 
-    sendMessage(activeConversation.participantId, inputText.trim());
+    sendMessage(activeConvId, inputText.trim());
     setInputText("");
   };
 
   const handleConfirmSchedule = () => {
     setSchedulingLoading(true);
     setTimeout(() => {
-      const roomToken = `room-${Date.now()}`;
-      const start = new Date(Date.now() + 86400000).toISOString();
-      const end = new Date(Date.now() + 86400000 + 3600000).toISOString();
-
-      scheduleSessionRoom({
-        chatRoomId: activeConvId,
-        scheduledStart: start,
-        scheduledEnd: end,
-        skillName: sessionTopic,
-        peerName: activeConversation.participantName,
-      });
-
-      const schedMsg: MessageItem = {
-        id: `m-${Date.now()}`,
+      const confirmationMsg: MessageItem = {
+        id: `msg-sched-${Date.now()}`,
         senderId: currentUser.id,
         senderName: currentUser.name,
-        text: `📅 Scheduled a 1-Hour Session for ${scheduledDate} (${scheduledTime}). Join classroom: /learn/${roomToken}`,
+        text: `📅 Scheduled 1-Hour Session: "${sessionTopic}" on ${scheduledDate} at ${scheduledTime}. (1 Hour = 10 Credits or Direct Swap).`,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         read: true,
       };
 
       setChatMessages((prev) => ({
         ...prev,
-        [activeConvId]: [...(prev[activeConvId] || activeMessages), schedMsg],
+        [activeConvId]: [...(prev[activeConvId] || activeMessages), confirmationMsg],
       }));
+
+      scheduleSessionRoom({
+        chatRoomId: activeConvId,
+        skillName: sessionTopic,
+        peerName: activeConversation.participantName,
+        scheduledStart: `${scheduledDate} at ${scheduledTime}`,
+        scheduledEnd: `${scheduledDate} at ${scheduledTime}`,
+      });
 
       setSchedulingLoading(false);
       setShowSchedulerModal(false);
-      showToast("1-Hour session scheduled! Link shared in chat.", "success");
-    }, 600);
+      showToast("Session Scheduled! 📅", `Confirmed 1-hour session on ${scheduledDate}.`, "success");
+    }, 700);
   };
 
   const handleMarkComplete = () => {
-    const compMsg: MessageItem = {
-      id: `m-${Date.now()}`,
-      senderId: currentUser.id,
-      senderName: currentUser.name,
-      text: "✅ Session marked complete! Escrow credits released to the teacher.",
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      read: true,
-    };
-
-    setChatMessages((prev) => ({
-      ...prev,
-      [activeConvId]: [...(prev[activeConvId] || activeMessages), compMsg],
-    }));
-
-    showToast("Session complete: 10 credits released!", "success");
+    showToast("Session marked complete! 🎉", "Escrow credits released to the teacher.", "success");
   };
 
+  const filteredConversations = enhancedConversations.filter(
+    (c) =>
+      c.participantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.participantRole.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex flex-col h-[calc(100vh-80px)]">
-      <div className="flex-1 rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] shadow-sm overflow-hidden flex flex-col md:flex-row">
-        {/* LEFT: THREAD LIST */}
+    <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex flex-col h-[calc(100vh-4rem)]">
+      {/* Container Box */}
+      <div className="flex-1 border-2 border-black bg-[#181B22] shadow-[6px_6px_0px_0px_#FFE600] flex overflow-hidden">
+        {/* LEFT: CONVERSATION LIST */}
         <div
-          className={`w-full md:w-80 lg:w-96 border-r border-[#ddd4f5] dark:border-[#362c5e] flex flex-col bg-[#f5f2fc]/50 dark:bg-[#130f26]/50 ${
+          className={`w-full md:w-80 lg:w-96 border-r-2 border-black flex flex-col bg-[#181B22] ${
             mobileView === "chat" ? "hidden md:flex" : "flex"
           }`}
         >
-          {/* Header */}
-          <div className="p-4 border-b border-[#ddd4f5] dark:border-[#362c5e] space-y-3">
+          {/* Header & Search */}
+          <div className="p-4 border-b-2 border-black space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+              <h2 className="text-base font-black uppercase text-white tracking-wider">
                 Messages
               </h2>
-              <div className="inline-flex items-center gap-1 text-[11px] font-bold text-[#7d6ce8] dark:text-[#ac98f2] bg-[#ede8fb] dark:bg-[#282147] px-2.5 py-0.5 rounded-full">
-                <CoinIcon size={12} />
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 border border-black bg-[#12141C] text-[10px] font-black uppercase text-[#FFE600]">
+                <CoinIcon size={10} />
                 <span>1h = 10c</span>
               </div>
             </div>
 
-            {/* Search Input */}
             <div className="relative">
-              <Search className="w-4 h-4 text-[#7a719c] dark:text-[#a99ed4] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search conversations..."
-                className="w-full pl-9 pr-3 py-2 rounded-full bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#241b3d] dark:text-[#f4f0ff] placeholder-[#7a719c] focus:outline-none focus:ring-2 focus:ring-[#7d6ce8]/40"
+                className="w-full pl-9 pr-3 py-2 border-2 border-black bg-[#12141C] text-xs text-white placeholder-zinc-500 font-medium focus:outline-none focus:border-[#FFE600] focus:shadow-[2px_2px_0px_0px_#FFE600]"
               />
             </div>
           </div>
 
           {/* Conversation Items */}
-          <div className="flex-1 overflow-y-auto divide-y divide-[#ddd4f5]/60 dark:divide-[#362c5e]/60">
+          <div className="flex-1 overflow-y-auto divide-y-2 divide-black">
             {filteredConversations.length > 0 ? (
               filteredConversations.map((conv) => {
                 const isActive = conv.id === activeConvId;
@@ -271,52 +247,52 @@ function MessagesContent() {
                     }}
                     className={`p-4 cursor-pointer transition-colors flex items-start gap-3 ${
                       isActive
-                        ? "bg-[#ede8fb] dark:bg-[#282147] border-l-4 border-l-[#7d6ce8]"
-                        : "hover:bg-white dark:hover:bg-[#1e1938]"
+                        ? "bg-[#FFE600] text-black border-l-4 border-l-black"
+                        : "hover:bg-[#1F2430] text-white"
                     }`}
                   >
                     <div className="relative shrink-0">
                       <img
                         src={conv.participantAvatar}
                         alt={conv.participantName}
-                        className="w-11 h-11 rounded-full object-cover border border-[#ddd4f5] dark:border-[#362c5e]"
+                        className="w-11 h-11 object-cover border-2 border-black shadow-[2px_2px_0px_0px_#000000]"
                       />
                       {conv.online && (
-                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#1e1938]" />
+                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#A3E635] border border-black" />
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#241b3d] dark:text-[#f4f0ff] truncate">
+                        <span className={`text-xs font-black uppercase truncate ${isActive ? "text-black" : "text-white"}`}>
                           {conv.participantName}
                         </span>
-                        <span className="text-[10px] text-[#7a719c] dark:text-[#a99ed4] shrink-0">
+                        <span className={`text-[10px] font-mono shrink-0 ${isActive ? "text-black font-bold" : "text-zinc-400"}`}>
                           {conv.lastMessageTime}
                         </span>
                       </div>
 
                       {/* Session Type & State Pills */}
                       <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                        <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 border border-black ${
                           conv.sessionType === "direct"
-                            ? "bg-[#ede8fb] dark:bg-[#282147] text-[#7d6ce8] dark:text-[#ac98f2]"
-                            : "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400"
+                            ? isActive ? "bg-black text-[#38BDF8]" : "bg-[#38BDF8] text-black"
+                            : isActive ? "bg-black text-[#FFE600]" : "bg-[#FFE600] text-black"
                         }`}>
                           {conv.sessionType === "direct" ? "Direct swap" : "Credit escrow (10c)"}
                         </span>
-                        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
+                        <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 border border-black ${
                           conv.sessionState === "active"
-                            ? "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400"
+                            ? "bg-[#A3E635] text-black"
                             : conv.sessionState === "requested"
-                            ? "bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300"
-                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                            ? "bg-[#FFE600] text-black"
+                            : "bg-zinc-800 text-zinc-300"
                         }`}>
                           {conv.sessionState}
                         </span>
                       </div>
 
-                      <p className="text-xs text-[#7a719c] dark:text-[#a99ed4] truncate mt-1">
+                      <p className={`text-xs truncate mt-1 ${isActive ? "text-black font-medium" : "text-zinc-300 font-normal"}`}>
                         {conv.lastMessage}
                       </p>
                     </div>
@@ -324,7 +300,7 @@ function MessagesContent() {
                 );
               })
             ) : (
-              <div className="p-8 text-center text-xs text-[#7a719c] dark:text-[#a99ed4]">
+              <div className="p-8 text-center text-xs text-zinc-400 font-mono uppercase">
                 No conversations found.
               </div>
             )}
@@ -333,16 +309,16 @@ function MessagesContent() {
 
         {/* RIGHT: CHAT LOG & COMPOSER */}
         <div
-          className={`flex-1 flex flex-col bg-white dark:bg-[#1e1938] ${
+          className={`flex-1 flex flex-col bg-[#12141C] ${
             mobileView === "list" ? "hidden md:flex" : "flex"
           }`}
         >
           {/* Active Chat Header */}
-          <div className="p-4 border-b border-[#ddd4f5] dark:border-[#362c5e] flex items-center justify-between">
+          <div className="p-4 border-b-2 border-black flex items-center justify-between bg-[#181B22]">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setMobileView("list")}
-                className="md:hidden p-1.5 rounded-full text-[#7a719c] hover:bg-[#ede8fb]"
+                className="md:hidden p-1.5 border border-black bg-[#12141C] text-white"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
@@ -351,21 +327,21 @@ function MessagesContent() {
                 <img
                   src={activeConversation.participantAvatar}
                   alt={activeConversation.participantName}
-                  className="w-10 h-10 rounded-full object-cover border border-[#ddd4f5] dark:border-[#362c5e]"
+                  className="w-10 h-10 object-cover border-2 border-black shadow-[2px_2px_0px_0px_#000000]"
                 />
                 {activeConversation.online && (
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#A3E635] border border-black" />
                 )}
               </div>
 
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="text-sm font-bold text-[#241b3d] dark:text-[#f4f0ff]">
+                  <h3 className="text-sm font-black uppercase text-white">
                     {activeConversation.participantName}
                   </h3>
                   <VerifiedBadge size="sm" showLabel={false} />
                 </div>
-                <p className="text-[11px] text-[#7a719c] dark:text-[#a99ed4]">
+                <p className="text-[11px] text-zinc-400 font-mono">
                   {activeConversation.participantRole} · {activeConversation.sessionType === "direct" ? "Direct swap" : "10 Credits Escrow"}
                 </p>
               </div>
@@ -376,7 +352,7 @@ function MessagesContent() {
               <button
                 type="button"
                 onClick={() => setShowSchedulerModal(true)}
-                className="px-3.5 py-1.5 rounded-full bg-[#ede8fb] dark:bg-[#282147] hover:bg-[#ddd4f5] text-[#7d6ce8] dark:text-[#ac98f2] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                className="px-3 py-1.5 border-2 border-black bg-[#12141C] hover:bg-[#1F2430] text-[#FFE600] text-xs font-black uppercase flex items-center gap-1.5 shadow-[2px_2px_0px_0px_#FFE600] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
               >
                 <Calendar className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Schedule 1 Hour</span>
@@ -386,9 +362,9 @@ function MessagesContent() {
                 <button
                   type="button"
                   onClick={handleMarkComplete}
-                  className="px-3.5 py-1.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1"
+                  className="px-3 py-1.5 border-2 border-black bg-[#FFE600] text-black text-xs font-black uppercase flex items-center gap-1 shadow-[2px_2px_0px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
                 >
-                  <Check className="w-3.5 h-3.5" />
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
                   <span>Mark complete</span>
                 </button>
               )}
@@ -396,21 +372,21 @@ function MessagesContent() {
           </div>
 
           {/* Session Type Reminder Banner */}
-          <div className="px-4 py-2 bg-[#f5f2fc] dark:bg-[#130f26] border-b border-[#ddd4f5] dark:border-[#362c5e] text-xs flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[#7a719c] dark:text-[#a99ed4]">
+          <div className="px-4 py-2 bg-[#181B22] border-b-2 border-black text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2 text-zinc-300 font-mono">
               {activeConversation.sessionType === "direct" ? (
                 <>
-                  <Repeat className="w-3.5 h-3.5 text-[#7d6ce8]" />
-                  <span><strong>Direct swap:</strong> two people teach each other; no credits move.</span>
+                  <Repeat className="w-3.5 h-3.5 text-[#38BDF8]" />
+                  <span><strong className="text-white font-sans uppercase">Direct swap:</strong> two people teach each other; no credits move.</span>
                 </>
               ) : (
                 <>
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#f5a524]" />
-                  <span><strong>Credit escrow:</strong> 10 credits locked until session is marked complete.</span>
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#FFE600]" />
+                  <span><strong className="text-white font-sans uppercase">Credit escrow:</strong> 10 credits locked until session complete.</span>
                 </>
               )}
             </div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#7d6ce8] dark:text-[#ac98f2]">
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#FFE600] border border-black bg-[#12141C] px-2 py-0.5">
               State: {activeConversation.sessionState}
             </span>
           </div>
@@ -425,15 +401,15 @@ function MessagesContent() {
                   className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed shadow-sm ${
+                    className={`max-w-[80%] p-3 text-xs sm:text-sm leading-relaxed border-2 border-black shadow-[3px_3px_0px_0px_#000000] ${
                       isMe
-                        ? "bg-[#7d6ce8] text-white rounded-br-none"
-                        : "bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-[#241b3d] dark:text-[#f4f0ff] rounded-bl-none"
+                        ? "bg-[#FFE600] text-black font-black"
+                        : "bg-[#181B22] text-white font-medium"
                     }`}
                   >
                     <p>{msg.text}</p>
                   </div>
-                  <span className="text-[10px] text-[#7a719c] dark:text-[#a99ed4] mt-1 px-1">
+                  <span className="text-[10px] text-zinc-500 font-mono mt-1 px-1">
                     {msg.timestamp}
                   </span>
                 </div>
@@ -445,22 +421,22 @@ function MessagesContent() {
           {/* Message Composer */}
           <form
             onSubmit={handleSend}
-            className="p-3 sm:p-4 border-t border-[#ddd4f5] dark:border-[#362c5e] flex items-center gap-2 bg-white dark:bg-[#1e1938]"
+            className="p-3 sm:p-4 border-t-2 border-black flex items-center gap-2 bg-[#181B22]"
           >
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder={`Message ${activeConversation.participantName}...`}
-              className="flex-1 px-4 py-3 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs sm:text-sm text-[#241b3d] dark:text-[#f4f0ff] placeholder-[#7a719c] focus:outline-none focus:ring-2 focus:ring-[#7d6ce8]/40"
+              className="flex-1 px-4 py-3 border-2 border-black bg-[#12141C] text-xs sm:text-sm text-white placeholder-zinc-500 font-medium focus:outline-none focus:border-[#FFE600] focus:shadow-[3px_3px_0px_0px_#FFE600]"
             />
             <button
               type="submit"
               disabled={!inputText.trim()}
-              className="p-3 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] disabled:opacity-40 text-white transition-all shadow-sm shrink-0"
+              className="p-3 border-2 border-black bg-[#FFE600] hover:bg-[#FACC15] disabled:opacity-40 text-black shadow-[3px_3px_0px_0px_#000000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all shrink-0 cursor-pointer"
               aria-label="Send message"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4 stroke-[2.5]" />
             </button>
           </form>
         </div>
@@ -468,50 +444,50 @@ function MessagesContent() {
 
       {/* SCHEDULE SESSION MODAL */}
       {showSchedulerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] shadow-2xl p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-[#ddd4f5] dark:border-[#362c5e]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-md border-2 border-black bg-[#181B22] shadow-[8px_8px_0px_0px_#FFE600] p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b-2 border-black">
               <div className="flex items-center gap-2">
-                <CalendarPlus className="w-5 h-5 text-[#7d6ce8]" />
-                <h3 className="text-base font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+                <CalendarPlus className="w-5 h-5 text-[#FFE600]" />
+                <h3 className="text-base font-black uppercase text-white">
                   Schedule 1-Hour Session
                 </h3>
               </div>
               <button
                 onClick={() => setShowSchedulerModal(false)}
-                className="text-[#7a719c] hover:text-[#241b3d] dark:hover:text-white"
+                className="text-zinc-400 hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="p-3 rounded-2xl bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-[#7d6ce8] dark:text-[#ac98f2] flex items-center gap-2 font-semibold">
+              <div className="p-3 border-2 border-black bg-[#12141C] text-[#FFE600] flex items-center gap-2 font-black uppercase shadow-[2px_2px_0px_0px_#FFE600]">
                 <CoinIcon size={14} />
                 <span>Standard 1-Hour Session · 10 Credits or Direct Swap</span>
               </div>
 
               <div>
-                <label className="block text-[#7a719c] dark:text-[#a99ed4] font-medium mb-1">
+                <label className="block text-zinc-300 font-black uppercase tracking-wider mb-1">
                   Topic / Goal
                 </label>
                 <input
                   type="text"
                   value={sessionTopic}
                   onChange={(e) => setSessionTopic(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#241b3d] dark:text-[#f4f0ff]"
+                  className="w-full px-4 py-2.5 border-2 border-black bg-[#12141C] text-xs text-white focus:outline-none focus:border-[#FFE600]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#7a719c] dark:text-[#a99ed4] font-medium mb-1">
+                  <label className="block text-zinc-300 font-black uppercase tracking-wider mb-1">
                     Day
                   </label>
                   <select
                     value={scheduledDate}
                     onChange={(e) => setScheduledDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#241b3d] dark:text-[#f4f0ff]"
+                    className="w-full px-3 py-2 border-2 border-black bg-[#12141C] text-xs text-white focus:outline-none focus:border-[#FFE600]"
                   >
                     <option value="Today">Today</option>
                     <option value="Tomorrow">Tomorrow</option>
@@ -521,13 +497,13 @@ function MessagesContent() {
                 </div>
 
                 <div>
-                  <label className="block text-[#7a719c] dark:text-[#a99ed4] font-medium mb-1">
+                  <label className="block text-zinc-300 font-black uppercase tracking-wider mb-1">
                     Time Slot (1 Hour)
                   </label>
                   <select
                     value={scheduledTime}
                     onChange={(e) => setScheduledTime(e.target.value)}
-                    className="w-full px-3 py-2 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#241b3d] dark:text-[#f4f0ff]"
+                    className="w-full px-3 py-2 border-2 border-black bg-[#12141C] text-xs text-white focus:outline-none focus:border-[#FFE600]"
                   >
                     <option value="10:00 AM – 11:00 AM">10:00 AM – 11:00 AM</option>
                     <option value="2:00 PM – 3:00 PM">2:00 PM – 3:00 PM</option>
@@ -542,7 +518,7 @@ function MessagesContent() {
               <button
                 type="button"
                 onClick={() => setShowSchedulerModal(false)}
-                className="px-4 py-2 rounded-full text-xs font-semibold text-[#7a719c] hover:bg-[#ede8fb]"
+                className="px-4 py-2 border-2 border-black bg-[#12141C] text-xs font-black uppercase text-zinc-300 hover:text-white"
               >
                 Cancel
               </button>
@@ -550,7 +526,7 @@ function MessagesContent() {
                 type="button"
                 onClick={handleConfirmSchedule}
                 disabled={schedulingLoading}
-                className="px-5 py-2.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs font-bold transition-all shadow-sm"
+                className="px-5 py-2.5 border-2 border-black bg-[#FFE600] text-black text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
               >
                 {schedulingLoading ? "Scheduling..." : "Confirm 1-Hour Session"}
               </button>
@@ -564,9 +540,9 @@ function MessagesContent() {
 
 export default function MessagesPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#f5f2fc] dark:bg-[#130f26] text-[#241b3d] dark:text-[#f4f0ff] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#0B0C10] text-white cyber-grid transition-colors duration-200">
       <Navbar />
-      <Suspense fallback={<div className="p-12 text-center">Loading messages...</div>}>
+      <Suspense fallback={<div className="p-12 text-center text-zinc-400 font-mono uppercase font-bold">Loading messages...</div>}>
         <MessagesContent />
       </Suspense>
     </div>

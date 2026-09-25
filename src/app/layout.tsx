@@ -51,7 +51,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-[#f5f2fc] dark:bg-[#130f26] text-[#241b3d] dark:text-[#f4f0ff] selection:bg-[#7d6ce8] selection:text-white pb-16 md:pb-0 transition-colors duration-150 font-sans">
+      <body className="min-h-full flex flex-col bg-[#0B0C10] text-white selection:bg-[#FFE600] selection:text-black pb-16 md:pb-0 transition-colors duration-150 font-sans">
         <ThemeProvider>
           <SkillSwapProvider>
             {children}

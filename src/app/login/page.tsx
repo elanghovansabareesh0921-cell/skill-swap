@@ -11,13 +11,9 @@ import {
   Eye,
   EyeOff,
   Sparkles,
-  ArrowRight,
-  ShieldCheck,
   CheckCircle2,
   AlertCircle,
   Loader2,
-  Lock,
-  Mail,
 } from "lucide-react";
 
 function LoginForm() {
@@ -116,8 +112,6 @@ function LoginForm() {
     }
   };
 
-
-
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     setErrorMsg("");
@@ -159,101 +153,98 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-[#F8F7FF] dark:bg-[#0E0C1B] text-[#18181B] dark:text-[#F4F3FA]">
+    <div className="min-h-screen flex flex-col md:flex-row bg-[#0B0C10] text-white cyber-grid">
       {/* Top right Theme Toggle & Home */}
       <div className="absolute top-5 right-5 z-20 flex items-center gap-3">
         <ThemeToggle />
         <Link
           href="/"
-          className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-[#E4E1F5] dark:border-[#2D264E] bg-white/80 dark:bg-[#161327]/80 backdrop-blur-sm text-[#71717A] dark:text-zinc-300 hover:text-[#7C3AED]"
+          className="text-xs font-black uppercase px-3 py-1.5 border-2 border-black bg-[#181B22] text-white shadow-[2px_2px_0px_0px_#FFE600] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
         >
           Home
         </Link>
       </div>
 
       {/* DESKTOP LEFT BRANDING PANEL */}
-      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-[#7C3AED] via-[#8B5CF6] to-[#6D28D9] text-white p-12 lg:p-16 flex-col justify-between relative overflow-hidden">
-        {/* Subtle decorative circles */}
-        <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-        <div className="absolute top-12 right-12 w-64 h-64 rounded-full bg-white/10 blur-xl pointer-events-none" />
-
+      <div className="hidden md:flex md:w-1/2 bg-[#181B22] border-r-2 border-black text-white p-12 lg:p-16 flex-col justify-between relative overflow-hidden">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-3 w-fit focus:outline-none z-10">
-          <div className="w-10 h-10 rounded-xl bg-white text-[#7C3AED] flex items-center justify-center font-bold text-xl shadow-sm">
+          <div className="w-10 h-10 border-2 border-black bg-[#FFE600] text-black flex items-center justify-center font-black text-xl shadow-[3px_3px_0px_0px_#000000]">
             S
           </div>
-          <span className="text-2xl font-bold tracking-tight text-white">Skill Swap</span>
+          <span className="text-2xl font-black uppercase tracking-tight text-white">SkillSwap</span>
         </Link>
 
         {/* Feature Highlights */}
         <div className="max-w-md my-auto space-y-6 z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs font-semibold text-white">
-            <Sparkles className="w-3.5 h-3.5 text-[#EDE9FE]" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 border-2 border-black bg-[#12141C] text-xs font-black uppercase text-[#FFE600] shadow-[2px_2px_0px_0px_#FFE600]">
+            <Sparkles className="w-3.5 h-3.5" />
             <span>Peer-to-Peer Knowledge Economy</span>
           </div>
-          <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight">
-            Exchange skills. Build connections. Master anything.
+          <h2 className="text-3xl lg:text-4xl font-black uppercase tracking-tight leading-tight text-white">
+            Exchange skills. <br />
+            <span className="text-[#FFE600] bg-black px-2 py-0.5 border-2 border-[#FFE600] inline-block mt-1">
+              Master anything.
+            </span>
           </h2>
-          <p className="text-sm lg:text-base text-purple-100 leading-relaxed font-normal">
+          <p className="text-sm lg:text-base text-zinc-300 leading-relaxed font-medium">
             Join thousands of professionals, developers, and creators sharing knowledge in 1-on-1 swaps and credit-backed sessions.
           </p>
 
           <div className="pt-4 space-y-3">
-            <div className="flex items-center gap-3 text-sm text-purple-100">
-              <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-white shrink-0">
-                <CheckCircle2 className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-3 text-sm text-zinc-300 font-bold uppercase">
+              <div className="w-6 h-6 border-2 border-black bg-[#A3E635] flex items-center justify-center text-black shrink-0 shadow-[2px_2px_0px_0px_#000000]">
+                <CheckCircle2 className="w-4 h-4 stroke-[3]" />
               </div>
               <span>No mandatory subscriptions or expensive hourly fees</span>
             </div>
-            <div className="flex items-center gap-3 text-sm text-purple-100">
-              <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-white shrink-0">
-                <CheckCircle2 className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-3 text-sm text-zinc-300 font-bold uppercase">
+              <div className="w-6 h-6 border-2 border-black bg-[#FFE600] flex items-center justify-center text-black shrink-0 shadow-[2px_2px_0px_0px_#000000]">
+                <CheckCircle2 className="w-4 h-4 stroke-[3]" />
               </div>
               <span>Earn 10 credits every hour you teach</span>
             </div>
-            <div className="flex items-center gap-3 text-sm text-purple-100">
-              <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-white shrink-0">
-                <CheckCircle2 className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-3 text-sm text-zinc-300 font-bold uppercase">
+              <div className="w-6 h-6 border-2 border-black bg-[#38BDF8] flex items-center justify-center text-black shrink-0 shadow-[2px_2px_0px_0px_#000000]">
+                <CheckCircle2 className="w-4 h-4 stroke-[3]" />
               </div>
               <span>Integrated WebRTC video rooms & collaboration</span>
             </div>
           </div>
         </div>
 
-        <div className="text-xs text-purple-200 z-10">
-          © 2026 Skill Swap Platform. Presentation-ready edition.
+        <div className="text-xs font-mono font-bold uppercase text-zinc-500 z-10">
+          © 2026 SkillSwap Platform. Dark Neo-Brutalist Edition.
         </div>
       </div>
 
       {/* RIGHT LOGIN FORM PANEL */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12 lg:p-16">
-        <div className="w-full max-w-md space-y-6">
+        <div className="w-full max-w-md border-2 border-black bg-[#181B22] p-8 shadow-[8px_8px_0px_0px_#FFE600] space-y-6">
           {/* Mobile Logo Branding */}
           <div className="md:hidden flex items-center gap-2.5 mb-6">
-            <div className="w-8 h-8 rounded-lg bg-[#7C3AED] text-white flex items-center justify-center font-bold text-sm">
+            <div className="w-8 h-8 border-2 border-black bg-[#FFE600] text-black flex items-center justify-center font-black text-sm shadow-[2px_2px_0px_0px_#000000]">
               S
             </div>
-            <span className="text-xl font-bold tracking-tight text-[#18181B] dark:text-white">
-              Skill Swap
+            <span className="text-xl font-black uppercase tracking-tight text-white">
+              SkillSwap
             </span>
           </div>
 
           {/* Headings */}
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#18181B] dark:text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black uppercase text-white tracking-tight">
               Welcome back
             </h1>
-            <p className="text-xs sm:text-sm text-[#71717A] dark:text-zinc-400 mt-1">
-              Continue your learning journey.
+            <p className="text-xs sm:text-sm text-zinc-400 font-medium mt-1">
+              Continue your peer learning journey.
             </p>
           </div>
 
-
-
           {/* General Error Message */}
           {errorMsg && (
-            <div className="p-3.5 text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl flex items-start gap-2 animate-in fade-in duration-200">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+            <div className="p-3.5 text-xs text-black font-black bg-[#FF5E7E] border-2 border-black shadow-[3px_3px_0px_0px_#000000] flex items-start gap-2 animate-in fade-in duration-200">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 stroke-[2.5]" />
               <div className="flex-1">{errorMsg}</div>
             </div>
           )}
@@ -262,7 +253,7 @@ function LoginForm() {
           <form onSubmit={handleLogin} className="space-y-4">
             {/* Email Field */}
             <div className="space-y-1.5">
-              <label htmlFor="email" className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block">
+              <label htmlFor="email" className="text-xs font-black uppercase tracking-wider text-white block">
                 Email
               </label>
               <div className="relative">
@@ -275,29 +266,27 @@ function LoginForm() {
                     if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: undefined }));
                   }}
                   placeholder="name@email.com"
-                  className={`w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#161327] border text-sm text-[#18181B] dark:text-white transition-all focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40 ${
-                    fieldErrors.email
-                      ? "border-red-500 focus:border-red-500"
-                      : "border-[#E4E1F5] dark:border-[#2D264E] focus:border-[#7C3AED]"
+                  className={`w-full px-3.5 py-2.5 bg-[#12141C] border-2 border-black text-white text-sm focus:outline-none focus:border-[#FFE600] focus:shadow-[3px_3px_0px_0px_#FFE600] transition-all ${
+                    fieldErrors.email ? "border-[#FF5E7E]" : ""
                   }`}
                   disabled={loading}
                 />
               </div>
               {fieldErrors.email && (
-                <p className="text-[11px] text-red-600 dark:text-red-400">{fieldErrors.email}</p>
+                <p className="text-[11px] font-black text-[#FF5E7E] font-mono">{fieldErrors.email}</p>
               )}
             </div>
 
             {/* Password Field */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block">
+                <label htmlFor="password" className="text-xs font-black uppercase tracking-wider text-white block">
                   Password
                 </label>
                 <button
                   type="button"
                   onClick={() => setForgotModalOpen(true)}
-                  className="text-xs text-[#7C3AED] dark:text-[#A78BFA] hover:underline font-medium"
+                  className="text-xs text-[#FFE600] hover:underline font-bold uppercase tracking-wider"
                 >
                   Forgot password?
                 </button>
@@ -312,24 +301,22 @@ function LoginForm() {
                     if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: undefined }));
                   }}
                   placeholder="••••••••"
-                  className={`w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-white dark:bg-[#161327] border text-sm text-[#18181B] dark:text-white transition-all focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40 ${
-                    fieldErrors.password
-                      ? "border-red-500 focus:border-red-500"
-                      : "border-[#E4E1F5] dark:border-[#2D264E] focus:border-[#7C3AED]"
+                  className={`w-full pl-3.5 pr-10 py-2.5 bg-[#12141C] border-2 border-black text-white text-sm focus:outline-none focus:border-[#FFE600] focus:shadow-[3px_3px_0px_0px_#FFE600] transition-all ${
+                    fieldErrors.password ? "border-[#FF5E7E]" : ""
                   }`}
                   disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#71717A] hover:text-[#18181B] dark:hover:text-white transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
               {fieldErrors.password && (
-                <p className="text-[11px] text-red-600 dark:text-red-400">{fieldErrors.password}</p>
+                <p className="text-[11px] font-black text-[#FF5E7E] font-mono">{fieldErrors.password}</p>
               )}
             </div>
 
@@ -340,9 +327,9 @@ function LoginForm() {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded text-[#7C3AED] focus:ring-[#7C3AED] border-[#E4E1F5] dark:border-[#2D264E]"
+                className="w-4 h-4 rounded-none border-2 border-black accent-[#FFE600]"
               />
-              <label htmlFor="remember-me" className="text-xs text-[#71717A] dark:text-zinc-400 select-none cursor-pointer">
+              <label htmlFor="remember-me" className="text-xs font-bold uppercase text-zinc-300 select-none cursor-pointer">
                 Remember me
               </label>
             </div>
@@ -351,11 +338,11 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold text-sm transition-all shadow-sm hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 border-2 border-black bg-[#FFE600] hover:bg-[#FACC15] text-black font-black uppercase tracking-wider text-sm shadow-[4px_4px_0px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin text-black" />
                   <span>Logging in...</span>
                 </>
               ) : (
@@ -367,10 +354,10 @@ function LoginForm() {
           {/* Divider */}
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#E4E1F5] dark:border-[#2D264E]" />
+              <div className="w-full border-t-2 border-black" />
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-[#F8F7FF] dark:bg-[#0E0C1B] px-3 font-semibold text-[#71717A] tracking-wider">
+            <div className="relative flex justify-center text-xs uppercase font-black">
+              <span className="bg-[#181B22] px-3 text-zinc-400 tracking-wider">
                 OR
               </span>
             </div>
@@ -381,12 +368,12 @@ function LoginForm() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={googleLoading || loading}
-            className="w-full py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#161327] hover:bg-[#EDE9FE]/40 dark:hover:bg-[#231C3D] text-[#18181B] dark:text-zinc-200 text-sm font-semibold transition-all shadow-sm flex items-center justify-center gap-2.5"
+            className="w-full py-2.5 border-2 border-black bg-[#12141C] hover:bg-[#1F2430] text-white text-xs font-black uppercase tracking-wider shadow-[4px_4px_0px_0px_#38BDF8] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2.5 cursor-pointer"
           >
             {googleLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -413,16 +400,16 @@ function LoginForm() {
             <button
               type="button"
               onClick={() => setIsGoogleModalOpen(true)}
-              className="text-[11px] text-[#7C3AED] dark:text-[#A78BFA] hover:underline font-medium"
+              className="text-[11px] font-mono text-[#FFE600] hover:underline font-bold"
             >
               Google login issue or custom setup? Click here
             </button>
           </div>
 
           {/* Bottom Link to Signup */}
-          <p className="text-center text-xs text-[#71717A] dark:text-zinc-400 pt-2">
+          <p className="text-center text-xs text-zinc-400 font-medium pt-2">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-[#7C3AED] dark:text-[#A78BFA] font-semibold hover:underline">
+            <Link href="/signup" className="text-[#FFE600] font-black uppercase hover:underline">
               Sign up
             </Link>
           </p>
@@ -431,22 +418,22 @@ function LoginForm() {
 
       {/* Forgot Password Modal */}
       {forgotModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm bg-white dark:bg-[#161327] rounded-3xl border border-[#E4E1F5] dark:border-[#2D264E] shadow-xl p-6 animate-in fade-in zoom-in-95 duration-150">
-            <h3 className="text-lg font-bold text-[#18181B] dark:text-white">Reset Password</h3>
-            <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-1">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm border-2 border-black bg-[#181B22] shadow-[8px_8px_0px_0px_#FFE600] p-6 animate-in fade-in zoom-in-95 duration-150">
+            <h3 className="text-lg font-black uppercase text-white">Reset Password</h3>
+            <p className="text-xs text-zinc-400 mt-1 font-medium">
               Enter your email and we&apos;ll send instructions to reset your password.
             </p>
 
             {forgotSuccess ? (
-              <div className="mt-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-xs flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+              <div className="mt-4 p-3 border-2 border-black bg-[#A3E635] text-black font-black text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0 stroke-[3]" />
                 <span>Reset link sent! Please check your email inbox.</span>
               </div>
             ) : (
               <form onSubmit={handleResetPassword} className="mt-4 space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">
+                  <label className="text-xs font-black uppercase text-white block mb-1">
                     Email address
                   </label>
                   <input
@@ -454,7 +441,7 @@ function LoginForm() {
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
                     placeholder="name@email.com"
-                    className="w-full px-3.5 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                    className="w-full px-3.5 py-2 border-2 border-black bg-[#12141C] text-sm text-white focus:outline-none focus:border-[#FFE600] focus:shadow-[3px_3px_0px_0px_#FFE600]"
                     required
                   />
                 </div>
@@ -465,16 +452,16 @@ function LoginForm() {
                       setForgotModalOpen(false);
                       setForgotSuccess(false);
                     }}
-                    className="flex-1 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] text-xs font-semibold text-[#71717A] hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                    className="flex-1 py-2 border-2 border-black bg-[#12141C] text-xs font-black uppercase text-zinc-300 hover:text-white"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={forgotLoading}
-                    className="flex-1 py-2 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2 border-2 border-black bg-[#FFE600] text-black text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000000] flex items-center justify-center gap-1.5"
                   >
-                    {forgotLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>Send Link</span>}
+                    {forgotLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin text-black" /> : <span>Send Link</span>}
                   </button>
                 </div>
               </form>
@@ -487,7 +474,7 @@ function LoginForm() {
                     setForgotModalOpen(false);
                     setForgotSuccess(false);
                   }}
-                  className="w-full py-2 rounded-xl bg-[#7C3AED] text-white text-xs font-semibold"
+                  className="w-full py-2 border-2 border-black bg-[#FFE600] text-black text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000000]"
                 >
                   Done
                 </button>
@@ -508,7 +495,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-[#7C3AED]" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#0B0C10]"><Loader2 className="w-8 h-8 animate-spin text-[#FFE600]" /></div>}>
       <LoginForm />
     </Suspense>
   );

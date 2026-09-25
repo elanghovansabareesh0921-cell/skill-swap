@@ -8,16 +8,11 @@ import SwapRequestModal from "@/components/SwapRequestModal";
 import BookingModal from "@/components/BookingModal";
 import CoinIcon from "@/components/common/CoinIcon";
 import VerifiedBadge from "@/components/common/VerifiedBadge";
-import { useSkillSwap } from "@/context/SkillSwapContext";
 import {
   Search,
-  Sparkles,
   Star,
   Repeat,
-  Compass,
   Users,
-  ShieldCheck,
-  CheckCircle,
 } from "lucide-react";
 
 const CATEGORIES = [
@@ -142,40 +137,40 @@ function DiscoverContent() {
       {/* HEADER & SEARCH */}
       <div className="space-y-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-semibold text-[#7d6ce8] dark:text-[#ac98f2] mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 border-2 border-black bg-[#181B22] text-xs font-black uppercase text-[#FFE600] shadow-[2px_2px_0px_0px_#FFE600] mb-2">
             <CoinIcon size={12} />
             <span>1 Hour = 10 Credits · Direct Swaps & Credit Escrow</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#241b3d] dark:text-[#f4f0ff]">
+          <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white">
             Explore skills
           </h1>
-          <p className="text-xs sm:text-sm text-[#7a719c] dark:text-[#a99ed4] mt-1">
+          <p className="text-xs sm:text-sm text-zinc-400 font-medium mt-1">
             Discover verified peers ready to exchange skills directly or teach for credits.
           </p>
         </div>
 
-        {/* Search Bar (Pill Shape) */}
+        {/* Search Bar */}
         <div className="relative">
-          <Search className="w-5 h-5 text-[#7a719c] dark:text-[#a99ed4] absolute left-4 top-1/2 -translate-y-1/2" />
+          <Search className="w-5 h-5 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by skill name, topic, or mentor..."
-            className="w-full pl-12 pr-4 py-3.5 rounded-full bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] text-sm text-[#241b3d] dark:text-[#f4f0ff] placeholder-[#7a719c] dark:placeholder-[#a99ed4] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7d6ce8]/40"
+            className="w-full pl-12 pr-4 py-3.5 border-2 border-black bg-[#12141C] text-sm text-white placeholder-zinc-500 font-medium shadow-[4px_4px_0px_0px_#000000] focus:outline-none focus:border-[#FFE600] focus:shadow-[4px_4px_0px_0px_#FFE600] transition-all"
           />
         </div>
 
-        {/* Category Filter Chips (Pill Shaped) */}
+        {/* Category Filter Chips */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`px-4 py-1.5 text-xs font-black uppercase whitespace-nowrap transition-all border-2 border-black cursor-pointer ${
                 selectedCategory === cat
-                  ? "bg-[#7d6ce8] text-white shadow-sm"
-                  : "bg-white dark:bg-[#1e1938] text-[#7a719c] dark:text-[#a99ed4] border border-[#ddd4f5] dark:border-[#362c5e] hover:border-[#7d6ce8]"
+                  ? "bg-[#FFE600] text-black shadow-[3px_3px_0px_0px_#000000]"
+                  : "bg-[#181B22] text-zinc-300 hover:text-white hover:bg-[#1F2430] hover:shadow-[2px_2px_0px_0px_#FFE600]"
               }`}
             >
               {cat}
@@ -190,7 +185,7 @@ function DiscoverContent() {
           {filteredPeers.map((peer) => (
             <div
               key={peer.id}
-              className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 space-y-4 hover:border-[#7d6ce8] transition-all flex flex-col justify-between"
+              className="border-2 border-black bg-[#181B22] p-6 space-y-4 shadow-[5px_5px_0px_0px_#000000] hover:shadow-[5px_5px_0px_0px_#FFE600] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all flex flex-col justify-between"
             >
               <div className="space-y-3.5">
                 {/* User Header */}
@@ -198,36 +193,36 @@ function DiscoverContent() {
                   <img
                     src={peer.avatar}
                     alt={peer.name}
-                    className="w-12 h-12 rounded-full object-cover border border-[#ddd4f5] dark:border-[#362c5e]"
+                    className="w-12 h-12 object-cover border-2 border-black shadow-[2px_2px_0px_0px_#000000]"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-sm font-bold text-[#241b3d] dark:text-[#f4f0ff] truncate">
+                      <span className="text-sm font-black uppercase text-white truncate">
                         {peer.name}
                       </span>
                       {peer.verified && <VerifiedBadge size="sm" showLabel={false} />}
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-[#7a719c] dark:text-[#a99ed4]">
-                      <Star className="w-3.5 h-3.5 text-[#f5a524] fill-current" />
-                      <span className="font-semibold text-[#241b3d] dark:text-[#f4f0ff]">{peer.rating}</span>
-                      <span>· {peer.category}</span>
+                    <div className="flex items-center gap-1 text-xs text-zinc-400">
+                      <Star className="w-3.5 h-3.5 text-[#FFE600] fill-current" />
+                      <span className="font-mono font-black text-white">{peer.rating}</span>
+                      <span className="font-mono uppercase font-bold">· {peer.category}</span>
                     </div>
                   </div>
                 </div>
 
-                <p className="text-xs text-[#7a719c] dark:text-[#a99ed4] line-clamp-2 leading-relaxed">
+                <p className="text-xs text-zinc-300 line-clamp-2 leading-relaxed font-medium">
                   {peer.bio}
                 </p>
 
                 {/* Skills Rows */}
-                <div className="p-3.5 rounded-2xl bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] space-y-2 text-xs">
+                <div className="p-3.5 border-2 border-black bg-[#12141C] space-y-2 text-xs">
                   <div>
-                    <span className="text-[#7a719c] dark:text-[#a99ed4] block text-[11px] font-medium">Teaches</span>
-                    <strong className="text-[#241b3d] dark:text-[#f4f0ff] text-sm block">{peer.teaches}</strong>
+                    <span className="text-zinc-400 block text-[10px] font-black uppercase tracking-wider">Teaches</span>
+                    <strong className="text-white text-xs sm:text-sm font-black block font-mono">{peer.teaches}</strong>
                   </div>
-                  <div className="pt-1 border-t border-[#ddd4f5]/60 dark:border-[#362c5e]/60">
-                    <span className="text-[#7a719c] dark:text-[#a99ed4] block text-[11px] font-medium">Wants to learn</span>
-                    <strong className="text-[#7d6ce8] dark:text-[#ac98f2] text-sm block">{peer.wants}</strong>
+                  <div className="pt-1.5 border-t-2 border-black">
+                    <span className="text-zinc-400 block text-[10px] font-black uppercase tracking-wider">Wants to learn</span>
+                    <strong className="text-[#38BDF8] text-xs sm:text-sm font-black block font-mono">{peer.wants}</strong>
                   </div>
                 </div>
               </div>
@@ -238,9 +233,9 @@ function DiscoverContent() {
                 <button
                   type="button"
                   onClick={() => handleOpenSwap(peer)}
-                  className="w-full py-2.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"
+                  className="w-full py-2.5 border-2 border-black bg-[#FFE600] hover:bg-[#FACC15] text-black text-xs font-black uppercase tracking-wider transition-all shadow-[3px_3px_0px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <Repeat className="w-3.5 h-3.5" />
+                  <Repeat className="w-3.5 h-3.5 stroke-[2.5]" />
                   <span>Request swap</span>
                 </button>
 
@@ -248,7 +243,7 @@ function DiscoverContent() {
                 <button
                   type="button"
                   onClick={() => handleOpenBooking(peer)}
-                  className="w-full py-2 rounded-full bg-white dark:bg-[#1e1938] hover:bg-[#ede8fb]/60 dark:hover:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-[#241b3d] dark:text-[#f4f0ff] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                  className="w-full py-2 border-2 border-black bg-[#12141C] hover:bg-[#1F2430] text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-[3px_3px_0px_0px_#38BDF8] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
                 >
                   <CoinIcon size={14} />
                   <span>Learn for 10 credits</span>
@@ -258,12 +253,12 @@ function DiscoverContent() {
           ))}
         </div>
       ) : (
-        <div className="p-12 text-center rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] space-y-3">
-          <Users className="w-10 h-10 text-[#7a719c] mx-auto opacity-70" />
-          <h3 className="text-base font-bold text-[#241b3d] dark:text-[#f4f0ff]">
+        <div className="p-12 text-center border-2 border-black bg-[#181B22] shadow-[6px_6px_0px_0px_#FFE600] space-y-3">
+          <Users className="w-10 h-10 text-zinc-500 mx-auto" />
+          <h3 className="text-base font-black uppercase text-white">
             No skill traders found
           </h3>
-          <p className="text-xs text-[#7a719c] dark:text-[#a99ed4] max-w-sm mx-auto">
+          <p className="text-xs text-zinc-400 max-w-sm mx-auto font-medium">
             Try adjusting your search query or selecting a different category filter.
           </p>
         </div>
@@ -299,9 +294,9 @@ function DiscoverContent() {
 
 export default function DiscoverPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#f5f2fc] dark:bg-[#130f26] text-[#241b3d] dark:text-[#f4f0ff] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#0B0C10] text-white cyber-grid transition-colors duration-200">
       <Navbar />
-      <Suspense fallback={<div className="p-12 text-center">Loading explore...</div>}>
+      <Suspense fallback={<div className="p-12 text-center font-mono text-zinc-400 font-bold uppercase">Loading explore...</div>}>
         <DiscoverContent />
       </Suspense>
     </div>

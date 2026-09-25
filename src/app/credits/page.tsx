@@ -5,19 +5,12 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import ActivityCard from "@/components/gamification/ActivityCard";
 import CoinIcon from "@/components/common/CoinIcon";
-import VerifiedBadge from "@/components/common/VerifiedBadge";
 import { useSkillSwap } from "@/context/SkillSwapContext";
 import {
-  ShieldCheck,
-  Repeat,
   CheckCircle,
-  Clock,
   ArrowUpRight,
   ArrowDownLeft,
-  Calendar,
   Lock,
-  Sparkles,
-  ExternalLink,
   Check,
 } from "lucide-react";
 
@@ -133,7 +126,7 @@ export default function CreditsWalletPage() {
     },
   ];
 
-  // Combined transactions: Real purchase/top-up context transactions first + local complete + baseline
+  // Combined transactions
   const transactions = React.useMemo(() => {
     const fromContext = (contextTransactions || []).map((t) => ({
       id: t.id,
@@ -178,37 +171,37 @@ export default function CreditsWalletPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f5f2fc] dark:bg-[#130f26] text-[#241b3d] dark:text-[#f4f0ff] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#0B0C10] text-white cyber-grid transition-colors duration-200">
       <Navbar onOpenBuyCredits={() => setIsBuyModalOpen(true)} />
 
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-10">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-semibold text-[#7d6ce8] dark:text-[#ac98f2] mb-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 border-2 border-black bg-[#181B22] text-xs font-black uppercase text-[#FFE600] shadow-[2px_2px_0px_0px_#FFE600] mb-2">
               <CoinIcon size={12} />
               <span>1 Hour = 10 Credits · Escrow Protected</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#241b3d] dark:text-[#f4f0ff]">
+            <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white">
               Credits & wallet
             </h1>
-            <p className="text-xs sm:text-sm text-[#7a719c] dark:text-[#a99ed4] mt-1">
+            <p className="text-xs sm:text-sm text-zinc-400 font-medium mt-1">
               Track your hours taught and learned, active escrow, and credit transactions.
             </p>
           </div>
 
           <button
             onClick={() => setIsBuyModalOpen(true)}
-            className="self-start sm:self-auto inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer"
+            className="self-start sm:self-auto inline-flex items-center gap-2 px-5 py-2.5 border-2 border-black bg-[#FFE600] hover:bg-[#FACC15] text-black text-xs sm:text-sm font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
           >
             <CoinIcon size={16} />
             <span>Top up credits</span>
           </button>
         </div>
 
-        {/* 1. TOP ACTIVITY CARD (Same as Home Screen) */}
+        {/* 1. TOP ACTIVITY CARD */}
         <section className="space-y-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#7a719c] dark:text-[#a99ed4] block px-1">
+          <span className="text-xs font-black uppercase tracking-widest text-zinc-400 block px-1">
             Activity & Gamification
           </span>
           <ActivityCard
@@ -226,84 +219,84 @@ export default function CreditsWalletPage() {
         {/* 2. BALANCE SUMMARY CARDS */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card A: Available Balance */}
-          <div className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 space-y-3 flex flex-col justify-between">
+          <div className="border-2 border-black bg-[#181B22] p-6 space-y-3 flex flex-col justify-between shadow-[6px_6px_0px_0px_#FFE600]">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#7a719c] dark:text-[#a99ed4]">
+                <span className="text-xs font-black uppercase tracking-wider text-zinc-400">
                   Available Balance
                 </span>
                 <CoinIcon size={22} />
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-extrabold text-[#f5a524] font-mono">
+                <span className="text-4xl font-black text-[#FFE600] font-mono">
                   {availableBalance}
                 </span>
-                <span className="text-sm font-semibold text-[#7a719c] dark:text-[#a99ed4]">
+                <span className="text-sm font-black uppercase text-zinc-300">
                   Credits
                 </span>
               </div>
-              <p className="text-xs text-[#7a719c] dark:text-[#a99ed4]">
-                Enough for <strong>{Math.floor(availableBalance / 10)} hours</strong> of peer learning.
+              <p className="text-xs text-zinc-400 font-medium">
+                Enough for <strong className="text-white font-mono">{Math.floor(availableBalance / 10)} hours</strong> of peer learning.
               </p>
             </div>
 
             <button
               onClick={() => setIsBuyModalOpen(true)}
-              className="mt-2 w-full inline-flex items-center justify-center gap-1.5 py-2 px-4 rounded-full bg-[#ede8fb] dark:bg-[#282147] hover:bg-[#7d6ce8] hover:text-white dark:hover:bg-[#7d6ce8] text-xs font-bold text-[#7d6ce8] dark:text-[#ac98f2] border border-[#ddd4f5] dark:border-[#362c5e] transition-colors"
+              className="mt-2 w-full inline-flex items-center justify-center gap-1.5 py-2 px-4 border-2 border-black bg-[#12141C] hover:bg-[#FFE600] hover:text-black text-xs font-black uppercase text-[#FFE600] shadow-[2px_2px_0px_0px_#000000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
             >
               <span>+ Buy credits (₹1 = 1 Credit)</span>
             </button>
           </div>
 
           {/* Card B: In Escrow */}
-          <div className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 space-y-3">
+          <div className="border-2 border-black bg-[#181B22] p-6 space-y-3 shadow-[6px_6px_0px_0px_#38BDF8]">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#7a719c] dark:text-[#a99ed4]">
+              <span className="text-xs font-black uppercase tracking-wider text-zinc-400">
                 Currently In Escrow
               </span>
-              <div className="w-8 h-8 rounded-full bg-[#ede8fb] dark:bg-[#282147] text-[#f5a524] flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-black bg-[#38BDF8] text-black flex items-center justify-center shadow-[2px_2px_0px_0px_#000000]">
                 <Lock className="w-4 h-4" />
               </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-extrabold text-[#241b3d] dark:text-[#f4f0ff] font-mono">
+              <span className="text-4xl font-black text-white font-mono">
                 {escrowBalance}
               </span>
-              <span className="text-sm font-semibold text-[#7a719c] dark:text-[#a99ed4]">
+              <span className="text-sm font-black uppercase text-zinc-300">
                 Credits locked
               </span>
             </div>
-            <p className="text-xs text-[#7a719c] dark:text-[#a99ed4]">
+            <p className="text-xs text-zinc-400 font-medium">
               Held safely until active session is marked complete.
             </p>
           </div>
 
           {/* Card C: The Economic Rule */}
-          <div className="rounded-3xl bg-gradient-to-br from-[#ede8fb] to-white dark:from-[#282147] dark:to-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 space-y-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#7d6ce8] dark:text-[#ac98f2] block">
+          <div className="border-2 border-black bg-[#181B22] p-6 space-y-3 shadow-[6px_6px_0px_0px_#A3E635]">
+            <span className="text-xs font-black uppercase tracking-wider text-[#A3E635] block">
               Platform Rule
             </span>
-            <div className="text-lg font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+            <div className="text-xl font-black uppercase text-white">
               1 Hour = 10 Credits
             </div>
-            <p className="text-xs text-[#7a719c] dark:text-[#a99ed4] leading-relaxed">
+            <p className="text-xs text-zinc-300 leading-relaxed font-medium">
               Every 1 hour taught earns 10 credits. Every 1 hour learned costs 10 credits (or zero if direct swap).
             </p>
           </div>
         </section>
 
         {/* 3. ACTIVE SESSIONS LIST */}
-        <section className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 sm:p-7 space-y-5">
-          <div className="flex items-center justify-between pb-3 border-b border-[#ddd4f5]/60 dark:border-[#362c5e]/60">
+        <section className="border-2 border-black bg-[#181B22] p-6 sm:p-7 space-y-5 shadow-[6px_6px_0px_0px_#000000]">
+          <div className="flex items-center justify-between pb-3 border-b-2 border-black">
             <div>
-              <h2 className="text-base font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+              <h2 className="text-base font-black uppercase text-white">
                 Active sessions
               </h2>
-              <p className="text-xs text-[#7a719c] dark:text-[#a99ed4]">
+              <p className="text-xs text-zinc-400">
                 States: requested → active → complete. Click &ldquo;Mark complete&rdquo; to release held credits.
               </p>
             </div>
-            <span className="text-xs font-bold text-[#7d6ce8] dark:text-[#ac98f2] bg-[#ede8fb] dark:bg-[#282147] px-3 py-1 rounded-full">
+            <span className="text-xs font-black uppercase text-black bg-[#FFE600] border-2 border-black px-3 py-1 shadow-[2px_2px_0px_0px_#000000]">
               {sessions.filter((s) => s.state !== "complete").length} ongoing
             </span>
           </div>
@@ -317,40 +310,40 @@ export default function CreditsWalletPage() {
               return (
                 <div
                   key={sess.id}
-                  className="rounded-2xl bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                  className="border-2 border-black bg-[#12141C] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                 >
                   <div className="flex items-center gap-3.5">
                     <img
                       src={sess.partnerAvatar}
                       alt={sess.partnerName}
-                      className="w-11 h-11 rounded-full object-cover border border-[#ddd4f5] dark:border-[#362c5e]"
+                      className="w-11 h-11 object-cover border-2 border-black shadow-[2px_2px_0px_0px_#000000]"
                     />
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-bold text-[#241b3d] dark:text-[#f4f0ff]">
+                        <span className="text-sm font-black uppercase text-white">
                           {sess.partnerName}
                         </span>
                         {/* Session Type Pill */}
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 border border-black ${
                           isDirect
-                            ? "bg-[#ede8fb] dark:bg-[#282147] text-[#7d6ce8] dark:text-[#ac98f2]"
-                            : "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400"
+                            ? "bg-[#38BDF8] text-black"
+                            : "bg-[#FFE600] text-black"
                         }`}>
                           {isDirect ? "Direct swap" : "Credit escrow (10c)"}
                         </span>
                         {/* State Badge */}
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 border border-black ${
                           sess.state === "active"
-                            ? "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400"
+                            ? "bg-[#A3E635] text-black"
                             : sess.state === "requested"
-                            ? "bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300"
-                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                            ? "bg-[#FFE600] text-black"
+                            : "bg-zinc-800 text-zinc-300"
                         }`}>
                           {sess.state}
                         </span>
                       </div>
-                      <p className="text-xs text-[#7a719c] dark:text-[#a99ed4] mt-0.5">
-                        <strong className="text-[#241b3d] dark:text-[#f4f0ff]">{sess.skillName}</strong> · {sess.timeSlot}
+                      <p className="text-xs text-zinc-300 mt-1 font-mono">
+                        <strong className="text-white font-sans">{sess.skillName}</strong> · {sess.timeSlot}
                       </p>
                     </div>
                   </div>
@@ -361,23 +354,23 @@ export default function CreditsWalletPage() {
                       <button
                         type="button"
                         onClick={() => handleMarkComplete(sess.id)}
-                        className="px-4 py-2 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+                        className="px-4 py-2 border-2 border-black bg-[#FFE600] hover:bg-[#FACC15] text-black text-xs font-black uppercase tracking-wider transition-all shadow-[2px_2px_0px_0px_#000000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none flex items-center gap-1.5 cursor-pointer"
                       >
-                        <Check className="w-3.5 h-3.5" />
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
                         <span>Mark complete</span>
                       </button>
                     )}
 
                     {isComplete && (
-                      <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                        <CheckCircle className="w-4 h-4" />
+                      <span className="text-xs font-black uppercase text-[#A3E635] flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4 stroke-[3]" />
                         <span>Released</span>
                       </span>
                     )}
 
                     <Link
                       href="/messages"
-                      className="px-3.5 py-2 rounded-full bg-white dark:bg-[#1e1938] hover:bg-[#ede8fb]/60 text-xs font-semibold text-[#7a719c] dark:text-[#a99ed4] border border-[#ddd4f5] dark:border-[#362c5e]"
+                      className="px-3.5 py-2 border-2 border-black bg-[#181B22] hover:bg-[#1F2430] text-xs font-black uppercase text-zinc-300 hover:text-white"
                     >
                       Open chat
                     </Link>
@@ -389,17 +382,17 @@ export default function CreditsWalletPage() {
         </section>
 
         {/* 4. TRANSACTION HISTORY LOG */}
-        <section className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 sm:p-7 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-[#ddd4f5]/60 dark:border-[#362c5e]/60">
-            <h2 className="text-base font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+        <section className="border-2 border-black bg-[#181B22] p-6 sm:p-7 space-y-4 shadow-[6px_6px_0px_0px_#000000]">
+          <div className="flex items-center justify-between pb-3 border-b-2 border-black">
+            <h2 className="text-base font-black uppercase text-white">
               Transaction history
             </h2>
-            <span className="text-xs text-[#7a719c] dark:text-[#a99ed4]">
+            <span className="text-xs text-zinc-400 font-mono font-bold">
               {transactions.length} entries
             </span>
           </div>
 
-          <div className="divide-y divide-[#ddd4f5]/60 dark:divide-[#362c5e]/60">
+          <div className="divide-y-2 divide-black">
             {transactions.map((tx) => {
               const isPositive = tx.amount > 0;
               return (
@@ -409,23 +402,23 @@ export default function CreditsWalletPage() {
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 ${
+                      className={`w-9 h-9 border-2 border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_#000000] ${
                         isPositive
-                          ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
-                          : "bg-amber-50 dark:bg-amber-950/40 text-[#f5a524]"
+                          ? "bg-[#A3E635] text-black"
+                          : "bg-[#FFE600] text-black"
                       }`}
                     >
                       {isPositive ? (
-                        <ArrowDownLeft className="w-4 h-4" />
+                        <ArrowDownLeft className="w-4 h-4 stroke-[2.5]" />
                       ) : (
-                        <ArrowUpRight className="w-4 h-4" />
+                        <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
                       )}
                     </div>
                     <div>
-                      <p className="text-xs sm:text-sm font-bold text-[#241b3d] dark:text-[#f4f0ff]">
+                      <p className="text-xs sm:text-sm font-black uppercase text-white">
                         {tx.title}
                       </p>
-                      <p className="text-[11px] text-[#7a719c] dark:text-[#a99ed4]">
+                      <p className="text-[11px] text-zinc-400 font-mono mt-0.5">
                         {tx.description} · {tx.date}
                       </p>
                     </div>
@@ -433,15 +426,15 @@ export default function CreditsWalletPage() {
 
                   <div className="text-right">
                     <span
-                      className={`text-sm font-extrabold font-mono ${
+                      className={`text-sm font-black font-mono ${
                         isPositive
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : "text-[#241b3d] dark:text-[#f4f0ff]"
+                          ? "text-[#A3E635]"
+                          : "text-white"
                       }`}
                     >
                       {isPositive ? `+${tx.amount}` : tx.amount} Credits
                     </span>
-                    <span className="block text-[10px] text-[#7a719c] dark:text-[#a99ed4] font-medium">
+                    <span className="block text-[10px] text-zinc-400 font-black uppercase">
                       {tx.status}
                     </span>
                   </div>
