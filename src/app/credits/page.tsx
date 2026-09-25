@@ -3,423 +3,407 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import BuyCreditsModal from "@/components/BuyCreditsModal";
-import UpiPaymentModal from "@/components/UpiPaymentModal";
-import { useSkillSwap, Transaction } from "@/context/SkillSwapContext";
-import { processRazorpayCheckout } from "@/lib/razorpayClient";
+import ActivityCard from "@/components/gamification/ActivityCard";
+import CoinIcon from "@/components/common/CoinIcon";
+import VerifiedBadge from "@/components/common/VerifiedBadge";
+import { useSkillSwap } from "@/context/SkillSwapContext";
 import {
-  Sparkles,
+  ShieldCheck,
+  Repeat,
+  CheckCircle,
+  Clock,
   ArrowUpRight,
   ArrowDownLeft,
-  Plus,
-  ShieldCheck,
+  Calendar,
+  Lock,
+  Sparkles,
+  ExternalLink,
   Check,
-  Clock,
-  History,
-  CreditCard,
-  CheckCircle2,
-  Coins,
-  Repeat,
-  Info,
-  Loader2,
-  Zap,
-  QrCode,
-  Smartphone,
 } from "lucide-react";
 
+interface ActiveSessionItem {
+  id: string;
+  partnerName: string;
+  partnerAvatar: string;
+  skillName: string;
+  sessionType: "direct" | "escrow";
+  state: "requested" | "active" | "complete";
+  timeSlot: string;
+  role: "Teacher" | "Learner";
+  creditsAmount: number;
+}
+
 export default function CreditsWalletPage() {
-  const { credits, transactions, buyCredits, currentUser } = useSkillSwap();
+  const { credits, showToast } = useSkillSwap();
 
-  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
-  const [isUpiModalOpen, setIsUpiModalOpen] = useState(false);
-  const [upiData, setUpiData] = useState({ amount: 100, credits: 100 });
-  const [filterType, setFilterType] = useState<"ALL" | "EARNED" | "SPENT" | "PURCHASED">("ALL");
-  const [isProcessingRazorpay, setIsProcessingRazorpay] = useState(false);
-  const [customCredits, setCustomCredits] = useState("");
+  const [availableBalance, setAvailableBalance] = useState(30);
+  const [escrowBalance, setEscrowBalance] = useState(10);
 
-  const handleOpenUpi = (amount: number, creditsCount: number) => {
-    setUpiData({ amount, credits: creditsCount });
-    setIsUpiModalOpen(true);
-  };
-
-  const filteredTransactions = transactions.filter((tx) => {
-    if (filterType === "ALL") return true;
-    return tx.type === filterType;
-  });
-
-  const packages = [
+  const [sessions, setSessions] = useState<ActiveSessionItem[]>([
     {
-      id: "starter",
-      name: "Starter Pack",
-      credits: 50,
-      amount: 50,
-      price: "₹50",
-      description: "Ideal for trying out 5 standard 1-hour swap sessions (₹1/credit)",
-      popular: false,
+      id: "sess-1",
+      partnerName: "Elena Rostova",
+      partnerAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
+      skillName: "UI/UX Design Systems in Figma",
+      sessionType: "escrow",
+      state: "active",
+      timeSlot: "Tomorrow at 6:00 PM (1 Hour)",
+      role: "Learner",
+      creditsAmount: 10,
     },
     {
-      id: "popular",
-      name: "Growth Pack",
-      credits: 100,
-      amount: 100,
-      price: "₹100",
-      description: "Best value for active learners and career switchers (₹1/credit)",
-      popular: true,
+      id: "sess-2",
+      partnerName: "Arun Kumar",
+      partnerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      skillName: "Python & Machine Learning",
+      sessionType: "direct",
+      state: "active",
+      timeSlot: "Saturday at 2:00 PM (1 Hour)",
+      role: "Learner",
+      creditsAmount: 0,
     },
     {
-      id: "pro",
-      name: "Mastery Pack",
-      credits: 250,
-      amount: 250,
-      price: "₹250",
-      description: "For deep ongoing mentorship across multiple complex domains (₹1/credit)",
-      popular: false,
+      id: "sess-3",
+      partnerName: "Sophia Rivera",
+      partnerAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80",
+      skillName: "Conversational Spanish",
+      sessionType: "escrow",
+      state: "requested",
+      timeSlot: "Monday at 4:30 PM (1 Hour)",
+      role: "Learner",
+      creditsAmount: 10,
     },
     {
-      id: "power",
-      name: "Pro Pack",
-      credits: 500,
-      amount: 500,
-      price: "₹500",
-      description: "Maximum mentorship acceleration for serious skill builders (₹1/credit)",
-      popular: false,
+      id: "sess-4",
+      partnerName: "Marcus Chen",
+      partnerAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+      skillName: "Docker & Kubernetes Architecture",
+      sessionType: "direct",
+      state: "complete",
+      timeSlot: "Completed Yesterday",
+      role: "Teacher",
+      creditsAmount: 0,
     },
-  ];
+  ]);
 
-  const handleCheckout = (amount: number, credCount: number) => {
-    processRazorpayCheckout({
-      amount,
-      credits: credCount,
-      userId: currentUser.id,
-      userName: currentUser.name,
-      userEmail: currentUser.email,
-      onProcessing: (proc) => setIsProcessingRazorpay(proc),
-      onSuccess: (added, paid, method) => {
-        buyCredits(added, `₹${paid}`, method);
+  const [transactions, setTransactions] = useState([
+    {
+      id: "tx-1",
+      title: "1-Hour Session with Elena Rostova",
+      description: "Credit Escrow: UI/UX Design Systems in Figma",
+      amount: -10,
+      status: "In Escrow",
+      date: "Sep 25, 2026",
+    },
+    {
+      id: "tx-2",
+      title: "Taught 1-Hour Session to Alex Miller",
+      description: "React & Next.js Fundamentals",
+      amount: +10,
+      status: "Released",
+      date: "Sep 24, 2026",
+    },
+    {
+      id: "tx-3",
+      title: "Taught 1-Hour Session to Priya Patel",
+      description: "Tailwind CSS & Component Architecture",
+      amount: +10,
+      status: "Released",
+      date: "Sep 22, 2026",
+    },
+    {
+      id: "tx-4",
+      title: "SkillSwap Welcome Credits",
+      description: "Initial Registration Baseline",
+      amount: +20,
+      status: "Complete",
+      date: "Sep 20, 2026",
+    },
+  ]);
+
+  // Mark session complete -> releases escrow
+  const handleMarkComplete = (sessionId: string) => {
+    setSessions((prev) =>
+      prev.map((s) => {
+        if (s.id === sessionId) {
+          return { ...s, state: "complete" as const };
+        }
+        return s;
+      })
+    );
+
+    // Update balances
+    setEscrowBalance((prev) => Math.max(0, prev - 10));
+    setTransactions((prev) => [
+      {
+        id: `tx-${Date.now()}`,
+        title: "Session Completed & Escrow Released",
+        description: "10 Credits unlocked and transferred to teacher",
+        amount: -10,
+        status: "Released",
+        date: "Just now",
       },
-      onError: (err) => {
-        alert(err || "Payment failed. Please try again.");
-      },
-    });
+      ...prev,
+    ]);
+
+    showToast("Session marked complete! 10 credits released to teacher.", "success");
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F7FF] dark:bg-[#0E0C1B] text-[#18181B] dark:text-[#F4F3FA] transition-colors duration-200">
-      <Navbar onOpenBuyCredits={() => setIsBuyModalOpen(true)} />
+    <div className="min-h-screen flex flex-col bg-[#f5f2fc] dark:bg-[#130f26] text-[#241b3d] dark:text-[#f4f0ff] transition-colors duration-200">
+      <Navbar />
 
-      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-10">
-        {/* Wallet Balance Header Card */}
-        <div className="bg-white dark:bg-[#161327] rounded-3xl border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm p-6 sm:p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#7C3AED] dark:text-[#A78BFA]">
-                Wallet & Credits
+      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-10">
+        {/* Header */}
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-semibold text-[#7d6ce8] dark:text-[#ac98f2] mb-2">
+            <CoinIcon size={12} />
+            <span>1 Hour = 10 Credits · Escrow Protected</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#241b3d] dark:text-[#f4f0ff]">
+            Credits & wallet
+          </h1>
+          <p className="text-xs sm:text-sm text-[#7a719c] dark:text-[#a99ed4] mt-1">
+            Track your hours taught and learned, active escrow, and credit transactions.
+          </p>
+        </div>
+
+        {/* 1. TOP ACTIVITY CARD (Same as Home Screen) */}
+        <section className="space-y-3">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#7a719c] dark:text-[#a99ed4] block px-1">
+            Activity & Gamification
+          </span>
+          <ActivityCard
+            currentLevel="Connector"
+            learningHours={14}
+            teachingHours={18}
+            badges={{
+              goodStart: true,
+              firstSwap: true,
+              streak7Days: false,
+            }}
+          />
+        </section>
+
+        {/* 2. BALANCE SUMMARY CARDS */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Card A: Available Balance */}
+          <div className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#7a719c] dark:text-[#a99ed4]">
+                Available Balance
               </span>
-              <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-1">Available Balance</p>
-              <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-4xl sm:text-5xl font-extrabold text-[#18181B] dark:text-white font-mono tracking-tight">
-                  🪙 {credits}
-                </span>
-                <span className="text-sm font-semibold text-[#71717A] dark:text-zinc-400">Credits</span>
+              <CoinIcon size={22} />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-extrabold text-[#f5a524] font-mono">
+                {availableBalance}
+              </span>
+              <span className="text-sm font-semibold text-[#7a719c] dark:text-[#a99ed4]">
+                Credits
+              </span>
+            </div>
+            <p className="text-xs text-[#7a719c] dark:text-[#a99ed4]">
+              Enough for <strong>{Math.floor(availableBalance / 10)} hours</strong> of peer learning.
+            </p>
+          </div>
+
+          {/* Card B: In Escrow */}
+          <div className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#7a719c] dark:text-[#a99ed4]">
+                Currently In Escrow
+              </span>
+              <div className="w-8 h-8 rounded-full bg-[#ede8fb] dark:bg-[#282147] text-[#f5a524] flex items-center justify-center">
+                <Lock className="w-4 h-4" />
               </div>
-              <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-2 flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span>10 credits = 1 standard 60-minute swap session (escrow secured)</span>
-              </p>
             </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3">
-              <Link
-                href="/skills"
-                className="px-5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-[#18181B] dark:text-zinc-200 text-xs font-semibold transition-colors shadow-sm flex items-center gap-1.5"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Earn by Teaching</span>
-              </Link>
-              <button
-                type="button"
-                onClick={() => setIsBuyModalOpen(true)}
-                className="px-5 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-md transition-all flex items-center gap-1.5"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Buy Credits</span>
-              </button>
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-extrabold text-[#241b3d] dark:text-[#f4f0ff] font-mono">
+                {escrowBalance}
+              </span>
+              <span className="text-sm font-semibold text-[#7a719c] dark:text-[#a99ed4]">
+                Credits locked
+              </span>
             </div>
-          </div>
-        </div>
-
-        {/* EXPLAINER SECTIONS: EARN CREDITS & SPEND CREDITS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* EARN CREDITS */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold">
-              +
-            </div>
-            <h3 className="text-lg font-bold text-[#18181B] dark:text-white">
-              Earn Credits Through Teaching
-            </h3>
-            <p className="text-xs sm:text-sm text-[#71717A] dark:text-zinc-300 leading-relaxed">
-              Every time you host a 1-on-1 swap or mentorship session, you earn 10 credits upon completion. You can teach programming, design, foreign languages, or any specialized craft you know.
+            <p className="text-xs text-[#7a719c] dark:text-[#a99ed4]">
+              Held safely until active session is marked complete.
             </p>
-            <div className="pt-2">
-              <Link href="/skills" className="text-xs font-bold text-[#7C3AED] dark:text-[#A78BFA] hover:underline">
-                Add skills you can teach →
-              </Link>
-            </div>
           </div>
 
-          {/* SPEND CREDITS */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] flex items-center justify-center font-bold">
-              -
+          {/* Card C: The Economic Rule */}
+          <div className="rounded-3xl bg-gradient-to-br from-[#ede8fb] to-white dark:from-[#282147] dark:to-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 space-y-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#7d6ce8] dark:text-[#ac98f2] block">
+              Platform Rule
+            </span>
+            <div className="text-lg font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+              1 Hour = 10 Credits
             </div>
-            <h3 className="text-lg font-bold text-[#18181B] dark:text-white">
-              Spend Credits to Learn
-            </h3>
-            <p className="text-xs sm:text-sm text-[#71717A] dark:text-zinc-300 leading-relaxed">
-              Credits allow you to learn from any practitioner on Skill Swap, even if they don&apos;t need your specific skills in return. Credits are safely escrowed until the call concludes.
+            <p className="text-xs text-[#7a719c] dark:text-[#a99ed4] leading-relaxed">
+              Every 1 hour taught earns 10 credits. Every 1 hour learned costs 10 credits (or zero if direct swap).
             </p>
-            <div className="pt-2">
-              <Link href="/discover" className="text-xs font-bold text-[#7C3AED] dark:text-[#A78BFA] hover:underline">
-                Explore skills to learn →
-              </Link>
-            </div>
           </div>
-        </div>
+        </section>
 
-        {/* BUY CREDITS SECTION */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+        {/* 3. ACTIVE SESSIONS LIST */}
+        <section className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 sm:p-7 space-y-5">
+          <div className="flex items-center justify-between pb-3 border-b border-[#ddd4f5]/60 dark:border-[#362c5e]/60">
             <div>
-              <h2 className="text-xl font-bold text-[#18181B] dark:text-white">Buy Credits via Razorpay</h2>
-              <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-0.5">
-                Top up your wallet at a transparent rate of <strong className="text-[#18181B] dark:text-white font-semibold">1 Credit = ₹1 INR</strong>.
+              <h2 className="text-base font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+                Active sessions
+              </h2>
+              <p className="text-xs text-[#7a719c] dark:text-[#a99ed4]">
+                States: requested → active → complete. Click &ldquo;Mark complete&rdquo; to release held credits.
               </p>
             </div>
-            <span className="text-[11px] px-3 py-1 rounded-full bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] font-semibold w-fit flex items-center gap-1.5 border border-[#DDD6FE] dark:border-[#3B2D66]">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Razorpay UPI &amp; Cards Enabled</span>
+            <span className="text-xs font-bold text-[#7d6ce8] dark:text-[#ac98f2] bg-[#ede8fb] dark:bg-[#282147] px-3 py-1 rounded-full">
+              {sessions.filter((s) => s.state !== "complete").length} ongoing
             </span>
           </div>
 
-          {/* Packages Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {packages.map((pkg) => (
-              <div
-                key={pkg.id}
-                className={`p-5 rounded-2xl border flex flex-col justify-between transition-all ${
-                  pkg.popular
-                    ? "border-[#7C3AED] bg-[#EDE9FE]/20 dark:bg-[#231C3D]/30 shadow-md ring-2 ring-[#7C3AED]"
-                    : "border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#161327]"
-                }`}
-              >
-                <div>
-                  {pkg.popular && (
-                    <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#7C3AED] text-white text-[10px] font-bold mb-3">
-                      Most Popular
-                    </span>
-                  )}
-                  <h4 className="text-base font-bold text-[#18181B] dark:text-white">{pkg.name}</h4>
-                  <div className="flex items-baseline gap-1.5 my-2">
-                    <span className="text-3xl font-extrabold text-[#18181B] dark:text-white font-mono">{pkg.price}</span>
-                    <span className="text-xs text-[#71717A] font-normal">one-time</span>
+          <div className="space-y-3">
+            {sessions.map((sess) => {
+              const isDirect = sess.sessionType === "direct";
+              const isComplete = sess.state === "complete";
+              const isActive = sess.state === "active";
+
+              return (
+                <div
+                  key={sess.id}
+                  className="rounded-2xl bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <img
+                      src={sess.partnerAvatar}
+                      alt={sess.partnerName}
+                      className="w-11 h-11 rounded-full object-cover border border-[#ddd4f5] dark:border-[#362c5e]"
+                    />
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-bold text-[#241b3d] dark:text-[#f4f0ff]">
+                          {sess.partnerName}
+                        </span>
+                        {/* Session Type Pill */}
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          isDirect
+                            ? "bg-[#ede8fb] dark:bg-[#282147] text-[#7d6ce8] dark:text-[#ac98f2]"
+                            : "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400"
+                        }`}>
+                          {isDirect ? "Direct swap" : "Credit escrow (10c)"}
+                        </span>
+                        {/* State Badge */}
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                          sess.state === "active"
+                            ? "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400"
+                            : sess.state === "requested"
+                            ? "bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300"
+                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                        }`}>
+                          {sess.state}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#7a719c] dark:text-[#a99ed4] mt-0.5">
+                        <strong className="text-[#241b3d] dark:text-[#f4f0ff]">{sess.skillName}</strong> · {sess.timeSlot}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs font-semibold text-[#7C3AED] dark:text-[#A78BFA] font-mono mb-2">
-                    🪙 {pkg.credits} Credits
-                  </p>
-                  <p className="text-xs text-[#71717A] dark:text-zinc-400 leading-relaxed">
-                    {pkg.description}
-                  </p>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    {isActive && !isDirect && (
+                      <button
+                        type="button"
+                        onClick={() => handleMarkComplete(sess.id)}
+                        className="px-4 py-2 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Mark complete</span>
+                      </button>
+                    )}
+
+                    {isComplete && (
+                      <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Released</span>
+                      </span>
+                    )}
+
+                    <Link
+                      href="/messages"
+                      className="px-3.5 py-2 rounded-full bg-white dark:bg-[#1e1938] hover:bg-[#ede8fb]/60 text-xs font-semibold text-[#7a719c] dark:text-[#a99ed4] border border-[#ddd4f5] dark:border-[#362c5e]"
+                    >
+                      Open chat
+                    </Link>
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+        </section>
 
-                <div className="mt-5 pt-3 border-t border-zinc-100 dark:border-zinc-800 space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenUpi(pkg.amount, pkg.credits)}
-                    className="w-full py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <QrCode className="w-3.5 h-3.5" />
-                    <span>Scan UPI QR ({pkg.price})</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    disabled={isProcessingRazorpay}
-                    onClick={() => handleCheckout(pkg.amount, pkg.credits)}
-                    className="w-full py-2 rounded-xl text-[11px] font-semibold border border-[#E4E1F5] dark:border-[#2D264E] text-[#71717A] hover:text-[#18181B] dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <CreditCard className="w-3 h-3" />
-                    <span>Pay with Razorpay</span>
-                  </button>
-                </div>
-              </div>
-            ))}
+        {/* 4. TRANSACTION HISTORY LOG */}
+        <section className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 sm:p-7 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-[#ddd4f5]/60 dark:border-[#362c5e]/60">
+            <h2 className="text-base font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+              Transaction history
+            </h2>
+            <span className="text-xs text-[#7a719c] dark:text-[#a99ed4]">
+              {transactions.length} entries
+            </span>
           </div>
 
-          {/* Custom Amount Calculator Card */}
-          <div className="p-5 rounded-2xl border border-[#DDD6FE] dark:border-[#3B2D66] bg-gradient-to-br from-[#EDE9FE]/30 to-white dark:from-[#231C3D]/40 dark:to-[#161327] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <span className="inline-flex items-center gap-1 text-xs font-bold text-[#7C3AED] dark:text-[#A78BFA]">
-                <Zap className="w-3.5 h-3.5" />
-                <span>Custom Credits Top-up (₹1 = 1 Credit)</span>
-              </span>
-              <p className="text-xs text-[#71717A] dark:text-zinc-300">
-                Want a specific number of credits? Type your desired credits (e.g. 75, 200, 1000):
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <span className="absolute left-3.5 top-2.5 text-xs text-[#71717A] font-bold">₹</span>
-                <input
-                  type="number"
-                  min="1"
-                  max="100000"
-                  value={customCredits}
-                  onChange={(e) => setCustomCredits(e.target.value)}
-                  placeholder="e.g. 75"
-                  className="w-36 pl-8 pr-3 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#161327] text-xs font-mono font-bold text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={!customCredits || Number(customCredits) <= 0}
-                  onClick={() => handleOpenUpi(Number(customCredits), Number(customCredits))}
-                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs disabled:opacity-50 transition-all flex items-center gap-1.5"
+          <div className="divide-y divide-[#ddd4f5]/60 dark:divide-[#362c5e]/60">
+            {transactions.map((tx) => {
+              const isPositive = tx.amount > 0;
+              return (
+                <div
+                  key={tx.id}
+                  className="py-3.5 flex items-center justify-between gap-4"
                 >
-                  <QrCode className="w-3.5 h-3.5" />
-                  <span>Scan UPI (₹{customCredits || 0})</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={isProcessingRazorpay || !customCredits || Number(customCredits) <= 0}
-                  onClick={() => handleCheckout(Number(customCredits), Number(customCredits))}
-                  className="px-4 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-xs disabled:opacity-50 transition-all flex items-center gap-1.5"
-                >
-                  {isProcessingRazorpay ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <CreditCard className="w-3.5 h-3.5" />
-                  )}
-                  <span>Razorpay (₹{customCredits || 0})</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Supported Methods Footer */}
-          <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/60 flex flex-wrap items-center justify-between gap-3 text-xs text-[#71717A]">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Direct Bank Settlement via Razorpay Merchant API</span>
-            </div>
-            <div className="flex items-center gap-2 text-[11px] font-medium">
-              <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
-                Google Pay
-              </span>
-              <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
-                PhonePe / Paytm
-              </span>
-              <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
-                RuPay / Visa / Mastercard
-              </span>
-              <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
-                Netbanking (50+ Banks)
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* TRANSACTION HISTORY */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-100 dark:border-zinc-800">
-            <div className="flex items-center gap-2">
-              <History className="w-5 h-5 text-[#7C3AED] dark:text-[#A78BFA]" />
-              <h2 className="text-lg font-bold text-[#18181B] dark:text-white">Transaction History</h2>
-            </div>
-
-            {/* Filter pills */}
-            <div className="flex items-center gap-1.5">
-              {(["ALL", "EARNED", "SPENT", "PURCHASED"] as const).map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => setFilterType(filter)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
-                    filterType === filter
-                      ? "bg-[#7C3AED] text-white"
-                      : "bg-[#F8F7FF] dark:bg-[#0E0C1B] text-[#71717A] hover:text-[#18181B] dark:hover:text-white border border-[#E4E1F5] dark:border-[#2D264E]"
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {filteredTransactions.length > 0 ? (
-            <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {filteredTransactions.map((tx) => (
-                <div key={tx.id} className="py-4 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
-                        tx.type === "EARNED"
-                          ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400"
-                          : tx.type === "SPENT"
-                          ? "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400"
-                          : "bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA]"
+                      className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 ${
+                        isPositive
+                          ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
+                          : "bg-amber-50 dark:bg-amber-950/40 text-[#f5a524]"
                       }`}
                     >
-                      {tx.type === "EARNED" ? (
+                      {isPositive ? (
                         <ArrowDownLeft className="w-4 h-4" />
-                      ) : tx.type === "SPENT" ? (
-                        <ArrowUpRight className="w-4 h-4" />
                       ) : (
-                        <Plus className="w-4 h-4" />
+                        <ArrowUpRight className="w-4 h-4" />
                       )}
                     </div>
                     <div>
-                      <h4 className="text-xs sm:text-sm font-bold text-[#18181B] dark:text-white">{tx.title}</h4>
-                      <p className="text-[11px] text-[#71717A] dark:text-zinc-400">{tx.detail}</p>
+                      <p className="text-xs sm:text-sm font-bold text-[#241b3d] dark:text-[#f4f0ff]">
+                        {tx.title}
+                      </p>
+                      <p className="text-[11px] text-[#7a719c] dark:text-[#a99ed4]">
+                        {tx.description} · {tx.date}
+                      </p>
                     </div>
                   </div>
 
                   <div className="text-right">
                     <span
-                      className={`text-sm font-bold font-mono block ${
-                        tx.amount > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
+                      className={`text-sm font-extrabold font-mono ${
+                        isPositive
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-[#241b3d] dark:text-[#f4f0ff]"
                       }`}
                     >
-                      {tx.amount > 0 ? `+${tx.amount}` : tx.amount} credits
+                      {isPositive ? `+${tx.amount}` : tx.amount} Credits
                     </span>
-                    <span className="text-[10px] text-[#71717A] dark:text-zinc-500">{tx.date}</span>
+                    <span className="block text-[10px] text-[#7a719c] dark:text-[#a99ed4] font-medium">
+                      {tx.status}
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-8 text-center text-xs text-[#71717A]">
-              No transactions match the selected filter.
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        </section>
       </main>
-
-      <BuyCreditsModal
-        isOpen={isBuyModalOpen}
-        onClose={() => setIsBuyModalOpen(false)}
-      />
-
-      <UpiPaymentModal
-        isOpen={isUpiModalOpen}
-        onClose={() => setIsUpiModalOpen(false)}
-        amount={upiData.amount}
-        credits={upiData.credits}
-      />
     </div>
   );
 }

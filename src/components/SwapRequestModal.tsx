@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useSkillSwap } from "@/context/SkillSwapContext";
+import CoinIcon from "@/components/common/CoinIcon";
 import {
   X,
   Repeat,
@@ -9,7 +10,6 @@ import {
   CheckCircle2,
   ArrowRight,
   ShieldCheck,
-  Coins,
 } from "lucide-react";
 
 interface SwapRequestModalProps {
@@ -31,7 +31,7 @@ export default function SwapRequestModal({
   targetUser,
   onSuccess,
 }: SwapRequestModalProps) {
-  const { userTaughtSkills, credits, sendSwapRequest, showToast } = useSkillSwap();
+  const { userTaughtSkills, sendSwapRequest } = useSkillSwap();
 
   const [selectedOffer, setSelectedOffer] = useState<string>(
     userTaughtSkills[0] || "Credits (10 Credits)"
@@ -65,12 +65,12 @@ export default function SwapRequestModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-lg bg-white dark:bg-[#161327] rounded-3xl border border-[#E4E1F5] dark:border-[#2D264E] shadow-2xl p-6 sm:p-8 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+      <div className="w-full max-w-lg bg-white dark:bg-[#1e1938] rounded-3xl border border-[#ddd4f5] dark:border-[#362c5e] shadow-2xl p-6 sm:p-8 relative text-[#241b3d] dark:text-[#f4f0ff]">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 rounded-full text-[#71717A] hover:text-[#18181B] dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+          className="absolute top-5 right-5 p-1.5 rounded-full text-[#7a719c] hover:text-[#241b3d] dark:hover:text-white hover:bg-[#ede8fb] dark:hover:bg-[#282147] transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
@@ -81,11 +81,11 @@ export default function SwapRequestModal({
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-[#18181B] dark:text-white">
-                Swap request sent successfully!
+              <h3 className="text-xl font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+                Swap request sent
               </h3>
-              <p className="text-xs sm:text-sm text-[#71717A] dark:text-zinc-400 mt-1 max-w-sm mx-auto">
-                We notified {targetUser.name}. Once they accept, your reciprocal learning session will be confirmed!
+              <p className="text-xs sm:text-sm text-[#7a719c] dark:text-[#a99ed4] mt-1 max-w-sm mx-auto">
+                We notified {targetUser.name}. Once they accept, you can start your direct 1-hour swap with zero credits required.
               </p>
             </div>
             <div className="pt-2">
@@ -94,7 +94,7 @@ export default function SwapRequestModal({
                   setSentSuccess(false);
                   onClose();
                 }}
-                className="px-6 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm"
+                className="px-6 py-2.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs font-bold shadow-sm"
               >
                 Done
               </button>
@@ -103,54 +103,54 @@ export default function SwapRequestModal({
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] text-xs font-semibold mb-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ede8fb] dark:bg-[#282147] text-[#7d6ce8] dark:text-[#ac98f2] border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-semibold mb-2">
                 <Repeat className="w-3.5 h-3.5" />
-                <span>Skill Exchange Request</span>
+                <span>Direct Swap · No Credits Move</span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-[#18181B] dark:text-white">
-                Request a Skill Swap
+              <h3 className="text-xl sm:text-2xl font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+                Request a skill swap
               </h3>
-              <p className="text-xs sm:text-sm text-[#71717A] dark:text-zinc-400 mt-0.5">
-                Propose a reciprocal swap with {targetUser.name}.
+              <p className="text-xs sm:text-sm text-[#7a719c] dark:text-[#a99ed4] mt-0.5">
+                Propose a mutual 1-hour exchange with {targetUser.name}.
               </p>
             </div>
 
             {/* Target Skill Summary */}
-            <div className="p-4 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] flex items-center gap-3.5">
+            <div className="p-4 rounded-2xl bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] flex items-center gap-3.5">
               {targetUser.avatar ? (
                 <img
                   src={targetUser.avatar}
                   alt={targetUser.name}
-                  className="w-12 h-12 rounded-full object-cover border border-[#E4E1F5]"
+                  className="w-12 h-12 rounded-full object-cover border border-[#ddd4f5] dark:border-[#362c5e]"
                 />
               ) : (
-                <div className="w-12 h-12 rounded-full bg-[#EDE9FE] text-[#7C3AED] flex items-center justify-center font-bold text-base">
+                <div className="w-12 h-12 rounded-full bg-[#ede8fb] text-[#7d6ce8] flex items-center justify-center font-bold text-base">
                   {targetUser.name.charAt(0)}
                 </div>
               )}
               <div>
-                <span className="text-[11px] font-semibold text-[#7C3AED] dark:text-[#A78BFA] uppercase tracking-wider block">
-                  You want to learn:
+                <span className="text-[11px] font-semibold text-[#7d6ce8] dark:text-[#ac98f2] uppercase tracking-wider block">
+                  You want to learn
                 </span>
-                <p className="text-base font-bold text-[#18181B] dark:text-white">
+                <p className="text-sm sm:text-base font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
                   {targetUser.skillToTeach}
                 </p>
-                <p className="text-xs text-[#71717A] dark:text-zinc-400">
-                  from {targetUser.name}
+                <p className="text-xs text-[#7a719c] dark:text-[#a99ed4]">
+                  Taught by {targetUser.name}
                 </p>
               </div>
             </div>
 
             {/* What can you offer in exchange? */}
             <div className="space-y-3">
-              <label className="text-xs font-bold uppercase tracking-wider text-[#18181B] dark:text-zinc-200 block">
+              <label className="text-xs font-bold uppercase tracking-wider text-[#7a719c] dark:text-[#a99ed4] block">
                 What can you offer in exchange?
               </label>
 
               {userTaughtSkills.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-xs text-[#71717A] block">
-                    Choose from your teaching skills:
+                  <span className="text-xs text-[#7a719c] dark:text-[#a99ed4] block">
+                    Choose from your teaching skills (Direct swap):
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {userTaughtSkills.map((skill) => (
@@ -161,10 +161,10 @@ export default function SwapRequestModal({
                           setSelectedOffer(skill);
                           setUseCredits(false);
                         }}
-                        className={`p-3 rounded-xl border text-left text-xs font-semibold transition-all ${
+                        className={`p-3 rounded-2xl border text-left text-xs font-semibold transition-all ${
                           !useCredits && selectedOffer === skill
-                            ? "border-[#7C3AED] bg-[#EDE9FE]/60 dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] shadow-sm ring-1 ring-[#7C3AED]"
-                            : "border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#161327] text-[#18181B] dark:text-zinc-300 hover:border-[#A78BFA]"
+                            ? "border-[#7d6ce8] bg-[#ede8fb] dark:bg-[#282147] text-[#7d6ce8] dark:text-[#ac98f2] shadow-sm"
+                            : "border-[#ddd4f5] dark:border-[#362c5e] bg-white dark:bg-[#1e1938] text-[#241b3d] dark:text-[#f4f0ff] hover:border-[#7d6ce8]"
                         }`}
                       >
                         <span className="block truncate">{skill}</span>
@@ -174,41 +174,41 @@ export default function SwapRequestModal({
                 </div>
               )}
 
-              {/* Or use credits option */}
+              {/* Or pay 10 credits instead */}
               <div
                 onClick={() => setUseCredits(true)}
-                className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
                   useCredits
-                    ? "border-[#7C3AED] bg-[#EDE9FE]/60 dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] shadow-sm ring-1 ring-[#7C3AED]"
-                    : "border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#161327] text-[#71717A] hover:border-[#A78BFA]"
+                    ? "border-[#7d6ce8] bg-[#ede8fb] dark:bg-[#282147] text-[#7d6ce8] dark:text-[#ac98f2] shadow-sm"
+                    : "border-[#ddd4f5] dark:border-[#362c5e] bg-white dark:bg-[#1e1938] text-[#7a719c] hover:border-[#7d6ce8]"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Coins className="w-4 h-4 text-amber-500" />
+                  <CoinIcon size={18} />
                   <div>
-                    <p className="text-xs font-bold text-[#18181B] dark:text-white">
-                      Offer 10 Credits instead
+                    <p className="text-xs font-bold text-[#241b3d] dark:text-[#f4f0ff]">
+                      Pay 10 credits instead
                     </p>
-                    <p className="text-[11px] text-[#71717A]">
-                      Use credits if you don&apos;t have a matching skill to swap
+                    <p className="text-[11px] text-[#7a719c] dark:text-[#a99ed4]">
+                      Locked in escrow until 1-hour session is marked complete
                     </p>
                   </div>
                 </div>
-                <span className="font-mono text-xs font-bold">🪙 10</span>
+                <span className="font-mono text-xs font-extrabold text-[#f5a524]">10 c</span>
               </div>
             </div>
 
             {/* Optional Personal Note */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block">
-                Short note to {targetUser.name} (Optional)
+              <label className="text-xs font-semibold text-[#7a719c] dark:text-[#a99ed4] block">
+                Short note to {targetUser.name} (optional)
               </label>
               <textarea
                 rows={2}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="e.g. Excited to swap with you! I can teach React architecture in return."
-                className="w-full px-3.5 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                placeholder="e.g. Excited to swap with you! I can teach Next.js architecture in return."
+                className="w-full px-4 py-2.5 rounded-2xl border border-[#ddd4f5] dark:border-[#362c5e] bg-white dark:bg-[#130f26] text-xs text-[#241b3d] dark:text-[#f4f0ff] placeholder-[#7a719c] focus:outline-none focus:ring-2 focus:ring-[#7d6ce8]/40"
               />
             </div>
 
@@ -217,16 +217,16 @@ export default function SwapRequestModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] text-xs font-semibold text-[#71717A] hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                className="px-4 py-2.5 rounded-full border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-semibold text-[#7a719c] hover:bg-[#ede8fb] dark:hover:bg-[#282147] transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-6 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold text-xs sm:text-sm shadow-md transition-all flex items-center gap-1.5"
+                className="px-6 py-2.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white font-bold text-xs shadow-sm transition-all flex items-center gap-1.5"
               >
-                <span>Send Swap Request</span>
+                <span>Send swap request</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

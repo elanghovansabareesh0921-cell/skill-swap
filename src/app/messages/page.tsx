@@ -4,15 +4,15 @@ import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import CoinIcon from "@/components/common/CoinIcon";
+import VerifiedBadge from "@/components/common/VerifiedBadge";
 import { useSkillSwap, ChatConversation, ChatMessage } from "@/context/SkillSwapContext";
 import {
   Search,
   Send,
   ArrowLeft,
-  MoreVertical,
   Check,
   CheckCheck,
-  Phone,
   Video,
   Sparkles,
   MessageSquare,
@@ -21,9 +21,16 @@ import {
   Clock,
   Calendar,
   X,
+  Repeat,
   ArrowRight,
   ExternalLink,
 } from "lucide-react";
+
+interface PeerConversation extends ChatConversation {
+  sessionType?: "direct" | "escrow";
+  sessionState?: "requested" | "active" | "complete";
+  lockedCredits?: number;
+}
 
 function MessagesContent() {
   const searchParams = useSearchParams();
@@ -41,8 +48,16 @@ function MessagesContent() {
     showToast,
   } = useSkillSwap();
 
+  // Extend mock conversations with session types and states
+  const enhancedConversations: PeerConversation[] = conversations.map((c, i) => ({
+    ...c,
+    sessionType: i % 2 === 0 ? "direct" : "escrow",
+    sessionState: i === 0 ? "active" : i === 1 ? "requested" : "complete",
+    lockedCredits: i % 2 === 0 ? 0 : 10,
+  }));
+
   const [activeConvId, setActiveConvId] = useState<string>(
-    partnerIdParam ? `conv-${partnerIdParam}` : conversations[0]?.id || "conv-1"
+    partnerIdParam ? `conv-${partnerIdParam}` : enhancedConversations[0]?.id || "conv-1"
   );
   const [inputText, setInputText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -51,491 +66,509 @@ function MessagesContent() {
   // In-Chat Session Scheduler State
   const [showSchedulerModal, setShowSchedulerModal] = useState(false);
   const [scheduledDate, setScheduledDate] = useState("Tomorrow");
-  const [scheduledTime, setScheduledTime] = useState("6:00 PM – 6:45 PM");
-  const [sessionLength, setSessionLength] = useState<30 | 45 | 60>(45);
-  const [sessionTopic, setSessionTopic] = useState("Skill Swap Hands-on Session");
+  const [scheduledTime, setScheduledTime] = useState("6:00 PM – 7:00 PM");
+  const [sessionLength, setSessionLength] = useState<60>(60);
+  const [sessionTopic, setSessionTopic] = useState("1-Hour Skill Swap Session");
   const [schedulingLoading, setSchedulingLoading] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // If partnerId passed in URL, select or create conversation
-  useEffect(() => {
-    if (partnerIdParam) {
-      setActiveConvId(`conv-${partnerIdParam}`);
-      setMobileView("chat");
-    }
-  }, [partnerIdParam]);
-
-  // Find active conversation
-  const activeConversation = conversations.find(
-    (c) => c.id === activeConvId || c.participantId === partnerIdParam
-  ) || {
-    id: activeConvId,
-    participantId: partnerIdParam || "arun-kumar",
-    participantName: partnerNameParam || "Arun Kumar",
-    participantAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-    participantRole: "Senior Mentor",
-    lastMessage: "Looking forward to swapping skills!",
-    lastMessageTime: "Just now",
-    unreadCount: 0,
-    online: true,
-  };
-
-  // Filter messages for active conversation
-  const activeMessages = messages.filter(
-    (m) =>
-      (m.senderId === activeConversation.participantId && m.receiverId === currentUser.id) ||
-      (m.senderId === currentUser.id && m.receiverId === activeConversation.participantId) ||
-      (m.receiverId === activeConversation.participantId || m.senderId === activeConversation.participantId)
-  );
-
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeMessages.length]);
+  }, [messages, activeConvId]);
+
+  const activeConversation: PeerConversation =
+    enhancedConversations.find((c) => c.id === activeConvId) ||
+    enhancedConversations[0] || {
+      id: "conv-fallback",
+      participantId: "arun-kumar",
+      participantName: partnerNameParam || "Arun Kumar",
+      participantAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+      participantRole: "Python & Machine Learning",
+      lastMessage: "Looking forward to our skill swap session!",
+      lastMessageTime: "Just now",
+      unreadCount: 0,
+      online: true,
+      sessionType: "direct",
+      sessionState: "active",
+      lockedCredits: 0,
+    };
+
+  interface MessageItem {
+    id: string;
+    senderId: string;
+    senderName: string;
+    text: string;
+    timestamp: string;
+    read: boolean;
+  }
+
+  const [chatMessages, setChatMessages] = useState<Record<string, MessageItem[]>>({
+    "conv-1": [
+      {
+        id: "m-1",
+        senderId: "arun-kumar",
+        senderName: "Arun Kumar",
+        text: "Hi! I saw your profile and would love to trade skills. I can teach Python & ML in exchange for React & Next.js mentorship.",
+        timestamp: "10:30 AM",
+        read: true,
+      },
+      {
+        id: "m-2",
+        senderId: currentUser.id,
+        senderName: currentUser.name,
+        text: "That sounds perfect! Let's schedule a 1-hour session. Does tomorrow evening work for you?",
+        timestamp: "10:32 AM",
+        read: true,
+      },
+    ],
+  });
+
+  const activeMessages = chatMessages[activeConvId] || [
+    {
+      id: "m-1",
+      senderId: activeConversation.participantId,
+      senderName: activeConversation.participantName,
+      text: "Hi! I saw your profile and would love to trade skills. I can teach Python & ML in exchange for React & Next.js mentorship.",
+      timestamp: "10:30 AM",
+      read: true,
+    },
+    {
+      id: "m-2",
+      senderId: currentUser.id,
+      senderName: currentUser.name,
+      text: "That sounds perfect! Let's schedule a 1-hour session. Does tomorrow evening work for you?",
+      timestamp: "10:32 AM",
+      read: true,
+    },
+  ];
+
+  const filteredConversations = enhancedConversations.filter((c) =>
+    c.participantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.participantRole.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
 
-    sendMessage(activeConversation.participantId, inputText);
+    const newMsg: MessageItem = {
+      id: `m-${Date.now()}`,
+      senderId: currentUser.id,
+      senderName: currentUser.name,
+      text: inputText.trim(),
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      read: true,
+    };
+
+    setChatMessages((prev) => ({
+      ...prev,
+      [activeConvId]: [...(prev[activeConvId] || activeMessages), newMsg],
+    }));
+
+    sendMessage(activeConversation.participantId, inputText.trim());
     setInputText("");
   };
 
-  // Schedule Session & Generate Dedicated Room
   const handleConfirmSchedule = () => {
     setSchedulingLoading(true);
+    setTimeout(() => {
+      const roomToken = `room-${Date.now()}`;
+      const start = new Date(Date.now() + 86400000).toISOString();
+      const end = new Date(Date.now() + 86400000 + 3600000).toISOString();
 
-    const start = new Date(Date.now() + 86400000).toISOString();
-    const end = new Date(Date.now() + 86400000 + sessionLength * 60000).toISOString();
+      scheduleSessionRoom({
+        chatRoomId: activeConvId,
+        scheduledStart: start,
+        scheduledEnd: end,
+        skillName: sessionTopic,
+        peerName: activeConversation.participantName,
+      });
 
-    const res = scheduleSessionRoom({
-      chatRoomId: activeConversation.id,
-      scheduledStart: start,
-      scheduledEnd: end,
-      skillName: sessionTopic,
-      peerName: activeConversation.participantName,
-    });
+      const schedMsg: MessageItem = {
+        id: `m-${Date.now()}`,
+        senderId: currentUser.id,
+        senderName: currentUser.name,
+        text: `📅 Scheduled a 1-Hour Session for ${scheduledDate} (${scheduledTime}). Join classroom: /learn/${roomToken}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        read: true,
+      };
 
-    setSchedulingLoading(false);
-    setShowSchedulerModal(false);
+      setChatMessages((prev) => ({
+        ...prev,
+        [activeConvId]: [...(prev[activeConvId] || activeMessages), schedMsg],
+      }));
 
-    if (res.success && res.room) {
-      // Send a rich message inside the chat thread with classroom link
-      const inviteMsg = `📅 Session Scheduled!\nTopic: ${sessionTopic}\nDate & Time: ${scheduledDate} at ${scheduledTime} (${sessionLength} mins)\nClassroom Room Link: /learn/${res.room.roomToken}`;
-      sendMessage(activeConversation.participantId, inviteMsg);
-
-      showToast(
-        "Session Room Generated! 🚀",
-        `Unique classroom room link created: /learn/${res.room.roomToken}`,
-        "success"
-      );
-    }
+      setSchedulingLoading(false);
+      setShowSchedulerModal(false);
+      showToast("1-Hour session scheduled! Link shared in chat.", "success");
+    }, 600);
   };
 
-  const filteredConversations = conversations.filter((c) =>
-    c.participantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleMarkComplete = () => {
+    const compMsg: MessageItem = {
+      id: `m-${Date.now()}`,
+      senderId: currentUser.id,
+      senderName: currentUser.name,
+      text: "✅ Session marked complete! Escrow credits released to the teacher.",
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      read: true,
+    };
 
-  // Active scheduled room for this partner if any
-  const existingRoom = sessionRooms.find(
-    (r) => r.chatRoomId === activeConversation.id || r.peerName === activeConversation.participantName
-  );
+    setChatMessages((prev) => ({
+      ...prev,
+      [activeConvId]: [...(prev[activeConvId] || activeMessages), compMsg],
+    }));
+
+    showToast("Session complete: 10 credits released!", "success");
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F7FF] dark:bg-[#0E0C1B] text-[#18181B] dark:text-[#F4F3FA] transition-colors duration-200">
-      <Navbar />
-
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full h-[calc(100vh-5rem)] flex flex-col">
-        <div className="flex-1 bg-white dark:bg-[#161327] rounded-3xl border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm flex overflow-hidden">
-
-          {/* LEFT: CONVERSATION LIST */}
-          <div className={`w-full md:w-80 lg:w-96 border-r border-[#E4E1F5] dark:border-[#2D264E] flex flex-col ${
+    <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex flex-col h-[calc(100vh-80px)]">
+      <div className="flex-1 rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] shadow-sm overflow-hidden flex flex-col md:flex-row">
+        {/* LEFT: THREAD LIST */}
+        <div
+          className={`w-full md:w-80 lg:w-96 border-r border-[#ddd4f5] dark:border-[#362c5e] flex flex-col bg-[#f5f2fc]/50 dark:bg-[#130f26]/50 ${
             mobileView === "chat" ? "hidden md:flex" : "flex"
-          }`}>
-            {/* Header & Search */}
-            <div className="p-4 border-b border-[#E4E1F5] dark:border-[#2D264E] space-y-3">
-              <div className="flex items-center justify-between">
-                <h1 className="text-xl font-bold text-[#18181B] dark:text-white">Messages</h1>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA]">
-                  {conversations.length} chats
-                </span>
-              </div>
-
-              <div className="relative">
-                <Search className="w-4 h-4 text-[#71717A] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search conversations..."
-                  className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-1 focus:ring-[#7C3AED]"
-                />
+          }`}
+        >
+          {/* Header */}
+          <div className="p-4 border-b border-[#ddd4f5] dark:border-[#362c5e] space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+                Messages
+              </h2>
+              <div className="inline-flex items-center gap-1 text-[11px] font-bold text-[#7d6ce8] dark:text-[#ac98f2] bg-[#ede8fb] dark:bg-[#282147] px-2.5 py-0.5 rounded-full">
+                <CoinIcon size={12} />
+                <span>1h = 10c</span>
               </div>
             </div>
 
-            {/* List */}
-            <div className="flex-1 overflow-y-auto divide-y divide-zinc-50 dark:divide-zinc-800/60">
-              {filteredConversations.length > 0 ? (
-                filteredConversations.map((conv) => {
-                  const isActive = conv.id === activeConversation.id || conv.participantId === activeConversation.participantId;
-                  return (
-                    <div
-                      key={conv.id}
-                      onClick={() => {
-                        setActiveConvId(conv.id);
-                        setMobileView("chat");
-                      }}
-                      className={`p-4 flex items-start gap-3 cursor-pointer transition-colors ${
-                        isActive
-                          ? "bg-[#EDE9FE]/50 dark:bg-[#231C3D]/60 border-l-4 border-l-[#7C3AED]"
-                          : "hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
-                      }`}
-                    >
-                      <div className="relative shrink-0">
-                        <img
-                          src={conv.participantAvatar}
-                          alt={conv.participantName}
-                          className="w-11 h-11 rounded-full object-cover border border-[#E4E1F5]"
-                        />
-                        {conv.online && (
-                          <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#161327]" />
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold text-[#18181B] dark:text-white truncate">
-                            {conv.participantName}
-                          </h4>
-                          <span className="text-[10px] text-[#71717A] shrink-0">
-                            {conv.lastMessageTime}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-[#71717A] truncate mt-0.5">
-                          {conv.participantRole}
-                        </p>
-                        <p className="text-xs text-[#71717A] dark:text-zinc-300 truncate mt-1">
-                          {conv.lastMessage}
-                        </p>
-                      </div>
-
-                      {conv.unreadCount > 0 && (
-                        <span className="w-5 h-5 rounded-full bg-[#7C3AED] text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-                          {conv.unreadCount}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="p-8 text-center text-xs text-[#71717A]">
-                  No conversations found.
-                </div>
-              )}
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="w-4 h-4 text-[#7a719c] dark:text-[#a99ed4] absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search conversations..."
+                className="w-full pl-9 pr-3 py-2 rounded-full bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#241b3d] dark:text-[#f4f0ff] placeholder-[#7a719c] focus:outline-none focus:ring-2 focus:ring-[#7d6ce8]/40"
+              />
             </div>
           </div>
 
-          {/* RIGHT: CHAT WINDOW */}
-          <div className={`flex-1 flex flex-col ${
+          {/* Conversation Items */}
+          <div className="flex-1 overflow-y-auto divide-y divide-[#ddd4f5]/60 dark:divide-[#362c5e]/60">
+            {filteredConversations.length > 0 ? (
+              filteredConversations.map((conv) => {
+                const isActive = conv.id === activeConvId;
+                return (
+                  <div
+                    key={conv.id}
+                    onClick={() => {
+                      setActiveConvId(conv.id);
+                      setMobileView("chat");
+                    }}
+                    className={`p-4 cursor-pointer transition-colors flex items-start gap-3 ${
+                      isActive
+                        ? "bg-[#ede8fb] dark:bg-[#282147] border-l-4 border-l-[#7d6ce8]"
+                        : "hover:bg-white dark:hover:bg-[#1e1938]"
+                    }`}
+                  >
+                    <div className="relative shrink-0">
+                      <img
+                        src={conv.participantAvatar}
+                        alt={conv.participantName}
+                        className="w-11 h-11 rounded-full object-cover border border-[#ddd4f5] dark:border-[#362c5e]"
+                      />
+                      {conv.online && (
+                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#1e1938]" />
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#241b3d] dark:text-[#f4f0ff] truncate">
+                          {conv.participantName}
+                        </span>
+                        <span className="text-[10px] text-[#7a719c] dark:text-[#a99ed4] shrink-0">
+                          {conv.lastMessageTime}
+                        </span>
+                      </div>
+
+                      {/* Session Type & State Pills */}
+                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                          conv.sessionType === "direct"
+                            ? "bg-[#ede8fb] dark:bg-[#282147] text-[#7d6ce8] dark:text-[#ac98f2]"
+                            : "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400"
+                        }`}>
+                          {conv.sessionType === "direct" ? "Direct swap" : "Credit escrow (10c)"}
+                        </span>
+                        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
+                          conv.sessionState === "active"
+                            ? "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400"
+                            : conv.sessionState === "requested"
+                            ? "bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300"
+                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                        }`}>
+                          {conv.sessionState}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-[#7a719c] dark:text-[#a99ed4] truncate mt-1">
+                        {conv.lastMessage}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="p-8 text-center text-xs text-[#7a719c] dark:text-[#a99ed4]">
+                No conversations found.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT: CHAT LOG & COMPOSER */}
+        <div
+          className={`flex-1 flex flex-col bg-white dark:bg-[#1e1938] ${
             mobileView === "list" ? "hidden md:flex" : "flex"
-          }`}>
-            {/* Conversation Header */}
-            <div className="p-4 border-b border-[#E4E1F5] dark:border-[#2D264E] flex items-center justify-between bg-white dark:bg-[#161327]">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setMobileView("list")}
-                  className="md:hidden p-1.5 rounded-lg text-[#71717A] hover:bg-zinc-100"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
+          }`}
+        >
+          {/* Active Chat Header */}
+          <div className="p-4 border-b border-[#ddd4f5] dark:border-[#362c5e] flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setMobileView("list")}
+                className="md:hidden p-1.5 rounded-full text-[#7a719c] hover:bg-[#ede8fb]"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
 
-                <div className="relative">
-                  <img
-                    src={activeConversation.participantAvatar}
-                    alt={activeConversation.participantName}
-                    className="w-10 h-10 rounded-full object-cover border border-[#E4E1F5]"
-                  />
-                  {activeConversation.online && (
-                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
-                  )}
-                </div>
+              <div className="relative">
+                <img
+                  src={activeConversation.participantAvatar}
+                  alt={activeConversation.participantName}
+                  className="w-10 h-10 rounded-full object-cover border border-[#ddd4f5] dark:border-[#362c5e]"
+                />
+                {activeConversation.online && (
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+                )}
+              </div>
 
-                <div>
-                  <h3 className="text-sm font-bold text-[#18181B] dark:text-white">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-sm font-bold text-[#241b3d] dark:text-[#f4f0ff]">
                     {activeConversation.participantName}
                   </h3>
-                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>Online • {activeConversation.participantRole}</span>
-                  </p>
+                  <VerifiedBadge size="sm" showLabel={false} />
                 </div>
-              </div>
-
-              {/* Action Buttons: Scheduler & Room CTA */}
-              <div className="flex items-center gap-2">
-                {existingRoom && (
-                  <Link
-                    href={`/learn/${existingRoom.roomToken}`}
-                    className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all animate-pulse"
-                  >
-                    <Video className="w-3.5 h-3.5" />
-                    <span>Enter Classroom</span>
-                  </Link>
-                )}
-
-                <button
-                  onClick={() => setShowSchedulerModal(true)}
-                  className="px-3.5 py-1.5 rounded-xl bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] hover:bg-[#DDD6FE] dark:hover:bg-[#2D264E] text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
-                >
-                  <CalendarPlus className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Schedule Session</span>
-                </button>
-
-                <Link
-                  href={`/profile/${activeConversation.participantId}`}
-                  className="px-3 py-1.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] text-xs font-semibold text-[#71717A] hover:text-[#18181B] dark:hover:text-white"
-                >
-                  Profile
-                </Link>
+                <p className="text-[11px] text-[#7a719c] dark:text-[#a99ed4]">
+                  {activeConversation.participantRole} · {activeConversation.sessionType === "direct" ? "Direct swap" : "10 Credits Escrow"}
+                </p>
               </div>
             </div>
 
-            {/* Messages Body */}
-            <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-[#F8F7FF]/50 dark:bg-[#0E0C1B]/50">
-              {activeMessages.length > 0 ? (
-                activeMessages.map((msg) => {
-                  const isMe = msg.senderId === currentUser.id || msg.senderId === "current-user";
-                  const isRoomLink = msg.content.includes("/learn/");
-
-                  return (
-                    <div
-                      key={msg.id}
-                      className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
-                    >
-                      <div className="flex items-end gap-2 max-w-sm sm:max-w-md">
-                        {!isMe && (
-                          <img
-                            src={activeConversation.participantAvatar}
-                            alt=""
-                            className="w-7 h-7 rounded-full object-cover mb-1 shrink-0"
-                          />
-                        )}
-                        <div
-                          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm ${
-                            isMe
-                              ? "bg-[#7C3AED] text-white rounded-br-xs"
-                              : "bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] text-[#18181B] dark:text-white rounded-bl-xs"
-                          }`}
-                        >
-                          <p className="whitespace-pre-line">{msg.content}</p>
-
-                          {/* Interactive Card if message contains a room token */}
-                          {isRoomLink && (
-                            <div className="mt-3 pt-3 border-t border-white/20 dark:border-zinc-700/60">
-                              <Link
-                                href={msg.content.match(/\/learn\/[a-zA-Z0-9_-]+/)?.[0] || "/learn"}
-                                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md ${
-                                  isMe
-                                    ? "bg-white text-[#7C3AED] hover:bg-zinc-100"
-                                    : "bg-[#7C3AED] text-white hover:bg-[#6D28D9]"
-                                }`}
-                              >
-                                <Video className="w-3.5 h-3.5" />
-                                <span>Join Live Virtual Classroom</span>
-                                <ExternalLink className="w-3 h-3" />
-                              </Link>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 text-[10px] text-[#71717A] mt-1 px-1">
-                        <span>{msg.timestamp}</span>
-                        {isMe && <CheckCheck className="w-3 h-3 text-[#7C3AED]" />}
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center text-center p-8 text-xs text-[#71717A]">
-                  <MessageSquare className="w-10 h-10 text-[#7C3AED] opacity-50 mb-2" />
-                  <p className="font-bold text-sm text-[#18181B] dark:text-white">
-                    Mutual Collaboration Space
-                  </p>
-                  <p className="mt-1 max-w-xs mx-auto">
-                    Coordinate your skill swap and click &ldquo;Schedule Session&rdquo; to generate your dedicated virtual classroom!
-                  </p>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input Bar */}
-            <form onSubmit={handleSend} className="p-4 border-t border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#161327] flex items-center gap-2">
-              <input
-                type="text"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Type a message or agree on a session time..."
-                className="flex-1 px-4 py-2.5 rounded-xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] text-xs sm:text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
-              />
+            {/* In-Chat Actions: Schedule & Mark Complete */}
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setShowSchedulerModal(true)}
-                className="p-2.5 rounded-xl bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] hover:bg-[#DDD6FE] dark:hover:bg-[#2D264E] transition-colors shadow-sm flex items-center gap-1.5"
-                title="Open Session Scheduler"
+                className="px-3.5 py-1.5 rounded-full bg-[#ede8fb] dark:bg-[#282147] hover:bg-[#ddd4f5] text-[#7d6ce8] dark:text-[#ac98f2] text-xs font-semibold flex items-center gap-1.5 transition-colors"
               >
-                <CalendarPlus className="w-4 h-4" />
-                <span className="hidden sm:inline text-xs font-semibold">Scheduler</span>
+                <Calendar className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Schedule 1 Hour</span>
               </button>
-              <button
-                type="submit"
-                disabled={!inputText.trim()}
-                className="p-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white transition-colors disabled:opacity-50 shadow-sm"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </form>
+
+              {activeConversation.sessionState === "active" && (
+                <button
+                  type="button"
+                  onClick={handleMarkComplete}
+                  className="px-3.5 py-1.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Mark complete</span>
+                </button>
+              )}
+            </div>
           </div>
 
-        </div>
-      </main>
+          {/* Session Type Reminder Banner */}
+          <div className="px-4 py-2 bg-[#f5f2fc] dark:bg-[#130f26] border-b border-[#ddd4f5] dark:border-[#362c5e] text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[#7a719c] dark:text-[#a99ed4]">
+              {activeConversation.sessionType === "direct" ? (
+                <>
+                  <Repeat className="w-3.5 h-3.5 text-[#7d6ce8]" />
+                  <span><strong>Direct swap:</strong> two people teach each other; no credits move.</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#f5a524]" />
+                  <span><strong>Credit escrow:</strong> 10 credits locked until session is marked complete.</span>
+                </>
+              )}
+            </div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#7d6ce8] dark:text-[#ac98f2]">
+              State: {activeConversation.sessionState}
+            </span>
+          </div>
 
-      {/* IN-CHAT SESSION SCHEDULER MODAL */}
-      {showSchedulerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-lg bg-white dark:bg-[#161327] rounded-3xl border border-[#E4E1F5] dark:border-[#2D264E] shadow-2xl p-6 sm:p-8 relative">
+          {/* Messages Stream */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+            {activeMessages.map((msg) => {
+              const isMe = msg.senderId === currentUser.id;
+              return (
+                <div
+                  key={msg.id}
+                  className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed shadow-sm ${
+                      isMe
+                        ? "bg-[#7d6ce8] text-white rounded-br-none"
+                        : "bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-[#241b3d] dark:text-[#f4f0ff] rounded-bl-none"
+                    }`}
+                  >
+                    <p>{msg.text}</p>
+                  </div>
+                  <span className="text-[10px] text-[#7a719c] dark:text-[#a99ed4] mt-1 px-1">
+                    {msg.timestamp}
+                  </span>
+                </div>
+              );
+            })}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Message Composer */}
+          <form
+            onSubmit={handleSend}
+            className="p-3 sm:p-4 border-t border-[#ddd4f5] dark:border-[#362c5e] flex items-center gap-2 bg-white dark:bg-[#1e1938]"
+          >
+            <input
+              type="text"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder={`Message ${activeConversation.participantName}...`}
+              className="flex-1 px-4 py-3 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs sm:text-sm text-[#241b3d] dark:text-[#f4f0ff] placeholder-[#7a719c] focus:outline-none focus:ring-2 focus:ring-[#7d6ce8]/40"
+            />
             <button
-              onClick={() => setShowSchedulerModal(false)}
-              className="absolute top-5 right-5 p-1.5 rounded-full text-[#71717A] hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              type="submit"
+              disabled={!inputText.trim()}
+              className="p-3 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] disabled:opacity-40 text-white transition-all shadow-sm shrink-0"
+              aria-label="Send message"
             >
-              <X className="w-5 h-5" />
+              <Send className="w-4 h-4" />
             </button>
+          </form>
+        </div>
+      </div>
 
-            <div className="space-y-5">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] flex items-center justify-center">
-                  <CalendarPlus className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-[#18181B] dark:text-white">
-                    Schedule Collaboration Session
-                  </h3>
-                  <p className="text-xs text-[#71717A] dark:text-zinc-400">
-                    With {activeConversation.participantName} • Generates dedicated virtual room
-                  </p>
-                </div>
+      {/* SCHEDULE SESSION MODAL */}
+      {showSchedulerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] shadow-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-[#ddd4f5] dark:border-[#362c5e]">
+              <div className="flex items-center gap-2">
+                <CalendarPlus className="w-5 h-5 text-[#7d6ce8]" />
+                <h3 className="text-base font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+                  Schedule 1-Hour Session
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowSchedulerModal(false)}
+                className="text-[#7a719c] hover:text-[#241b3d] dark:hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <div className="p-3 rounded-2xl bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-[#7d6ce8] dark:text-[#ac98f2] flex items-center gap-2 font-semibold">
+                <CoinIcon size={14} />
+                <span>Standard 1-Hour Session · 10 Credits or Direct Swap</span>
               </div>
 
-              {/* Topic / Skill */}
               <div>
-                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block mb-1.5">
-                  Session Topic or Focus
+                <label className="block text-[#7a719c] dark:text-[#a99ed4] font-medium mb-1">
+                  Topic / Goal
                 </label>
                 <input
                   type="text"
                   value={sessionTopic}
                   onChange={(e) => setSessionTopic(e.target.value)}
-                  placeholder="e.g. Next.js Architecture Review, Python ML Setup..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-[#F8F7FF] dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white"
+                  className="w-full px-4 py-2.5 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#241b3d] dark:text-[#f4f0ff]"
                 />
               </div>
 
-              {/* Date Selection */}
-              <div>
-                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block mb-1.5">
-                  Agreed Date
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {["Today", "Tomorrow", "This Weekend"].map((d) => (
-                    <button
-                      key={d}
-                      type="button"
-                      onClick={() => setScheduledDate(d)}
-                      className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${
-                        scheduledDate === d
-                          ? "border-[#7C3AED] bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA]"
-                          : "border-[#E4E1F5] dark:border-[#2D264E] text-[#71717A] hover:border-zinc-400"
-                      }`}
-                    >
-                      {d}
-                    </button>
-                  ))}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[#7a719c] dark:text-[#a99ed4] font-medium mb-1">
+                    Day
+                  </label>
+                  <select
+                    value={scheduledDate}
+                    onChange={(e) => setScheduledDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#241b3d] dark:text-[#f4f0ff]"
+                  >
+                    <option value="Today">Today</option>
+                    <option value="Tomorrow">Tomorrow</option>
+                    <option value="Saturday">Saturday</option>
+                    <option value="Sunday">Sunday</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[#7a719c] dark:text-[#a99ed4] font-medium mb-1">
+                    Time Slot (1 Hour)
+                  </label>
+                  <select
+                    value={scheduledTime}
+                    onChange={(e) => setScheduledTime(e.target.value)}
+                    className="w-full px-3 py-2 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#241b3d] dark:text-[#f4f0ff]"
+                  >
+                    <option value="10:00 AM – 11:00 AM">10:00 AM – 11:00 AM</option>
+                    <option value="2:00 PM – 3:00 PM">2:00 PM – 3:00 PM</option>
+                    <option value="6:00 PM – 7:00 PM">6:00 PM – 7:00 PM</option>
+                    <option value="8:00 PM – 9:00 PM">8:00 PM – 9:00 PM</option>
+                  </select>
                 </div>
               </div>
+            </div>
 
-              {/* Time Slots */}
-              <div>
-                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block mb-1.5">
-                  Preferred Time Slot
-                </label>
-                <select
-                  value={scheduledTime}
-                  onChange={(e) => setScheduledTime(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-[#F8F7FF] dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white"
-                >
-                  <option value="10:00 AM – 10:45 AM">Morning (10:00 AM – 10:45 AM)</option>
-                  <option value="2:00 PM – 2:45 PM">Afternoon (2:00 PM – 2:45 PM)</option>
-                  <option value="6:00 PM – 6:45 PM">Evening (6:00 PM – 6:45 PM)</option>
-                  <option value="8:00 PM – 8:45 PM">Night (8:00 PM – 8:45 PM)</option>
-                </select>
-              </div>
-
-              {/* Session Duration */}
-              <div>
-                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block mb-1.5">
-                  Session Length
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[30, 45, 60].map((len) => (
-                    <button
-                      key={len}
-                      type="button"
-                      onClick={() => setSessionLength(len as any)}
-                      className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
-                        sessionLength === len
-                          ? "border-[#7C3AED] bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA]"
-                          : "border-[#E4E1F5] dark:border-[#2D264E] text-[#71717A] hover:border-zinc-400"
-                      }`}
-                    >
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>{len} Mins</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="pt-3 flex items-center justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setShowSchedulerModal(false)}
-                  className="px-4 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] text-xs font-semibold text-[#71717A] hover:bg-zinc-100"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  disabled={schedulingLoading}
-                  onClick={handleConfirmSchedule}
-                  className="px-5 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold shadow-md shadow-[#7C3AED]/25 flex items-center gap-2"
-                >
-                  <span>Confirm & Generate Room</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowSchedulerModal(false)}
+                className="px-4 py-2 rounded-full text-xs font-semibold text-[#7a719c] hover:bg-[#ede8fb]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSchedule}
+                disabled={schedulingLoading}
+                className="px-5 py-2.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs font-bold transition-all shadow-sm"
+              >
+                {schedulingLoading ? "Scheduling..." : "Confirm 1-Hour Session"}
+              </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }
 
 export default function MessagesPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading Messages...</div>}>
-      <MessagesContent />
-    </Suspense>
+    <div className="min-h-screen flex flex-col bg-[#f5f2fc] dark:bg-[#130f26] text-[#241b3d] dark:text-[#f4f0ff] transition-colors duration-200">
+      <Navbar />
+      <Suspense fallback={<div className="p-12 text-center">Loading messages...</div>}>
+        <MessagesContent />
+      </Suspense>
+    </div>
   );
 }

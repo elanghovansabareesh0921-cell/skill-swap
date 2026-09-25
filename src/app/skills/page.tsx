@@ -3,18 +3,17 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import { useSkillSwap, UserSkillItem } from "@/context/SkillSwapContext";
+import VerifiedBadge from "@/components/common/VerifiedBadge";
+import CoinIcon from "@/components/common/CoinIcon";
+import { useSkillSwap } from "@/context/SkillSwapContext";
 import {
-  Layers,
-  GraduationCap,
   Plus,
-  Trash2,
-  Edit2,
-  Check,
   X,
   Sparkles,
-  BookOpen,
   ArrowRight,
+  BookOpen,
+  GraduationCap,
+  Check,
 } from "lucide-react";
 
 export default function MySkillsPage() {
@@ -27,372 +26,245 @@ export default function MySkillsPage() {
     removeLearningSkill,
   } = useSkillSwap();
 
-  // Add Teaching Form state
-  const [newTeachName, setNewTeachName] = useState("");
-  const [newTeachLevel, setNewTeachLevel] = useState<"Beginner" | "Intermediate" | "Advanced" | "Expert">("Intermediate");
-  const [newTeachCategory, setNewTeachCategory] = useState("Programming");
-  const [showAddTeachModal, setShowAddTeachModal] = useState(false);
+  // In-line tag input state for "I can teach"
+  const [teachInput, setTeachInput] = useState("");
+  const [teachLevel, setTeachLevel] = useState<"Beginner" | "Intermediate" | "Advanced" | "Expert">("Advanced");
+  const [teachVerified, setTeachVerified] = useState(true);
 
-  // Add Learning Form state
-  const [newLearnName, setNewLearnName] = useState("");
-  const [newLearnLevel, setNewLearnLevel] = useState<"Beginner" | "Intermediate" | "Advanced" | "Expert">("Beginner");
-  const [newLearnGoal, setNewLearnGoal] = useState("");
-  const [showAddLearnModal, setShowAddLearnModal] = useState(false);
+  // In-line tag input state for "I want to learn"
+  const [learnInput, setLearnInput] = useState("");
+  const [learnLevel, setLearnLevel] = useState<"Beginner" | "Intermediate" | "Advanced" | "Expert">("Intermediate");
 
-  const handleAddTeach = (e: React.FormEvent) => {
+  const handleAddTeachTag = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTeachName.trim()) return;
-
+    if (!teachInput.trim()) return;
     addTeachingSkill({
-      name: newTeachName.trim(),
-      level: newTeachLevel,
-      category: newTeachCategory,
+      name: teachInput.trim(),
+      level: teachLevel,
+      category: "Tech",
     });
-    setNewTeachName("");
-    setShowAddTeachModal(false);
+    setTeachInput("");
   };
 
-  const handleAddLearn = (e: React.FormEvent) => {
+  const handleAddLearnTag = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newLearnName.trim()) return;
-
+    if (!learnInput.trim()) return;
     addLearningSkill({
-      name: newLearnName.trim(),
-      level: newLearnLevel,
-      goal: newLearnGoal.trim(),
+      name: learnInput.trim(),
+      level: learnLevel,
+      goal: "Level up practical skills",
     });
-    setNewLearnName("");
-    setNewLearnGoal("");
-    setShowAddLearnModal(false);
+    setLearnInput("");
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F7FF] dark:bg-[#0E0C1B] text-[#18181B] dark:text-[#F4F3FA] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#f5f2fc] dark:bg-[#130f26] text-[#241b3d] dark:text-[#f4f0ff] transition-colors duration-200">
       <Navbar />
 
-      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-10">
+      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] text-xs font-semibold mb-2">
-              <Layers className="w-3.5 h-3.5" />
-              <span>Personal Knowledge Catalog</span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ede8fb] dark:bg-[#282147] border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-semibold text-[#7d6ce8] dark:text-[#ac98f2] mb-2">
+              <CoinIcon size={12} />
+              <span>1 Hour Taught = 10 Credits Earned</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-[#18181B] dark:text-white tracking-tight">
-              My Skills
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#241b3d] dark:text-[#f4f0ff]">
+              My skills
             </h1>
-            <p className="text-xs sm:text-sm text-[#71717A] dark:text-zinc-400 mt-1">
-              Manage the skills you offer in trades and the subjects you want to learn next.
+            <p className="text-xs sm:text-sm text-[#7a719c] dark:text-[#a99ed4] mt-1">
+              Manage what you can teach to earn credits, and what you want to learn.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowAddTeachModal(true)}
-              className="px-4 py-2 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Teaching Skill</span>
-            </button>
-            <button
-              onClick={() => setShowAddLearnModal(true)}
-              className="px-4 py-2 rounded-xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] text-[#18181B] dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Learning Goal</span>
-            </button>
-          </div>
+          <Link
+            href="/matches"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] text-white text-xs font-bold transition-all shadow-sm self-start sm:self-auto"
+          >
+            <span>View reciprocal matches</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
 
-        {/* SECTION 1: SKILLS I TEACH */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-zinc-100 dark:border-zinc-800">
-            <div>
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-[#7C3AED] dark:text-[#A78BFA]" />
-                <h2 className="text-lg font-bold text-[#18181B] dark:text-white">Skills I Teach</h2>
+        {/* TWO EDITABLE TAG PANELS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* PANEL 1: "I can teach" */}
+          <div className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 sm:p-7 space-y-5 transition-all">
+            <div className="flex items-center justify-between pb-3 border-b border-[#ddd4f5]/60 dark:border-[#362c5e]/60">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-[#ede8fb] dark:bg-[#282147] text-[#7d6ce8] dark:text-[#ac98f2] flex items-center justify-center">
+                  <GraduationCap className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+                    I can teach
+                  </h2>
+                  <span className="text-[11px] text-[#7a719c] dark:text-[#a99ed4]">
+                    Earn 10 credits per hour taught
+                  </span>
+                </div>
               </div>
-              <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-0.5">
-                These skills appear on your public mentor card and in matching algorithms.
-              </p>
+              <span className="text-xs font-bold text-[#7d6ce8] dark:text-[#ac98f2] bg-[#ede8fb] dark:bg-[#282147] px-2.5 py-0.5 rounded-full">
+                {userTaughtSkillsList.length} skills
+              </span>
             </div>
-            <button
-              onClick={() => setShowAddTeachModal(true)}
-              className="text-xs font-semibold text-[#7C3AED] dark:text-[#A78BFA] hover:underline flex items-center gap-1"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add New</span>
-            </button>
-          </div>
 
-          {userTaughtSkillsList.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {userTaughtSkillsList.map((skill) => (
-                <div
-                  key={skill.id}
-                  className="p-5 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] flex flex-col justify-between group hover:border-[#A78BFA] transition-all"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA]">
-                        {skill.level}
-                      </span>
-                      <span className="text-xs font-mono font-bold text-[#7C3AED]">
-                        🪙 10 Credits
-                      </span>
-                    </div>
-                    <h3 className="text-base font-bold text-[#18181B] dark:text-white">
-                      {skill.name}
-                    </h3>
-                    <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-1">
-                      {skill.category || "General"}
-                    </p>
-                  </div>
-
-                  <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-end gap-2">
+            {/* Tag List */}
+            <div className="flex flex-wrap gap-2.5 min-h-[100px] items-start content-start">
+              {userTaughtSkillsList.length > 0 ? (
+                userTaughtSkillsList.map((skill) => (
+                  <div
+                    key={skill.id}
+                    className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-medium text-[#241b3d] dark:text-[#f4f0ff] group hover:border-[#7d6ce8] transition-colors"
+                  >
+                    <span>{skill.name}</span>
+                    <VerifiedBadge size="sm" showLabel={false} />
                     <button
+                      type="button"
                       onClick={() => removeTeachingSkill(skill.id)}
-                      className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
-                      title="Remove skill"
+                      className="text-[#7a719c] hover:text-rose-500 transition-colors ml-0.5"
+                      aria-label={`Remove ${skill.name}`}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
+                ))
+              ) : (
+                <div className="w-full py-8 text-center text-xs text-[#7a719c] dark:text-[#a99ed4] space-y-1">
+                  <p className="font-semibold text-[#241b3d] dark:text-[#f4f0ff]">
+                    No teaching skills added yet
+                  </p>
+                  <p>Add what you know to start earning 10 credits per hour.</p>
                 </div>
-              ))}
+              )}
             </div>
-          ) : (
-            <div className="p-10 text-center text-xs text-[#71717A] space-y-2">
-              <p className="font-bold text-sm text-[#18181B] dark:text-white">No skills added yet.</p>
-              <p>Add your first skill to start discovering people and receiving swap requests.</p>
-            </div>
-          )}
-        </div>
 
-        {/* SECTION 2: SKILLS I WANT TO LEARN */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-zinc-100 dark:border-zinc-800">
-            <div>
+            {/* Quick Add Tag Input */}
+            <form onSubmit={handleAddTeachTag} className="pt-2 border-t border-[#ddd4f5]/60 dark:border-[#362c5e]/60 space-y-3">
               <div className="flex items-center gap-2">
-                <GraduationCap className="w-5 h-5 text-[#7C3AED] dark:text-[#A78BFA]" />
-                <h2 className="text-lg font-bold text-[#18181B] dark:text-white">Skills I Want To Learn</h2>
-              </div>
-              <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-0.5">
-                We use these to match you with compatible peer mentors offering swaps.
-              </p>
-            </div>
-            <button
-              onClick={() => setShowAddLearnModal(true)}
-              className="text-xs font-semibold text-[#7C3AED] dark:text-[#A78BFA] hover:underline flex items-center gap-1"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Goal</span>
-            </button>
-          </div>
-
-          {userLearningSkillsList.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {userLearningSkillsList.map((skill) => (
-                <div
-                  key={skill.id}
-                  className="p-5 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] flex flex-col justify-between group hover:border-[#A78BFA] transition-all"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
-                        Target Proficiency: {skill.level}
-                      </span>
-                    </div>
-                    <h3 className="text-base font-bold text-[#18181B] dark:text-white">
-                      {skill.name}
-                    </h3>
-                    {skill.goal && (
-                      <p className="text-xs text-[#71717A] dark:text-zinc-400 mt-1 line-clamp-2">
-                        {skill.goal}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => removeLearningSkill(skill.id)}
-                      className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
-                      title="Remove goal"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-10 text-center text-xs text-[#71717A] space-y-2">
-              <p className="font-bold text-sm text-[#18181B] dark:text-white">No learning goals added yet.</p>
-              <p>Add what you want to learn to unlock reciprocal matches.</p>
-            </div>
-          )}
-        </div>
-      </main>
-
-      {/* Add Teaching Modal */}
-      {showAddTeachModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-white dark:bg-[#161327] rounded-3xl border border-[#E4E1F5] dark:border-[#2D264E] shadow-2xl p-6 relative">
-            <button
-              onClick={() => setShowAddTeachModal(false)}
-              className="absolute top-5 right-5 text-[#71717A] hover:text-[#18181B]"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <h3 className="text-lg font-bold text-[#18181B] dark:text-white mb-1">Add Teaching Skill</h3>
-            <p className="text-xs text-[#71717A] mb-4">What skill would you like to share with the community?</p>
-
-            <form onSubmit={handleAddTeach} className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">Skill Name</label>
                 <input
                   type="text"
-                  value={newTeachName}
-                  onChange={(e) => setNewTeachName(e.target.value)}
-                  placeholder="e.g. React & Next.js, Python, Figma"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
-                  required
+                  value={teachInput}
+                  onChange={(e) => setTeachInput(e.target.value)}
+                  placeholder="Add skill (e.g. Next.js, Figma, SQL)..."
+                  className="flex-1 px-4 py-2.5 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#241b3d] dark:text-[#f4f0ff] placeholder-[#7a719c] focus:outline-none focus:ring-2 focus:ring-[#7d6ce8]/40"
                 />
+                <button
+                  type="submit"
+                  disabled={!teachInput.trim()}
+                  className="px-4 py-2.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] disabled:opacity-40 text-white text-xs font-bold transition-all shrink-0 flex items-center gap-1 shadow-sm"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add tag</span>
+                </button>
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">Category</label>
+              <div className="flex items-center justify-between text-xs text-[#7a719c] dark:text-[#a99ed4] px-1">
+                <span>Proficiency Level</span>
                 <select
-                  value={newTeachCategory}
-                  onChange={(e) => setNewTeachCategory(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
+                  value={teachLevel}
+                  onChange={(e) => setTeachLevel(e.target.value as any)}
+                  className="bg-transparent font-bold text-[#7d6ce8] dark:text-[#ac98f2] focus:outline-none cursor-pointer"
                 >
-                  <option value="Programming">Programming</option>
-                  <option value="Design">Design</option>
-                  <option value="AI & ML">AI & ML</option>
-                  <option value="Business">Business</option>
-                  <option value="Languages">Languages</option>
-                  <option value="Media & Video">Media & Video</option>
-                  <option value="Creative Arts">Creative Arts</option>
+                  <option value="Beginner" className="bg-white dark:bg-[#1e1938]">Beginner</option>
+                  <option value="Intermediate" className="bg-white dark:bg-[#1e1938]">Intermediate</option>
+                  <option value="Advanced" className="bg-white dark:bg-[#1e1938]">Advanced</option>
+                  <option value="Expert" className="bg-white dark:bg-[#1e1938]">Expert</option>
                 </select>
               </div>
-
-              <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">Proficiency Level</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {(["Beginner", "Intermediate", "Advanced", "Expert"] as const).map((lvl) => (
-                    <button
-                      key={lvl}
-                      type="button"
-                      onClick={() => setNewTeachLevel(lvl)}
-                      className={`py-2 rounded-xl text-xs font-semibold border ${
-                        newTeachLevel === lvl
-                          ? "bg-[#7C3AED] text-white border-[#7C3AED]"
-                          : "bg-[#F8F7FF] dark:bg-[#0E0C1B] border-[#E4E1F5] dark:border-[#2D264E] text-[#71717A]"
-                      }`}
-                    >
-                      {lvl}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddTeachModal(false)}
-                  className="px-4 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] text-xs font-semibold text-[#71717A]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm"
-                >
-                  Save Skill
-                </button>
-              </div>
             </form>
           </div>
-        </div>
-      )}
 
-      {/* Add Learning Modal */}
-      {showAddLearnModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-white dark:bg-[#161327] rounded-3xl border border-[#E4E1F5] dark:border-[#2D264E] shadow-2xl p-6 relative">
-            <button
-              onClick={() => setShowAddLearnModal(false)}
-              className="absolute top-5 right-5 text-[#71717A] hover:text-[#18181B]"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <h3 className="text-lg font-bold text-[#18181B] dark:text-white mb-1">Add Learning Goal</h3>
-            <p className="text-xs text-[#71717A] mb-4">What skill would you like to master?</p>
+          {/* PANEL 2: "I want to learn" */}
+          <div className="rounded-3xl bg-white dark:bg-[#1e1938] border border-[#ddd4f5] dark:border-[#362c5e] p-6 sm:p-7 space-y-5 transition-all">
+            <div className="flex items-center justify-between pb-3 border-b border-[#ddd4f5]/60 dark:border-[#362c5e]/60">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-[#ede8fb] dark:bg-[#282147] text-[#7d6ce8] dark:text-[#ac98f2] flex items-center justify-center">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-extrabold text-[#241b3d] dark:text-[#f4f0ff]">
+                    I want to learn
+                  </h2>
+                  <span className="text-[11px] text-[#7a719c] dark:text-[#a99ed4]">
+                    Trade via direct swap or spend 10 credits
+                  </span>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-[#7d6ce8] dark:text-[#ac98f2] bg-[#ede8fb] dark:bg-[#282147] px-2.5 py-0.5 rounded-full">
+                {userLearningSkillsList.length} skills
+              </span>
+            </div>
 
-            <form onSubmit={handleAddLearn} className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">Skill Name</label>
+            {/* Tag List */}
+            <div className="flex flex-wrap gap-2.5 min-h-[100px] items-start content-start">
+              {userLearningSkillsList.length > 0 ? (
+                userLearningSkillsList.map((skill) => (
+                  <div
+                    key={skill.id}
+                    className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs font-medium text-[#241b3d] dark:text-[#f4f0ff] group hover:border-[#7d6ce8] transition-colors"
+                  >
+                    <span>{skill.name}</span>
+                    <span className="text-[10px] text-[#7a719c] dark:text-[#a99ed4]">
+                      ({skill.level})
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeLearningSkill(skill.id)}
+                      className="text-[#7a719c] hover:text-rose-500 transition-colors ml-0.5"
+                      aria-label={`Remove ${skill.name}`}
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className="w-full py-8 text-center text-xs text-[#7a719c] dark:text-[#a99ed4] space-y-1">
+                  <p className="font-semibold text-[#241b3d] dark:text-[#f4f0ff]">
+                    No learning targets added yet
+                  </p>
+                  <p>Add skills you wish to learn to discover reciprocal matches.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Add Tag Input */}
+            <form onSubmit={handleAddLearnTag} className="pt-2 border-t border-[#ddd4f5]/60 dark:border-[#362c5e]/60 space-y-3">
+              <div className="flex items-center gap-2">
                 <input
                   type="text"
-                  value={newLearnName}
-                  onChange={(e) => setNewLearnName(e.target.value)}
-                  placeholder="e.g. Machine Learning, Spanish, Video Editing"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-sm text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
-                  required
+                  value={learnInput}
+                  onChange={(e) => setLearnInput(e.target.value)}
+                  placeholder="Add target skill (e.g. PyTorch, Spanish, Docker)..."
+                  className="flex-1 px-4 py-2.5 rounded-full bg-[#f5f2fc] dark:bg-[#130f26] border border-[#ddd4f5] dark:border-[#362c5e] text-xs text-[#241b3d] dark:text-[#f4f0ff] placeholder-[#7a719c] focus:outline-none focus:ring-2 focus:ring-[#7d6ce8]/40"
                 />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">Target Proficiency</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {(["Beginner", "Intermediate", "Advanced", "Expert"] as const).map((lvl) => (
-                    <button
-                      key={lvl}
-                      type="button"
-                      onClick={() => setNewLearnLevel(lvl)}
-                      className={`py-2 rounded-xl text-xs font-semibold border ${
-                        newLearnLevel === lvl
-                          ? "bg-[#7C3AED] text-white border-[#7C3AED]"
-                          : "bg-[#F8F7FF] dark:bg-[#0E0C1B] border-[#E4E1F5] dark:border-[#2D264E] text-[#71717A]"
-                      }`}
-                    >
-                      {lvl}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-[#18181B] dark:text-zinc-200 block mb-1">Goal / Notes (Optional)</label>
-                <textarea
-                  rows={2}
-                  value={newLearnGoal}
-                  onChange={(e) => setNewLearnGoal(e.target.value)}
-                  placeholder="e.g. Build an AI agent pipeline, prepare for travel"
-                  className="w-full px-3.5 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] bg-white dark:bg-[#0E0C1B] text-xs text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40"
-                />
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddLearnModal(false)}
-                  className="px-4 py-2 rounded-xl border border-[#E4E1F5] dark:border-[#2D264E] text-xs font-semibold text-[#71717A]"
-                >
-                  Cancel
-                </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm"
+                  disabled={!learnInput.trim()}
+                  className="px-4 py-2.5 rounded-full bg-[#7d6ce8] hover:bg-[#6c5bd6] disabled:opacity-40 text-white text-xs font-bold transition-all shrink-0 flex items-center gap-1 shadow-sm"
                 >
-                  Save Goal
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add tag</span>
                 </button>
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-[#7a719c] dark:text-[#a99ed4] px-1">
+                <span>Goal Proficiency</span>
+                <select
+                  value={learnLevel}
+                  onChange={(e) => setLearnLevel(e.target.value as any)}
+                  className="bg-transparent font-bold text-[#7d6ce8] dark:text-[#ac98f2] focus:outline-none cursor-pointer"
+                >
+                  <option value="Beginner" className="bg-white dark:bg-[#1e1938]">Beginner</option>
+                  <option value="Intermediate" className="bg-white dark:bg-[#1e1938]">Intermediate</option>
+                  <option value="Advanced" className="bg-white dark:bg-[#1e1938]">Advanced</option>
+                  <option value="Expert" className="bg-white dark:bg-[#1e1938]">Expert</option>
+                </select>
               </div>
             </form>
           </div>
         </div>
-      )}
+      </main>
     </div>
   );
 }

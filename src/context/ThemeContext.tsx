@@ -17,8 +17,9 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const STORAGE_KEY = "skillswap_theme";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
+  // Default to dark mode as specified in the UI Master prompt
+  const [theme, setThemeState] = useState<Theme>("dark");
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("dark");
   const [, startTransition] = useTransition();
 
   // Initialize theme from localStorage on mount
@@ -27,9 +28,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
       if (stored === "light" || stored === "dark" || stored === "system") {
         setThemeState(stored);
+      } else {
+        setThemeState("dark");
       }
     } catch {
-      // Ignore storage errors in private browsing
+      // Fallback to dark
+      setThemeState("dark");
     }
   }, []);
 
@@ -87,7 +91,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const toggleTheme = () => {
     startTransition(() => {
-      setTheme(resolvedTheme === "dark" ? "light" : "dark");
+      const next = resolvedTheme === "dark" ? "light" : "dark";
+      setTheme(next);
     });
   };
 
