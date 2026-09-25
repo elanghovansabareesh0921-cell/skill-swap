@@ -110,8 +110,8 @@ export default function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProp
       userName: currentUser.name,
       userEmail: currentUser.email,
       onProcessing: (proc) => setIsProcessing(proc),
-      onSuccess: (creditsAdded, amountPaid, method) => {
-        buyCredits(creditsAdded, `₹${amountPaid}`, method);
+      onSuccess: (creditsAdded, amountPaid, method, newBalance) => {
+        buyCredits(creditsAdded, `₹${amountPaid}`, method, newBalance);
         setStatusMessage(`Successfully added ${creditsAdded} Credits!`);
         setTimeout(() => {
           setStatusMessage("");

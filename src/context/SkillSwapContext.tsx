@@ -329,7 +329,7 @@ interface SkillSwapContextType {
     time: string;
   }) => { success: boolean; session?: SessionItem; error?: string };
   completeSession: (sessionId: string, review?: { rating: number; comment: string }) => void;
-  buyCredits: (amount: number, priceLabel: string, paymentMethod?: string) => void;
+  buyCredits: (amount: number, priceLabel: string, paymentMethod?: string, explicitNewBalance?: number) => void;
   publishSkill: (skillData: {
     title: string;
     category: string;
@@ -1473,8 +1473,25 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const buyCredits = (amount: number, priceLabel: string, paymentMethod: string = "Razorpay") => {
-    setCredits((prev) => prev + amount);
+  const buyCredits = (
+    amount: number,
+    priceLabel: string,
+    paymentMethod: string = "Razorpay",
+    explicitNewBalance?: number
+  ) => {
+    let finalCredits: number;
+    if (explicitNewBalance !== undefined && explicitNewBalance !== null && !isNaN(explicitNewBalance)) {
+      finalCredits = explicitNewBalance;
+    } else {
+      finalCredits = (credits || 0) + amount;
+    }
+
+    setCredits(finalCredits);
+    setCurrentUser((prev) => ({ ...prev, credits: finalCredits }));
+
+    try {
+      localStorage.setItem("skillswap_credits", String(finalCredits));
+    } catch {}
 
     const newTx: Transaction = {
       id: `tx-${Date.now()}`,
@@ -1497,6 +1514,9 @@ export function SkillSwapProvider({ children }: { children: React.ReactNode }) {
       link: "/credits",
     };
     setNotifications((prev) => [notif, ...prev]);
+
+    // Resync with Supabase DB
+    refreshUserProfile();
 
     showToast("Payment Successful!", `+${amount} Credits added to your account via ${paymentMethod}.`, "success");
   };

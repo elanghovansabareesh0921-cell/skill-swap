@@ -36,7 +36,7 @@ interface ActiveSessionItem {
 }
 
 export default function CreditsWalletPage() {
-  const { credits, showToast } = useSkillSwap();
+  const { credits, transactions: contextTransactions, showToast } = useSkillSwap();
 
   const availableBalance = credits;
   const [escrowBalance, setEscrowBalance] = useState(10);
@@ -89,7 +89,16 @@ export default function CreditsWalletPage() {
     },
   ]);
 
-  const [transactions, setTransactions] = useState([
+  const [localCompletedTxs, setLocalCompletedTxs] = useState<Array<{
+    id: string;
+    title: string;
+    description: string;
+    amount: number;
+    status: string;
+    date: string;
+  }>>([]);
+
+  const baseTransactions = [
     {
       id: "tx-1",
       title: "1-Hour Session with Elena Rostova",
@@ -122,7 +131,23 @@ export default function CreditsWalletPage() {
       status: "Complete",
       date: "Sep 20, 2026",
     },
-  ]);
+  ];
+
+  // Combined transactions: Real purchase/top-up context transactions first + local complete + baseline
+  const transactions = React.useMemo(() => {
+    const fromContext = (contextTransactions || []).map((t) => ({
+      id: t.id,
+      title: t.title,
+      description: t.detail,
+      amount: t.type === "SPENT" ? -Math.abs(t.amount) : Math.abs(t.amount),
+      status: t.type === "PURCHASED" ? "Complete" : t.type === "EARNED" ? "Released" : "In Escrow",
+      date: t.date || "Just now",
+    }));
+
+    const combined = [...localCompletedTxs, ...fromContext];
+    const seen = new Set(combined.map((c) => c.id));
+    return [...combined, ...baseTransactions.filter((b) => !seen.has(b.id))];
+  }, [contextTransactions, localCompletedTxs]);
 
   // Mark session complete -> releases escrow
   const handleMarkComplete = (sessionId: string) => {
@@ -137,7 +162,7 @@ export default function CreditsWalletPage() {
 
     // Update balances
     setEscrowBalance((prev) => Math.max(0, prev - 10));
-    setTransactions((prev) => [
+    setLocalCompletedTxs((prev) => [
       {
         id: `tx-${Date.now()}`,
         title: "Session Completed & Escrow Released",

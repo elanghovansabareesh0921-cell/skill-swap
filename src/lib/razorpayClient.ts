@@ -32,7 +32,7 @@ export interface PaymentParams {
   userName?: string;
   userEmail?: string;
   userId?: string;
-  onSuccess: (creditsAdded: number, amountPaid: number, method: string) => void;
+  onSuccess: (creditsAdded: number, amountPaid: number, method: string, newBalance?: number) => void;
   onError: (errorMessage: string) => void;
   onProcessing?: (isProcessing: boolean) => void;
 }
@@ -107,12 +107,14 @@ export async function processRazorpayCheckout({
               amount,
               credits,
               userId,
+              userEmail,
+              userName,
             }),
           });
 
           const verifyData = await verifyRes.json();
           if (verifyRes.ok && verifyData.success) {
-            onSuccess(credits, amount, "Razorpay (Live)");
+            onSuccess(credits, amount, "Razorpay (Live)", verifyData.newBalance);
           } else {
             onError(verifyData.error || "Payment signature verification failed.");
           }

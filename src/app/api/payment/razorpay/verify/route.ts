@@ -12,6 +12,7 @@ export async function POST(req: Request) {
       amount,
       credits,
       userId,
+      userEmail,
     } = body;
 
     if (!amount || !credits || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -38,39 +39,70 @@ export async function POST(req: Request) {
       }
     }
 
-    // Persist credits to Supabase if userId is provided and Supabase env vars exist
+    // Persist credits to Supabase if Supabase env vars exist
     let newBalance: number | null = null;
-    if (userId && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       try {
         const supabase = createClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL,
           process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
         );
 
-        // Attempt RPC call first if available
-        const { data: rpcData, error: rpcError } = await supabase.rpc("add_user_credits", {
-          p_user_id: userId,
-          p_amount: Number(credits),
-        });
+        // Helper to check for standard UUID v4 format
+        const isUuid = (id?: string | null) =>
+          typeof id === "string" &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
-        if (!rpcError && rpcData?.new_credits !== undefined) {
-          newBalance = rpcData.new_credits;
-        } else {
-          // Fallback: Fetch current credits and update profiles table directly
-          const { data: profile } = await supabase
+        let resolvedUserId = isUuid(userId) ? userId : null;
+
+        // If userId is not a valid UUID (e.g. "user-current"), lookup by email
+        if (!resolvedUserId && userEmail) {
+          const { data: userProfile } = await supabase
             .from("profiles")
-            .select("credits")
-            .eq("id", userId)
-            .single();
+            .select("id, credits")
+            .eq("email", userEmail)
+            .maybeSingle();
 
-          if (profile) {
-            const updatedCredits = (profile.credits || 0) + Number(credits);
-            await supabase
-              .from("profiles")
-              .update({ credits: updatedCredits })
-              .eq("id", userId);
-            newBalance = updatedCredits;
+          if (userProfile?.id) {
+            resolvedUserId = userProfile.id;
           }
+        }
+
+        if (resolvedUserId) {
+          // Attempt RPC call first if available
+          const { data: rpcData, error: rpcError } = await supabase.rpc("add_user_credits", {
+            p_user_id: resolvedUserId,
+            p_amount: Number(credits),
+          });
+
+          // PostgreSQL function returns json_build_object('success', true, 'newBalance', v_new_balance)
+          if (!rpcError && rpcData && (rpcData.newBalance !== undefined || rpcData.new_credits !== undefined)) {
+            newBalance = rpcData.newBalance ?? rpcData.new_credits;
+          } else {
+            // Fallback: Fetch current credits and update profiles table directly
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("credits")
+              .eq("id", resolvedUserId)
+              .single();
+
+            if (profile) {
+              const updatedCredits = (profile.credits || 0) + Number(credits);
+              await supabase
+                .from("profiles")
+                .update({ credits: updatedCredits })
+                .eq("id", resolvedUserId);
+              newBalance = updatedCredits;
+            }
+          }
+
+          // Insert notification
+          await supabase.from("notifications").insert({
+            user_id: resolvedUserId,
+            title: "Credits Added 🪙",
+            message: `+${credits} Credits added to your account via Razorpay.`,
+            link: "/credits",
+          });
         }
       } catch (dbErr) {
         console.warn("Could not sync credits to Supabase DB:", dbErr);

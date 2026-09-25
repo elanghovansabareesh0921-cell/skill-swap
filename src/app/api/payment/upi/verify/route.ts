@@ -36,35 +36,62 @@ export async function POST(req: Request) {
 
     // Sync credits to Supabase database if credentials exist
     let newBalance: number | null = null;
-    if (userId && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       try {
         const supabase = createClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL,
           process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
         );
 
-        const { data: rpcData, error: rpcError } = await supabase.rpc("add_user_credits", {
-          p_user_id: userId,
-          p_amount: Number(credits),
-        });
+        const isUuid = (id?: string | null) =>
+          typeof id === "string" &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
-        if (!rpcError && rpcData?.new_credits !== undefined) {
-          newBalance = rpcData.new_credits;
-        } else {
-          const { data: profile } = await supabase
+        let resolvedUserId = isUuid(userId) ? userId : null;
+
+        if (!resolvedUserId && body.userEmail) {
+          const { data: userProfile } = await supabase
             .from("profiles")
-            .select("credits")
-            .eq("id", userId)
-            .single();
+            .select("id, credits")
+            .eq("email", body.userEmail)
+            .maybeSingle();
 
-          if (profile) {
-            const updatedCredits = (profile.credits || 0) + Number(credits);
-            await supabase
-              .from("profiles")
-              .update({ credits: updatedCredits })
-              .eq("id", userId);
-            newBalance = updatedCredits;
+          if (userProfile?.id) {
+            resolvedUserId = userProfile.id;
           }
+        }
+
+        if (resolvedUserId) {
+          const { data: rpcData, error: rpcError } = await supabase.rpc("add_user_credits", {
+            p_user_id: resolvedUserId,
+            p_amount: Number(credits),
+          });
+
+          if (!rpcError && rpcData && (rpcData.newBalance !== undefined || rpcData.new_credits !== undefined)) {
+            newBalance = rpcData.newBalance ?? rpcData.new_credits;
+          } else {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("credits")
+              .eq("id", resolvedUserId)
+              .single();
+
+            if (profile) {
+              const updatedCredits = (profile.credits || 0) + Number(credits);
+              await supabase
+                .from("profiles")
+                .update({ credits: updatedCredits })
+                .eq("id", resolvedUserId);
+              newBalance = updatedCredits;
+            }
+          }
+
+          await supabase.from("notifications").insert({
+            user_id: resolvedUserId,
+            title: "Credits Added 🪙",
+            message: `+${credits} Credits added to your account via UPI transfer.`,
+            link: "/credits",
+          });
         }
       } catch (dbErr) {
         console.warn("Could not sync credits to Supabase DB:", dbErr);
