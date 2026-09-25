@@ -1,21 +1,42 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { SkillSwapProvider } from "@/context/SkillSwapContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import ToastContainer from "@/components/Toast";
+import AppShell from "@/components/layout/AppShell";
 
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
   subsets: ["latin"],
-  weight: ["400", "600", "800"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
+
+export const viewport: Viewport = {
+  themeColor: "#08090D",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: "SkillSwap — Learn anything. Teach what you love.",
   description:
     "A platform where people exchange skills instead of money. Real-time matching, no fees, no gatekeeping — just people teaching people. 1 Hour = 10 Credits.",
-  keywords: ["skill swap", "peer learning", "mentorship", "credit exchange", "1 hour 10 credits"],
+  keywords: [
+    "skill swap",
+    "peer learning",
+    "mentorship",
+    "credit exchange",
+    "1 hour 10 credits",
+  ],
+  openGraph: {
+    title: "SkillSwap — Learn anything. Teach what you love.",
+    description:
+      "Real-time skill exchange — teach what you know, learn what you don't.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -30,7 +51,7 @@ export default function RootLayout({
       className={`${plusJakarta.variable} h-full antialiased dark`}
     >
       <head>
-        {/* Anti-FOUC script: defaults to dark mode as specified */}
+        {/* Anti-FOUC: force dark mode immediately */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -50,11 +71,18 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* viewport-fit=cover for mobile notch/safe-area */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
-      <body className="min-h-full flex flex-col bg-[#f5f2fc] dark:bg-[#130f26] text-[#241b3d] dark:text-[#f4f0ff] selection:bg-[#7d6ce8] selection:text-white pb-16 md:pb-0 transition-colors duration-150 font-sans">
+      <body
+        className="min-h-full flex flex-col bg-background text-foreground selection:bg-[#7C6CF6]/40 selection:text-white font-sans"
+        style={{ fontFamily: "var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif" }}
+      >
         <ThemeProvider>
           <SkillSwapProvider>
-            {children}
+            <AppShell>
+              {children}
+            </AppShell>
             <ToastContainer />
           </SkillSwapProvider>
         </ThemeProvider>

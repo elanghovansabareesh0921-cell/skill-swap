@@ -6,25 +6,34 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import SwapRequestModal from "@/components/SwapRequestModal";
 import BuyCreditsModal from "@/components/BuyCreditsModal";
-import { useSkillSwap, SkillListing } from "@/context/SkillSwapContext";
+import { useSkillSwap } from "@/context/SkillSwapContext";
+import CoinIcon from "@/components/common/CoinIcon";
+import { motion } from "framer-motion";
 import {
   Sparkles,
   Calendar,
-  Clock,
   ArrowRight,
-  Play,
-  CheckCircle2,
   BookOpen,
   PlusCircle,
   GraduationCap,
-  Award,
   Search,
-  Repeat,
+  Repeat2,
   Star,
-  ShieldCheck,
-  User,
-  Coins,
+  TrendingUp,
+  Zap,
+  ChevronRight,
+  Play,
+  Clock,
 } from "lucide-react";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.06, duration: 0.4, ease: [0.16, 1, 0.3, 1] as const },
+  }),
+};
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -51,14 +60,14 @@ export default function DashboardPage() {
   }>({
     id: "arun-kumar",
     name: "Arun Kumar",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    avatar:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
     skillToTeach: "Python Programming & Data Structures",
   });
 
   const upcomingSessions = sessions.filter((s) => s.status === "upcoming");
   const recommendedSkills = skills.slice(0, 4);
 
-  // Calculate credits earned and spent
   const creditsEarned = transactions
     .filter((t) => t.type === "EARNED")
     .reduce((acc, t) => acc + t.amount, 0);
@@ -68,14 +77,19 @@ export default function DashboardPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/discover?search=${encodeURIComponent(searchQuery.trim())}`);
-    } else {
-      router.push("/discover");
-    }
+    router.push(
+      searchQuery.trim()
+        ? `/discover?search=${encodeURIComponent(searchQuery.trim())}`
+        : "/discover"
+    );
   };
 
-  const handleOpenSwap = (mentor: { id: string; name: string; avatar?: string; skill: string }) => {
+  const handleOpenSwap = (mentor: {
+    id: string;
+    name: string;
+    avatar?: string;
+    skill: string;
+  }) => {
     setSelectedTargetUser({
       id: mentor.id,
       name: mentor.name,
@@ -85,171 +99,420 @@ export default function DashboardPage() {
     setSwapModalOpen(true);
   };
 
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F7FF] dark:bg-[#0E0C1B] text-[#18181B] dark:text-[#F4F3FA] transition-colors duration-200">
+    <div className="flex flex-col min-h-dvh ambient-bg pb-20 lg:pb-0">
       <Navbar onOpenBuyCredits={() => setIsBuyCreditsOpen(true)} />
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-10">
-        {/* Header Greeting */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* ── GREETING HEADER ── */}
+        <motion.div
+          custom={0}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="flex flex-col sm:flex-row sm:items-end justify-between gap-4"
+        >
           <div>
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-[#18181B] dark:text-white tracking-tight">
-              Good morning, {currentUser.name} 👋
+            <p className="text-sm font-medium text-white/40 mb-1">
+              {greeting},
+            </p>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-none">
+              {currentUser?.name?.split(" ")[0] ?? "Friend"}{" "}
+              <span className="text-gradient">👋</span>
             </h1>
-            <p className="text-sm text-[#71717A] dark:text-zinc-400 mt-1 font-medium">
-              What would you like to learn today?
+            <p className="text-sm text-white/45 mt-2">
+              Your learning network is active. Let's keep the momentum going.
             </p>
           </div>
-
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 shrink-0">
             <Link
               href="/discover"
-              className="px-4 py-2.5 rounded-xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] text-[#18181B] dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-xs font-semibold shadow-sm transition-colors"
+              className="glass px-4 py-2 rounded-xl text-sm font-medium text-white/70 hover:text-white transition-all duration-150 hover:bg-white/[0.08] flex items-center gap-1.5"
             >
-              Explore Skills
+              <Search className="w-4 h-4" />
+              Explore
             </Link>
             <Link
               href="/skills"
-              className="px-4 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all duration-150 hover:opacity-90"
+              style={{
+                background: "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                boxShadow: "0 4px 14px rgba(124,108,246,0.3)",
+              }}
             >
-              <PlusCircle className="w-3.5 h-3.5" />
-              <span>Manage My Skills</span>
+              <PlusCircle className="w-4 h-4" />
+              Manage Skills
             </Link>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Large Search Bar */}
-        <form onSubmit={handleSearch} className="relative">
-          <Search className="w-5 h-5 text-[#71717A] absolute left-4 top-1/2 -translate-y-1/2" />
+        {/* ── SEARCH BAR ── */}
+        <motion.form
+          custom={1}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          onSubmit={handleSearch}
+          className="relative group"
+        >
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-[#7C6CF6] transition-colors" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search for a skill (e.g. Python, UI/UX Design, Machine Learning)..."
-            className="w-full pl-12 pr-28 py-3.5 rounded-2xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] text-sm text-[#18181B] dark:text-white placeholder-[#71717A] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/40 transition-all"
+            placeholder="Search for a skill, topic or person..."
+            className="w-full pl-12 pr-32 py-4 rounded-2xl text-sm text-white placeholder-white/30 bg-white/[0.04] border border-white/[0.08] focus:outline-none focus:border-[#7C6CF6]/50 focus:bg-white/[0.06] focus:ring-1 focus:ring-[#7C6CF6]/30 transition-all duration-200"
+            style={{ backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
           />
           <button
             type="submit"
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 px-4 py-2 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm transition-colors"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
+            style={{
+              background: "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+            }}
           >
             Search
           </button>
-        </form>
+        </motion.form>
 
-        {/* CREDIT SUMMARY */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#E4E1F5] dark:border-[#2D264E]">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#7C3AED] dark:text-[#A78BFA]">
-                Wallet & Credits
-              </span>
-              <h2 className="text-xl font-bold text-[#18181B] dark:text-white mt-0.5">Credit Summary</h2>
-            </div>
-            <Link
-              href="/credits"
-              className="px-4 py-2 rounded-xl bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] hover:bg-[#DDD6FE] text-xs font-semibold transition-colors flex items-center gap-1.5 w-fit"
+        {/* ── STAT CARDS ── */}
+        <motion.div
+          custom={2}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+        >
+          {[
+            {
+              label: "Available Credits",
+              value: credits,
+              sub: "1 Hour = 10 Credits",
+              icon: <CoinIcon size={20} />,
+              accent: "#f5a524",
+              href: "/credits",
+              onClick: () => setIsBuyCreditsOpen(true),
+            },
+            {
+              label: "Credits Earned",
+              value: `+${creditsEarned}`,
+              sub: "From teaching sessions",
+              icon: <TrendingUp className="w-5 h-5 text-emerald-400" />,
+              accent: "#10B981",
+              href: null,
+            },
+            {
+              label: "Sessions",
+              value: upcomingSessions.length,
+              sub: "Upcoming sessions",
+              icon: <Calendar className="w-5 h-5 text-[#7C6CF6]" />,
+              accent: "#7C6CF6",
+              href: "/learn",
+            },
+            {
+              label: "Swap Requests",
+              value: swapRequests?.length ?? 0,
+              sub: "Pending review",
+              icon: <Repeat2 className="w-5 h-5 text-[#06B6D4]" />,
+              accent: "#06B6D4",
+              href: "/matches",
+            },
+          ].map((stat, i) => (
+            <button
+              key={stat.label}
+              onClick={
+                stat.onClick
+                  ? stat.onClick
+                  : stat.href
+                  ? () => router.push(stat.href as string)
+                  : undefined
+              }
+              className="glass rounded-2xl p-5 text-left transition-all duration-200 hover:bg-white/[0.07] hover:border-white/[0.14] group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CF6]/50"
             >
-              <span>Manage Credits</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-            <div className="p-5 rounded-2xl bg-[#EDE9FE]/50 dark:bg-[#231C3D]/50 border border-[#DDD6FE] dark:border-[#3B2D66]">
-              <span className="text-xs text-[#7C3AED] dark:text-[#A78BFA] font-semibold uppercase tracking-wider">
-                Current Credits
-              </span>
-              <p className="text-3xl sm:text-4xl font-extrabold text-[#7C3AED] dark:text-[#A78BFA] font-mono mt-1">
-                🪙 {credits}
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2 rounded-lg bg-white/[0.05]">{stat.icon}</div>
+                <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+              </div>
+              <p
+                className="text-2xl font-extrabold font-mono leading-none"
+                style={{ color: stat.accent }}
+              >
+                {stat.value}
               </p>
-              <p className="text-[11px] text-[#71717A] dark:text-zinc-400 mt-1">Available for swap escrow or bookings</p>
+              <p className="text-xs font-semibold text-white/70 mt-1">
+                {stat.label}
+              </p>
+              <p className="text-[11px] text-white/35 mt-0.5">{stat.sub}</p>
+            </button>
+          ))}
+        </motion.div>
+
+        {/* ── UPCOMING SESSIONS + QUICK ACTIONS ROW ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Upcoming Sessions */}
+          <motion.div
+            custom={3}
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            className="lg:col-span-2 glass rounded-2xl overflow-hidden"
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.07]">
+              <div className="flex items-center gap-2.5">
+                <GraduationCap className="w-5 h-5 text-[#7C6CF6]" />
+                <h2 className="text-base font-bold text-white">Upcoming Sessions</h2>
+                {upcomingSessions.length > 0 && (
+                  <span
+                    className="px-2 py-0.5 rounded-full text-[10px] font-bold text-white"
+                    style={{
+                      background: "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                    }}
+                  >
+                    {upcomingSessions.length}
+                  </span>
+                )}
+              </div>
+              <Link
+                href="/learn"
+                className="text-xs font-semibold text-[#7C6CF6] hover:text-[#9b8ef8] transition-colors flex items-center gap-1"
+              >
+                View all <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E]">
-              <span className="text-xs text-[#71717A] dark:text-zinc-400 font-semibold uppercase tracking-wider">
-                Credits Earned
-              </span>
-              <p className="text-3xl sm:text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono mt-1">
-                +{creditsEarned}
-              </p>
-              <p className="text-[11px] text-[#71717A] dark:text-zinc-400 mt-1">Earned by sharing your skills</p>
+            <div className="divide-y divide-white/[0.05]">
+              {upcomingSessions.length > 0 ? (
+                upcomingSessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/[0.03] transition-colors group"
+                  >
+                    <div className="relative shrink-0">
+                      <img
+                        src={session.teacherAvatar}
+                        alt={session.teacherName}
+                        className="w-11 h-11 rounded-full object-cover ring-1 ring-white/10"
+                      />
+                      <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full ring-2 ring-[#08090D]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-semibold text-white/90 truncate">
+                        {session.skillTitle}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-white/45">{session.teacherName}</span>
+                        <span className="text-white/20">·</span>
+                        <Clock className="w-3 h-3 text-white/30" />
+                        <span className="text-xs text-white/45">
+                          {session.date}, {session.time}
+                        </span>
+                      </div>
+                    </div>
+                    <Link
+                      href={session.roomUrl || "/learn"}
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white shrink-0 transition-all hover:opacity-90"
+                      style={{
+                        background: "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                      }}
+                    >
+                      <Play className="w-3.5 h-3.5" />
+                      Join
+                    </Link>
+                  </div>
+                ))
+              ) : (
+                <div className="px-6 py-12 text-center">
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
+                    style={{ background: "rgba(124,108,246,0.1)" }}
+                  >
+                    <Calendar className="w-6 h-6 text-[#7C6CF6]" />
+                  </div>
+                  <p className="text-sm font-semibold text-white/60">
+                    No sessions scheduled
+                  </p>
+                  <p className="text-xs text-white/35 mt-1 max-w-xs mx-auto">
+                    Find a skill to swap and schedule your first session
+                  </p>
+                  <Link
+                    href="/discover"
+                    className="inline-flex items-center gap-1.5 mt-4 text-sm font-semibold text-[#7C6CF6] hover:text-[#9b8ef8] transition-colors"
+                  >
+                    Browse skills <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              )}
             </div>
+          </motion.div>
 
-            <div className="p-5 rounded-2xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E]">
-              <span className="text-xs text-[#71717A] dark:text-zinc-400 font-semibold uppercase tracking-wider">
-                Credits Spent
-              </span>
-              <p className="text-3xl sm:text-4xl font-extrabold text-[#18181B] dark:text-zinc-200 font-mono mt-1">
-                -{creditsSpent}
-              </p>
-              <p className="text-[11px] text-[#71717A] dark:text-zinc-400 mt-1">Invested in your learning journey</p>
+          {/* Quick Actions */}
+          <motion.div
+            custom={4}
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            className="glass rounded-2xl overflow-hidden"
+          >
+            <div className="px-6 py-4 border-b border-white/[0.07]">
+              <div className="flex items-center gap-2.5">
+                <Zap className="w-5 h-5 text-[#f5a524]" />
+                <h2 className="text-base font-bold text-white">Quick Actions</h2>
+              </div>
             </div>
-          </div>
+            <div className="p-4 space-y-2">
+              {[
+                {
+                  icon: <Search className="w-4 h-4" />,
+                  label: "Find someone to learn from",
+                  sub: "Browse 100+ skills",
+                  href: "/discover",
+                  color: "#7C6CF6",
+                },
+                {
+                  icon: <Sparkles className="w-4 h-4" />,
+                  label: "View AI match suggestions",
+                  sub: "Personalized for you",
+                  href: "/matches",
+                  color: "#06B6D4",
+                },
+                {
+                  icon: <BookOpen className="w-4 h-4" />,
+                  label: "Add a skill you can teach",
+                  sub: "Share your expertise",
+                  href: "/skills",
+                  color: "#10B981",
+                },
+                {
+                  icon: <CoinIcon size={16} />,
+                  label: "Top up credits",
+                  sub: `You have ${credits} credits`,
+                  href: "/credits",
+                  color: "#f5a524",
+                  onClick: () => setIsBuyCreditsOpen(true),
+                },
+              ].map((action) => (
+                <button
+                  key={action.label}
+                  onClick={
+                    action.onClick
+                      ? action.onClick
+                      : () => router.push(action.href)
+                  }
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/[0.05] transition-all duration-150 group text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CF6]/50"
+                >
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
+                    style={{ background: `${action.color}18`, color: action.color }}
+                  >
+                    {action.icon}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-white/80 group-hover:text-white transition-colors leading-none truncate">
+                      {action.label}
+                    </p>
+                    <p className="text-xs text-white/35 mt-0.5">{action.sub}</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/50 shrink-0 transition-colors" />
+                </button>
+              ))}
+            </div>
+          </motion.div>
         </div>
 
-        {/* RECOMMENDED FOR YOU */}
-        <div>
+        {/* ── RECOMMENDED SKILLS ── */}
+        <motion.div
+          custom={5}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+        >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#7C3AED] dark:text-[#A78BFA]">
-                Personalized
-              </span>
-              <h2 className="text-xl font-bold text-[#18181B] dark:text-white">Recommended for You</h2>
+              <p className="text-xs font-semibold text-[#7C6CF6] uppercase tracking-widest mb-1">
+                AI Personalized
+              </p>
+              <h2 className="text-xl font-bold text-white tracking-tight">
+                Recommended for You
+              </h2>
             </div>
             <Link
               href="/discover"
-              className="text-xs font-semibold text-[#7C3AED] dark:text-[#A78BFA] hover:underline"
+              className="text-sm font-semibold text-[#7C6CF6] hover:text-[#9b8ef8] transition-colors flex items-center gap-1"
             >
-              View all →
+              View all <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {recommendedSkills.map((item) => (
-              <div
+            {recommendedSkills.map((item, i) => (
+              <motion.div
                 key={item.id}
-                className="p-5 rounded-2xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] hover:border-[#A78BFA] shadow-sm flex flex-col justify-between transition-all group"
+                custom={5 + i * 0.5}
+                variants={fadeUp}
+                initial="hidden"
+                animate="visible"
+                className="glass rounded-2xl p-5 flex flex-col gap-4 transition-all duration-200 hover:bg-white/[0.07] hover:border-white/[0.14] hover:-translate-y-0.5 group"
               >
-                <div>
-                  <div className="flex items-start gap-3 mb-3">
-                    <img
-                      src={item.teacher.avatar}
-                      alt={item.teacher.name}
-                      className="w-11 h-11 rounded-full object-cover border border-[#E4E1F5] shrink-0"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <Link
-                        href={`/profile/${item.teacher.id}`}
-                        className="text-sm font-bold text-[#18181B] dark:text-white truncate block hover:text-[#7C3AED]"
-                      >
-                        {item.teacher.name}
-                      </Link>
-                      <p className="text-[11px] text-[#71717A] dark:text-zinc-400 truncate">{item.teacher.role}</p>
-                    </div>
-                  </div>
-
-                  <h3 className="text-sm font-bold text-[#18181B] dark:text-white line-clamp-1 mb-1">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs text-[#71717A] dark:text-zinc-400 line-clamp-2 leading-relaxed mb-3">
-                    {item.description}
-                  </p>
-
-                  <div className="flex items-center gap-2 text-xs mb-4">
-                    <span className="px-2 py-0.5 rounded-md bg-[#EDE9FE] dark:bg-[#231C3D] text-[#7C3AED] dark:text-[#A78BFA] text-[11px] font-semibold">
-                      {item.level}
-                    </span>
-                    <div className="flex items-center gap-1 text-amber-500 font-semibold text-xs ml-auto">
-                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                      <span>{item.rating}</span>
-                    </div>
+                {/* Teacher */}
+                <div className="flex items-center gap-3">
+                  <img
+                    src={item.teacher.avatar}
+                    alt={item.teacher.name}
+                    className="w-10 h-10 rounded-full object-cover ring-1 ring-white/10 shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <Link
+                      href={`/profile/${item.teacher.id}`}
+                      className="text-sm font-semibold text-white/90 hover:text-[#7C6CF6] transition-colors truncate block"
+                    >
+                      {item.teacher.name}
+                    </Link>
+                    <p className="text-xs text-white/40 truncate">{item.teacher.role}</p>
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-[#7C3AED] dark:text-[#A78BFA]">
-                    🪙 {item.creditsPerSession} cr
+                {/* Skill info */}
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-white line-clamp-1 mb-1">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs text-white/45 line-clamp-2 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+
+                {/* Meta */}
+                <div className="flex items-center gap-2 text-xs">
+                  <span
+                    className="px-2 py-0.5 rounded-lg text-[11px] font-semibold"
+                    style={{
+                      background: "rgba(124,108,246,0.12)",
+                      color: "#9b8ef8",
+                    }}
+                  >
+                    {item.level}
                   </span>
+                  <div className="flex items-center gap-1 text-amber-400 font-semibold ml-auto">
+                    <Star className="w-3.5 h-3.5 fill-amber-400" />
+                    {item.rating}
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div
+                  className="flex items-center justify-between pt-3 border-t"
+                  style={{ borderColor: "rgba(255,255,255,0.07)" }}
+                >
+                  <div className="flex items-center gap-1">
+                    <CoinIcon size={14} />
+                    <span className="text-xs font-bold text-[#f5a524] font-mono">
+                      {item.creditsPerSession} cr
+                    </span>
+                  </div>
                   <button
                     type="button"
                     onClick={() =>
@@ -260,118 +523,158 @@ export default function DashboardPage() {
                         skill: item.title,
                       })
                     }
-                    className="px-3.5 py-1.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
+                    style={{
+                      background: "linear-gradient(135deg, #7C6CF6 0%, #06B6D4 100%)",
+                    }}
                   >
-                    <Repeat className="w-3.5 h-3.5" />
-                    <span>Swap</span>
+                    <Repeat2 className="w-3.5 h-3.5" />
+                    Swap
                   </button>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        {/* TWO-COLUMN GRID: YOUR LEARNING & YOUR TEACHING */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* YOUR LEARNING */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
-              <div className="flex items-center gap-2">
-                <GraduationCap className="w-5 h-5 text-[#7C3AED] dark:text-[#A78BFA]" />
-                <h2 className="text-base font-bold text-[#18181B] dark:text-white">Your Learning</h2>
+        {/* ── YOUR SKILLS GRID ── */}
+        <motion.div
+          custom={6}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        >
+          {/* Learning */}
+          <div className="glass rounded-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.07]">
+              <div className="flex items-center gap-2.5">
+                <GraduationCap className="w-5 h-5 text-[#7C6CF6]" />
+                <h2 className="text-base font-bold text-white">Your Learning</h2>
               </div>
-              <Link href="/learn" className="text-xs font-semibold text-[#7C3AED] hover:underline">
-                View all →
+              <Link
+                href="/learn"
+                className="text-xs font-semibold text-[#7C6CF6] hover:text-[#9b8ef8] transition-colors flex items-center gap-1"
+              >
+                View all <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
-
-            {upcomingSessions.length > 0 ? (
-              <div className="space-y-3">
-                {upcomingSessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className="p-4 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] flex items-center justify-between gap-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={session.teacherAvatar}
-                        alt={session.teacherName}
-                        className="w-10 h-10 rounded-full object-cover border border-[#E4E1F5]"
-                      />
-                      <div>
-                        <h4 className="text-xs font-bold text-[#18181B] dark:text-white">{session.skillTitle}</h4>
-                        <p className="text-[11px] text-[#71717A] mt-0.5">
-                          {session.teacherName} • {session.date}, {session.time}
-                        </p>
-                      </div>
-                    </div>
-                    <Link
-                      href={session.roomUrl || "/learn"}
-                      className="px-3 py-1.5 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-semibold shrink-0"
-                    >
-                      Join Room
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-8 text-center text-xs text-[#71717A]">
-                <p>No active learning connections yet.</p>
-                <Link href="/discover" className="text-[#7C3AED] font-semibold hover:underline mt-1 block">
-                  Find a skill to swap →
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* YOUR TEACHING */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-[#161327] border border-[#E4E1F5] dark:border-[#2D264E] shadow-sm space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-[#7C3AED] dark:text-[#A78BFA]" />
-                <h2 className="text-base font-bold text-[#18181B] dark:text-white">Your Teaching</h2>
-              </div>
-              <Link href="/skills" className="text-xs font-semibold text-[#7C3AED] hover:underline">
-                Edit skills →
-              </Link>
-            </div>
-
-            {userTaughtSkillsList.length > 0 ? (
-              <div className="space-y-2.5">
-                {userTaughtSkillsList.map((skill) => (
+            <div className="divide-y divide-white/[0.05]">
+              {userLearningSkillsList.length > 0 ? (
+                userLearningSkillsList.slice(0, 4).map((skill) => (
                   <div
                     key={skill.id}
-                    className="p-3.5 rounded-2xl bg-[#F8F7FF] dark:bg-[#0E0C1B] border border-[#E4E1F5] dark:border-[#2D264E] flex items-center justify-between"
+                    className="flex items-center gap-3 px-6 py-3.5 hover:bg-white/[0.03] transition-colors"
                   >
-                    <div>
-                      <h4 className="text-xs font-bold text-[#18181B] dark:text-white">{skill.name}</h4>
-                      <span className="text-[11px] text-[#71717A]">{skill.level} • 10 Credits / session</span>
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-[11px] font-bold text-white"
+                      style={{
+                        background: "linear-gradient(135deg, rgba(124,108,246,0.25), rgba(6,182,212,0.15))",
+                      }}
+                    >
+                      {skill.name?.charAt(0) ?? "S"}
                     </div>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-white/85 truncate">
+                        {skill.name}
+                      </p>
+                      <p className="text-xs text-white/40">{skill.level}</p>
+                    </div>
+                    <span
+                      className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                      style={{
+                        background: "rgba(124,108,246,0.12)",
+                        color: "#9b8ef8",
+                      }}
+                    >
+                      Learning
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="px-6 py-10 text-center">
+                  <p className="text-sm text-white/45">No learning goals added yet.</p>
+                  <Link
+                    href="/discover"
+                    className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-[#7C6CF6] hover:text-[#9b8ef8] transition-colors"
+                  >
+                    Browse skills <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Teaching */}
+          <div className="glass rounded-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.07]">
+              <div className="flex items-center gap-2.5">
+                <BookOpen className="w-5 h-5 text-[#06B6D4]" />
+                <h2 className="text-base font-bold text-white">Your Teaching</h2>
+              </div>
+              <Link
+                href="/skills"
+                className="text-xs font-semibold text-[#7C6CF6] hover:text-[#9b8ef8] transition-colors flex items-center gap-1"
+              >
+                Edit skills <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <div className="divide-y divide-white/[0.05]">
+              {userTaughtSkillsList.length > 0 ? (
+                userTaughtSkillsList.slice(0, 4).map((skill) => (
+                  <div
+                    key={skill.id}
+                    className="flex items-center gap-3 px-6 py-3.5 hover:bg-white/[0.03] transition-colors"
+                  >
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-[11px] font-bold text-white"
+                      style={{
+                        background: "linear-gradient(135deg, rgba(6,182,212,0.25), rgba(16,185,129,0.15))",
+                      }}
+                    >
+                      {skill.name?.charAt(0) ?? "S"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-white/85 truncate">
+                        {skill.name}
+                      </p>
+                      <p className="text-xs text-white/40">
+                        {skill.level} · 10 Credits / session
+                      </p>
+                    </div>
+                    <span
+                      className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                      style={{
+                        background: "rgba(16,185,129,0.12)",
+                        color: "#34d399",
+                      }}
+                    >
                       Offering
                     </span>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-8 text-center text-xs text-[#71717A]">
-                <p>You haven&apos;t added any teaching skills yet.</p>
-                <Link href="/skills" className="text-[#7C3AED] font-semibold hover:underline mt-1 block">
-                  Add what you can teach →
-                </Link>
-              </div>
-            )}
+                ))
+              ) : (
+                <div className="px-6 py-10 text-center">
+                  <p className="text-sm text-white/45">No teaching skills added yet.</p>
+                  <Link
+                    href="/skills"
+                    className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-[#7C6CF6] hover:text-[#9b8ef8] transition-colors"
+                  >
+                    Add skills <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </main>
+        </motion.div>
+      </div>
 
-      {/* Modals */}
+      {/* Modals — preserved exactly */}
       <SwapRequestModal
         isOpen={swapModalOpen}
         onClose={() => setSwapModalOpen(false)}
         targetUser={selectedTargetUser}
       />
-
       <BuyCreditsModal
         isOpen={isBuyCreditsOpen}
         onClose={() => setIsBuyCreditsOpen(false)}
