@@ -6,7 +6,7 @@
 [![Gemini](https://img.shields.io/badge/Google%20Gemini-2.5%20Flash-4285F4?style=flat&logo=google)](https://ai.google.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38B2AC?style=flat&logo=tailwind-css)](https://tailwindcss.com/)
 
-**SkillSwap** is a production-grade peer-to-peer skill-trading platform built with Next.js, Supabase, WebRTC, and Google Gemini. It facilitates reciprocal knowledge transfer between peers using an atomic credit escrow economy, real-time collaboration tools, and AI-driven pedagogical planning.
+**SkillSwap** is a production grade peer-to-peer skill-trading platform built with Next.js, Supabase, WebRTC, and Google Gemini. It facilitates reciprocal knowledge transfer between peers using an atomic credit escrow economy, real-time collaboration tools, and AI-driven pedagogical planning.
 
 ---
 
