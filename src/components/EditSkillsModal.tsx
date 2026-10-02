@@ -1,0 +1,115 @@
+import React, { useState, useEffect } from 'react';
+import { X, BookOpen, ArrowRightLeft } from 'lucide-react';
+import SkillPicker from '@/components/SkillPicker';
+import { Profile } from '@/lib/auth';
+
+interface EditSkillsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  profile: Profile | null;
+  onSave: (updatedProfile: Profile) => void;
+}
+
+export const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
+  isOpen,
+  onClose,
+  profile,
+  onSave,
+}) => {
+  const [teach, setTeach] = useState<string[]>([]);
+  const [learn, setLearn] = useState<string[]>([]);
+  const [noTeach, setNoTeach] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setTeach(profile.teach || []);
+      setLearn(profile.learn || []);
+      setNoTeach(profile.noTeach || false);
+    }
+  }, [profile, isOpen]);
+
+  if (!isOpen || !profile) return null;
+
+  const handleSave = () => {
+    const updatedProfile = {
+      ...profile,
+      teach: noTeach ? [] : teach,
+      learn,
+      noTeach,
+    };
+    onSave(updatedProfile);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="relative w-full max-w-2xl rounded-3xl border border-ink/10 bg-mist p-6 sm:p-8 shadow-2xl">
+        <div className="flex items-center justify-between border-b border-ink/10 pb-4 mb-6">
+          <h2 className="text-xl font-display font-extrabold text-ink">Edit Skills</h2>
+          <button
+            onClick={onClose}
+            className="rounded-full p-2 text-ink/50 hover:bg-ink/10 hover:text-ink transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="space-y-8">
+          {/* Teach Skills */}
+          <div>
+            <h3 className="text-sm font-bold text-ink flex items-center gap-2 mb-4">
+              <ArrowRightLeft className="h-4 w-4 text-lagoon" />
+              Skills you can teach
+            </h3>
+            
+            <SkillPicker
+              value={teach}
+              onChange={setTeach}
+              max={5}
+              disabled={noTeach}
+            />
+
+            <label className="mt-4 flex items-center gap-3 rounded-2xl bg-white/80 p-4 border border-ink/8 font-medium text-xs text-ink cursor-pointer hover:border-ink/20 transition-all select-none shadow-sm">
+              <input
+                type="checkbox"
+                checked={noTeach}
+                onChange={e => setNoTeach(e.target.checked)}
+                className="size-4 rounded accent-lagoon cursor-pointer"
+              />
+              <span>I don't have any skills to teach right now (Learn-only mode)</span>
+            </label>
+          </div>
+
+          {/* Learn Skills */}
+          <div>
+            <h3 className="text-sm font-bold text-ink flex items-center gap-2 mb-4">
+              <BookOpen className="h-4 w-4 text-saffron" />
+              Skills you want to learn
+            </h3>
+            
+            <SkillPicker
+              value={learn}
+              onChange={setLearn}
+              max={5}
+            />
+          </div>
+        </div>
+
+        <div className="mt-8 flex justify-end gap-3 pt-4 border-t border-ink/10">
+          <button
+            onClick={onClose}
+            className="rounded-full px-5 py-2.5 text-xs font-semibold text-ink/70 hover:text-ink hover:bg-white transition-all cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="rounded-full bg-lagoon px-6 py-2.5 text-xs font-bold text-white hover:bg-lagoon-dark shadow-md transition-all cursor-pointer"
+          >
+            Save Skills
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

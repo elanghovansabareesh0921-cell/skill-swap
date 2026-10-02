@@ -1,69 +1,291 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { getSession, signOut } from '@/lib/auth';
+import { ArrowRight, Sparkles, ShieldCheck, Zap, ArrowRightLeft, Lock, CheckCircle2 } from 'lucide-react';
+
+const steps = [
+  {
+    num: '01',
+    title: 'Declare your exchange vectors',
+    desc: 'List what you can teach and what you want to learn. Our two-sided AI Radar identifies reciprocal matches in seconds.',
+  },
+  {
+    num: '02',
+    title: 'Lock tokens in escrow',
+    desc: 'Swapping reduces in-kind costs by up to 70%. Your tokens remain safely locked in escrow until the session completes.',
+  },
+  {
+    num: '03',
+    title: 'Meet on Google Meet & settle',
+    desc: 'One-click automated Google Meet links. Both parties confirm completion, triggering instant atomic escrow payout.',
+  },
+];
+
+export default function Landing() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const session = getSession();
+    setIsLoggedIn(!!session);
+  }, []);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="relative min-h-screen bg-mist text-ink selection:bg-lagoon selection:text-white overflow-hidden">
+      {/* Ambient Spatial Lighting Orbs */}
+      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[600px] w-[900px] ambient-glow-lagoon opacity-60 blur-3xl" />
+      <div className="pointer-events-none absolute top-[500px] -right-40 h-[600px] w-[600px] ambient-glow-saffron opacity-50 blur-3xl" />
+
+      {/* Floating Spatial Navigation Dock */}
+      <header className="sticky top-5 z-40 mx-auto max-w-5xl px-4 sm:px-6">
+        <div className="spatial-dock rounded-full px-5 py-3 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-white group-hover:bg-lagoon transition-colors shadow-sm">
+              <ArrowRightLeft className="h-4 w-4" />
+            </div>
+            <span className="font-display text-xl font-bold tracking-tight text-ink">
+              SkillSwap
+            </span>
+            <span className="hidden sm:inline-block rounded-full bg-lagoon/10 border border-lagoon/20 px-2.5 py-0.5 text-[10px] font-mono font-semibold text-lagoon">
+              ESCROW v0.2
+            </span>
+          </Link>
+
+          <nav className="flex items-center gap-2 sm:gap-3">
+            {isLoggedIn ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-2 rounded-full bg-ink px-5 py-2 text-xs font-semibold text-white hover:bg-lagoon transition-all shadow-sm group"
+                >
+                  <span>Dashboard</span>
+                  <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+                </Link>
+                <button
+                  onClick={() => {
+                    signOut();
+                    setIsLoggedIn(false);
+                  }}
+                  className="rounded-full px-3.5 py-2 text-xs font-medium text-ink/70 hover:text-ink hover:bg-ink/5 transition-colors cursor-pointer"
+                >
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="rounded-full px-4 py-2 text-xs font-semibold text-ink/80 hover:text-ink hover:bg-white/80 transition-colors"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/signup"
+                  className="rounded-full bg-ink px-5 py-2 text-xs font-semibold text-white hover:bg-lagoon transition-all shadow-sm"
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
+          </nav>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      {/* Hero Spatial Section */}
+      <section className="relative mx-auto max-w-6xl px-6 pt-20 pb-28 md:pt-28 md:pb-36">
+        <div className="grid gap-14 lg:grid-cols-12 lg:items-center">
+          {/* Left Column: Editorial Headline & Value Prop */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full glass-pill px-3.5 py-1 text-xs font-mono font-semibold text-lagoon">
+              <Sparkles className="h-3.5 w-3.5 text-saffron" />
+              PEER-TO-PEER SKILL EXCHANGE & ESCROW NETWORK
+            </div>
+
+            <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-ink leading-[1.03]">
+              Teach one thing.{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-lagoon via-teal-700 to-ink">
+                Learn another.
+              </span>
+            </h1>
+
+            <p className="max-w-xl text-lg text-ink/75 leading-relaxed font-normal">
+              Trade verified 1:1 lessons with peers who seek what you already know. When skills are exchanged in kind, learning costs up to <strong className="text-ink font-semibold">70% fewer tokens</strong> backed by automated escrow.
+            </p>
+
+            {/* Spatial CTA Actions */}
+            <div className="pt-2 flex flex-wrap items-center gap-4">
+              {isLoggedIn ? (
+                <Link
+                  href="/dashboard"
+                  className="inline-flex items-center gap-2.5 rounded-full bg-lagoon px-8 py-3.5 text-sm font-semibold text-white hover:bg-lagoon-dark transition-all shadow-lg shadow-lagoon/20 hover:shadow-xl hover:shadow-lagoon/25 group"
+                >
+                  <span>Enter Dashboard</span>
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/signup"
+                    className="inline-flex items-center gap-2.5 rounded-full bg-lagoon px-8 py-3.5 text-sm font-semibold text-white hover:bg-lagoon-dark transition-all shadow-lg shadow-lagoon/20 hover:shadow-xl hover:shadow-lagoon/25 group"
+                  >
+                    <span>Create Free Account</span>
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+
+                  <Link
+                    href="/login"
+                    className="rounded-full border border-ink/20 glass-pill px-7 py-3.5 text-sm font-semibold text-ink hover:bg-white transition-all shadow-sm"
+                  >
+                    I already have an account
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {/* Trust Markers */}
+            <div className="pt-6 flex flex-wrap items-center gap-6 text-xs text-ink/60 border-t border-ink/10">
+              <span className="flex items-center gap-1.5 font-medium">
+                <ShieldCheck className="h-4 w-4 text-lagoon" />
+                Escrow Protected Payouts
+              </span>
+              <span className="flex items-center gap-1.5 font-medium">
+                <Lock className="h-4 w-4 text-lagoon" />
+                1 Token = ₹1 Guaranteed
+              </span>
+              <span className="flex items-center gap-1.5 font-medium">
+                <Zap className="h-4 w-4 text-saffron" />
+                Automated Google Meet
+              </span>
+            </div>
+          </div>
+
+          {/* Right Column: Spatial Floating Comparison Tile */}
+          <div className="lg:col-span-5 relative">
+            <div className="glass-panel-dark rounded-3xl p-7 text-white spatial-card shadow-2xl relative overflow-hidden">
+              {/* Subtle top edge specular highlight */}
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+              
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-saffron font-bold text-sm">
+                    PY
+                  </div>
+                  <div>
+                    <h3 className="font-display text-sm font-bold text-white">Python Async & FastApi</h3>
+                    <p className="text-[11px] text-white/60">Taught by Ravi Kumar • 60 mins</p>
+                  </div>
+                </div>
+                <span className="rounded-full bg-lagoon/20 border border-lagoon/40 px-2.5 py-0.5 text-[10px] font-mono font-bold text-teal-300">
+                  70% DISCOUNT
+                </span>
+              </div>
+
+              {/* Price Bars Comparison */}
+              <div className="mt-6 space-y-5">
+                <div>
+                  <div className="flex justify-between text-xs font-mono text-white/70 mb-2">
+                    <span>Direct Learn (List Price)</span>
+                    <span className="text-white font-bold">60 Tokens (₹60)</span>
+                  </div>
+                  <div className="h-3 w-full rounded-full bg-white/10 overflow-hidden">
+                    <div className="h-full w-full bg-white/30 rounded-full" />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs font-mono text-saffron mb-2">
+                    <span className="font-bold flex items-center gap-1">
+                      <ArrowRightLeft className="h-3 w-3" />
+                      Swap: You teach him Figma UI
+                    </span>
+                    <span className="font-extrabold text-white text-sm">18 Tokens (₹18)</span>
+                  </div>
+                  <div className="h-3 w-full rounded-full bg-white/10 overflow-hidden">
+                    <div className="h-full w-[30%] bg-saffron rounded-full shadow-lg shadow-saffron/40" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Savings Card Insight */}
+              <div className="mt-6 rounded-2xl bg-white/5 border border-white/10 p-4 flex items-center justify-between text-xs">
+                <div>
+                  <div className="text-white/60 text-[11px]">Net Savings per Session</div>
+                  <div className="text-emerald-400 font-bold font-mono text-base">You Save 42 Tokens</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-white/60 text-[11px]">Rate in INR</div>
+                  <div className="text-white font-mono font-bold text-base">₹18 only</div>
+                </div>
+              </div>
+
+              <p className="mt-5 text-[11px] text-white/50 text-center leading-relaxed font-mono">
+                Tokens stay in escrow until both parties confirm completion.
+              </p>
+            </div>
+          </div>
         </div>
-      </main>
+      </section>
+
+      {/* Spatial Workflow Architecture Grid */}
+      <section className="relative z-10 border-t border-ink/8 bg-white/60 backdrop-blur-xl py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="max-w-xl">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-lagoon">
+              Architecture & Mechanics
+            </span>
+            <h2 className="mt-2 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-ink">
+              How a skill swap works.
+            </h2>
+            <p className="mt-3 text-sm text-ink/70 leading-relaxed">
+              Designed around complete financial integrity, mutual scheduling convenience, and verifiable escrow protection.
+            </p>
+          </div>
+
+          <div className="mt-14 grid gap-8 md:grid-cols-3">
+            {steps.map(step => (
+              <div
+                key={step.num}
+                className="group relative rounded-3xl glass-panel p-8 spatial-card flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-3xl font-black text-ink/15 group-hover:text-lagoon/40 transition-colors">
+                      {step.num}
+                    </span>
+                    <div className="h-2 w-2 rounded-full bg-lagoon/30 group-hover:bg-lagoon transition-colors" />
+                  </div>
+                  <h3 className="mt-6 font-display text-lg font-bold text-ink leading-snug">
+                    {step.title}
+                  </h3>
+                  <p className="mt-3 text-sm text-ink/70 leading-relaxed font-normal">
+                    {step.desc}
+                  </p>
+                </div>
+
+                <div className="mt-8 pt-4 border-t border-ink/5 flex items-center gap-2 text-xs font-semibold text-lagoon group-hover:translate-x-1 transition-transform">
+                  <span>Learn more</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-ink/8 py-10 bg-mist">
+        <div className="mx-auto max-w-6xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ink/60">
+          <div>
+            SkillSwap Platform • 18+ members only • Stored value protected by double-entry ledger.
+          </div>
+          <div className="flex items-center gap-6">
+            <Link href="/login" className="hover:text-ink transition-colors">Login</Link>
+            <Link href="/signup" className="hover:text-ink transition-colors">Sign up</Link>
+            <Link href="/onboarding" className="hover:text-ink transition-colors">Onboarding</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

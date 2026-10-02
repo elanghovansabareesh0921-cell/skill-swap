@@ -1,26 +1,157 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-ink: #0f1b2d;
+  --color-ink-light: #1e293b;
+  --color-ink-muted: #475569;
+  --color-lagoon: #0e7c7b;
+  --color-lagoon-dark: #0a5e5d;
+  --color-lagoon-light: #14a09f;
+  --color-saffron: #f2a541;
+  --color-saffron-light: #f6b865;
+  --color-mist: #f8fafb;
+  --color-mist-pure: #ffffff;
+  --color-mist-subtle: #f1f5f7;
+  --color-surface-glass: rgba(255, 255, 255, 0.82);
+  --color-surface-dark-glass: rgba(15, 27, 45, 0.88);
+  --font-display: var(--font-bricolage), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-dm), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-mist);
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  letter-spacing: -0.012em;
+}
+
+/* Spatial Glass Materials & Specular Highlights */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.84);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(15, 27, 45, 0.07);
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.9),
+    0 10px 30px -10px rgba(15, 27, 45, 0.05),
+    0 1px 3px 0 rgba(15, 27, 45, 0.02);
+}
+
+.glass-panel-elevated {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(15, 27, 45, 0.08);
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 1),
+    0 20px 45px -12px rgba(15, 27, 45, 0.09),
+    0 4px 12px -2px rgba(15, 27, 45, 0.03);
+}
+
+.glass-panel-dark {
+  background: rgba(15, 27, 45, 0.92);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+    0 28px 65px -12px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(15, 27, 45, 0.08);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 2px 8px -2px rgba(15, 27, 45, 0.04);
+}
+
+/* Floating Spatial Dock */
+.spatial-dock {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(15, 27, 45, 0.08);
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.95),
+    0 16px 40px -12px rgba(15, 27, 45, 0.1),
+    0 2px 6px -1px rgba(15, 27, 45, 0.04);
+}
+
+/* Spatial Depth Lift & Micro-physics */
+.spatial-card {
+  transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.26s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+}
+
+.spatial-card:hover {
+  transform: translateY(-2.5px);
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 1),
+    0 22px 45px -12px rgba(15, 27, 45, 0.11), 
+    0 4px 14px -2px rgba(15, 27, 45, 0.05);
+}
+
+/* Ambient Lighting Orbs */
+.ambient-glow-saffron {
+  background: radial-gradient(circle at 50% 50%, rgba(242, 165, 65, 0.14) 0%, rgba(242, 165, 65, 0) 70%);
+}
+
+.ambient-glow-lagoon {
+  background: radial-gradient(circle at 50% 50%, rgba(14, 124, 123, 0.14) 0%, rgba(14, 124, 123, 0) 70%);
+}
+
+.ambient-glow-aurora {
+  background: radial-gradient(circle at 50% 50%, rgba(20, 160, 159, 0.1) 0%, rgba(242, 165, 65, 0.08) 50%, transparent 75%);
+}
+
+/* Radar Sweep Pulse Animation */
+@keyframes radar-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.radar-sweep-beam {
+  animation: radar-spin 6s linear infinite;
+  transform-origin: center center;
+}
+
+/* Numbers & Monospace Precision */
+.font-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-lagoon);
+  outline-offset: 3px;
+}
+
+/* Custom Minimal Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 27, 45, 0.14);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 27, 45, 0.28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }

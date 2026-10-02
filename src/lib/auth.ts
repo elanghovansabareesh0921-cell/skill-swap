@@ -1,0 +1,66 @@
+import { createClient } from '@/lib/supabase/client';
+
+export type Profile = {
+  name: string;
+  avatar: string;
+  sex: string;
+  dob: string;
+  teach: string[];
+  noTeach: boolean;
+  learn: string[];
+};
+
+export type Session = { email: string; provider: "google" | "github" | "email" };
+
+const read = <T>(k: string): T | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    return JSON.parse(localStorage.getItem(k) ?? "null");
+  } catch {
+    return null;
+  }
+};
+
+export const getSession = () => read<Session>("ss_session");
+export const getProfile = () => read<Profile>("ss_profile");
+export const saveProfile = (p: Profile) => {
+  if (typeof window !== "undefined") localStorage.setItem("ss_profile", JSON.stringify(p));
+};
+export const signOut = () => {
+  if (typeof window !== "undefined") localStorage.removeItem("ss_session");
+};
+
+const start = async (s: Session) => {
+  await new Promise((r) => setTimeout(r, 400));
+  if (typeof window !== "undefined") localStorage.setItem("ss_session", JSON.stringify(s));
+};
+
+// Uses Supabase Auth to handle Google/GitHub Login and GMeet scopes
+export const signInWithProvider = async (p: "google" | "github") => {
+  // Maintain mock compatibility before redirect
+  if (typeof window !== "undefined") {
+    localStorage.setItem("ss_session", JSON.stringify({ email: `${p}-user@example.com`, provider: p }));
+  }
+
+  const supabase = createClient();
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: p,
+    options: {
+      redirectTo: `${origin}/auth/callback`,
+      scopes: p === 'google' ? 'https://www.googleapis.com/auth/calendar.events' : undefined,
+      queryParams: p === 'google' ? {
+        access_type: 'offline',
+        prompt: 'consent',
+      } : undefined,
+    },
+  });
+
+  if (error) {
+    throw error;
+  }
+};
+
+export const signInWithEmail = (email: string, _password: string) =>
+  start({ email, provider: "email" });
