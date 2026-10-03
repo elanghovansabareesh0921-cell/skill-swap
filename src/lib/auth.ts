@@ -60,7 +60,10 @@ export const signInWithProvider = async (p: "google" | "github") => {
   if (error) {
     throw error;
   }
+  return { isOAuth: true };
 };
 
-export const signInWithEmail = (email: string, _password: string) =>
-  start({ email, provider: "email" });
+export const signInWithEmail = async (email: string, _password: string) => {
+  await start({ email, provider: "email" });
+  return { isOAuth: false };
+};

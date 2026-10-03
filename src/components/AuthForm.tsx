@@ -17,11 +17,15 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
 
-  async function run(fn: () => Promise<void>) {
+  async function run(fn: () => Promise<{ isOAuth: boolean } | void>) {
     setBusy(true);
     setErr('');
     try {
-      await fn();
+      const res = await fn();
+      if (res && res.isOAuth) {
+        // Do not redirect or unset busy state yet, let the browser OAuth redirect happen
+        return;
+      }
       router.push(signup || !getProfile() ? '/onboarding' : '/dashboard');
     } catch (e) {
       setErr((e as Error).message || 'Something went wrong. Please try again.');
