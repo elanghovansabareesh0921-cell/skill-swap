@@ -61,9 +61,9 @@ export const WalletModal: React.FC<WalletModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-xl p-4 overflow-y-auto">
-      <div className="relative w-full max-w-xl glass-panel-elevated rounded-3xl p-7 sm:p-9 shadow-2xl border border-mist-pure/40 overflow-hidden">
+      <div className="relative w-full max-w-xl glass-panel-elevated rounded-3xl p-7 sm:p-9 shadow-2xl border border-white/40 overflow-hidden">
         {/* Specular Edge */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-mist-pure/80 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none" />
 
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-ink/8 pb-4">
@@ -98,14 +98,14 @@ export const WalletModal: React.FC<WalletModalProps> = ({
             </div>
 
             <div className="text-right">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-mist-pure/10 px-3 py-1 text-xs font-mono text-emerald-300 border border-mist-pure/15">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-mist-pure/10 px-3 py-1 text-xs font-mono text-emerald-300 border border-white/15">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
                 <span>ESCROW READY</span>
               </div>
             </div>
           </div>
 
-          <div className="mt-5 pt-4 border-t border-mist-pure/10 grid grid-cols-2 gap-4 text-xs font-mono">
+          <div className="mt-5 pt-4 border-t border-white/10 grid grid-cols-2 gap-4 text-xs font-mono">
             <div>
               <span className="text-white/60 text-[10px] uppercase block">Locked in Escrow</span>
               <span className="text-saffron font-bold text-sm">{heldTokens} Tokens</span>

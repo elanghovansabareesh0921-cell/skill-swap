@@ -84,7 +84,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
   return (
     <div className="flex h-[740px] flex-col rounded-3xl glass-panel border border-ink/10 overflow-hidden shadow-2xl relative">
       {/* Specular Edge */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-mist-pure/80 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none" />
 
       {/* Chat Top Header */}
       <div className="flex items-center justify-between border-b border-ink/8 bg-mist-pure/80 backdrop-blur-md px-6 py-4">
@@ -95,7 +95,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
               alt="Ravi Kumar"
               className="h-10 w-10 rounded-2xl object-cover border border-ink/10 shadow-xs"
             />
-            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-mist-pure" />
+            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -264,7 +264,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
       {/* Propose Time Modal */}
       {showProposeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md glass-panel-elevated rounded-3xl p-7 shadow-2xl border border-mist-pure/40 space-y-4">
+          <div className="w-full max-w-md glass-panel-elevated rounded-3xl p-7 shadow-2xl border border-white/40 space-y-4">
             <div className="flex items-center justify-between border-b border-ink/8 pb-3">
               <h3 className="font-display font-bold text-ink text-base flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-lagoon" />

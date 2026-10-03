@@ -54,9 +54,9 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-xl p-4 overflow-y-auto">
-      <div className="relative w-full max-w-lg glass-panel-elevated rounded-3xl p-7 sm:p-9 shadow-2xl border border-mist-pure/40 overflow-hidden">
+      <div className="relative w-full max-w-lg glass-panel-elevated rounded-3xl p-7 sm:p-9 shadow-2xl border border-white/40 overflow-hidden">
         {/* Specular Edge */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-mist-pure/80 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none" />
 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-ink/8 pb-4">

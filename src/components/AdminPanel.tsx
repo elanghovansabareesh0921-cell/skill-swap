@@ -46,7 +46,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
       {/* Spatial Header Banner */}
       <div className="rounded-3xl glass-panel-dark p-8 sm:p-10 text-white shadow-2xl relative overflow-hidden spatial-card">
         {/* Specular Edge */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-mist-pure/30 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
 
         <div className="flex items-center justify-between flex-wrap gap-4 relative z-10">
           <div className="space-y-2">
@@ -59,7 +59,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
               Dual-control maker-checker adjustments, dispute arbitration, and 10% platform fee ledger reconciliations.
             </p>
           </div>
-          <div className="rounded-full bg-mist-pure/10 border border-mist-pure/15 px-4 py-1.5 font-mono text-xs text-white/80">
+          <div className="rounded-full bg-mist-pure/10 border border-white/15 px-4 py-1.5 font-mono text-xs text-white/80">
             SESSION: <strong className="text-emerald-400">AUDIT VERIFIED</strong>
           </div>
         </div>

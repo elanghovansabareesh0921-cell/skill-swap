@@ -66,7 +66,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
         </div>
 
         <div className="relative z-10 space-y-6 my-auto max-w-sm">
-          <div className="inline-flex items-center gap-2 rounded-full bg-mist-pure/10 border border-mist-pure/15 px-3 py-1 text-xs font-mono font-medium text-teal-300">
+          <div className="inline-flex items-center gap-2 rounded-full bg-mist-pure/10 border border-white/15 px-3 py-1 text-xs font-mono font-medium text-teal-300">
             <Sparkles className="h-3.5 w-3.5 text-saffron" />
             ESCROW-PROTECTED TRADING
           </div>

@@ -164,9 +164,9 @@ export default function Landing() {
           <div className="lg:col-span-5 relative">
             <div className="glass-panel-dark rounded-3xl p-7 text-white spatial-card shadow-2xl relative overflow-hidden">
               {/* Subtle top edge specular highlight */}
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-mist-pure/30 to-transparent" />
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
               
-              <div className="flex items-center justify-between border-b border-mist-pure/10 pb-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-mist-pure/10 text-saffron font-bold text-sm">
                     PY
@@ -208,7 +208,7 @@ export default function Landing() {
               </div>
 
               {/* Savings Card Insight */}
-              <div className="mt-6 rounded-2xl bg-mist-pure/5 border border-mist-pure/10 p-4 flex items-center justify-between text-xs">
+              <div className="mt-6 rounded-2xl bg-mist-pure/5 border border-white/10 p-4 flex items-center justify-between text-xs">
                 <div>
                   <div className="text-white/60 text-[11px]">Net Savings per Session</div>
                   <div className="text-emerald-400 font-bold font-mono text-base">You Save 42 Tokens</div>

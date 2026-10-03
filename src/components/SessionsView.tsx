@@ -312,7 +312,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
       {/* Dispute Modal */}
       {selectedDisputeSessionId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-md p-4">
-          <div className="w-full max-w-lg glass-panel-elevated rounded-3xl p-7 shadow-2xl border border-mist-pure/40 space-y-4">
+          <div className="w-full max-w-lg glass-panel-elevated rounded-3xl p-7 shadow-2xl border border-white/40 space-y-4">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-500/15 text-rose-600 font-bold">
                 <AlertTriangle className="h-5 w-5" />

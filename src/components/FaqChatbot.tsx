@@ -182,7 +182,7 @@ export const FaqChatbot: React.FC = () => {
         >
           <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-ink text-white group-hover:bg-lagoon transition-colors shadow-xs">
             <MessageSquareText className="h-4 w-4" />
-            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-saffron border-2 border-mist-pure animate-pulse" />
+            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-saffron border-2 border-white animate-pulse" />
           </div>
           <div className="text-left pr-1 hidden sm:block">
             <div className="text-xs font-bold text-ink leading-tight flex items-center gap-1.5">
@@ -198,9 +198,9 @@ export const FaqChatbot: React.FC = () => {
 
       {/* Spatial Chat Modal Window */}
       {isOpen && (
-        <div className="flex h-[560px] w-[380px] sm:w-[420px] flex-col rounded-3xl glass-panel-elevated shadow-2xl border border-mist-pure/50 overflow-hidden relative">
+        <div className="flex h-[560px] w-[380px] sm:w-[420px] flex-col rounded-3xl glass-panel-elevated shadow-2xl border border-white/50 overflow-hidden relative">
           {/* Specular Edge */}
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-mist-pure/80 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none" />
 
           {/* Header */}
           <div className="flex items-center justify-between border-b border-ink/8 bg-mist-pure/80 backdrop-blur-md px-5 py-3.5">
