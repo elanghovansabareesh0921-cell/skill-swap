@@ -76,7 +76,7 @@ export default function Landing() {
               <>
                 <Link
                   href="/login"
-                  className="rounded-full px-4 py-2 text-xs font-semibold text-ink/80 hover:text-ink hover:bg-white/80 transition-colors"
+                  className="rounded-full px-4 py-2 text-xs font-semibold text-ink/80 hover:text-ink hover:bg-mist-pure/80 transition-colors"
                 >
                   Log in
                 </Link>
@@ -135,7 +135,7 @@ export default function Landing() {
 
                   <Link
                     href="/login"
-                    className="rounded-full border border-ink/20 glass-pill px-7 py-3.5 text-sm font-semibold text-ink hover:bg-white transition-all shadow-sm"
+                    className="rounded-full border border-ink/20 glass-pill px-7 py-3.5 text-sm font-semibold text-ink hover:bg-mist-pure transition-all shadow-sm"
                   >
                     I already have an account
                   </Link>
@@ -164,11 +164,11 @@ export default function Landing() {
           <div className="lg:col-span-5 relative">
             <div className="glass-panel-dark rounded-3xl p-7 text-white spatial-card shadow-2xl relative overflow-hidden">
               {/* Subtle top edge specular highlight */}
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-mist-pure/30 to-transparent" />
               
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center justify-between border-b border-mist-pure/10 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-saffron font-bold text-sm">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-mist-pure/10 text-saffron font-bold text-sm">
                     PY
                   </div>
                   <div>
@@ -188,8 +188,8 @@ export default function Landing() {
                     <span>Direct Learn (List Price)</span>
                     <span className="text-white font-bold">60 Tokens (₹60)</span>
                   </div>
-                  <div className="h-3 w-full rounded-full bg-white/10 overflow-hidden">
-                    <div className="h-full w-full bg-white/30 rounded-full" />
+                  <div className="h-3 w-full rounded-full bg-mist-pure/10 overflow-hidden">
+                    <div className="h-full w-full bg-mist-pure/30 rounded-full" />
                   </div>
                 </div>
 
@@ -201,14 +201,14 @@ export default function Landing() {
                     </span>
                     <span className="font-extrabold text-white text-sm">18 Tokens (₹18)</span>
                   </div>
-                  <div className="h-3 w-full rounded-full bg-white/10 overflow-hidden">
+                  <div className="h-3 w-full rounded-full bg-mist-pure/10 overflow-hidden">
                     <div className="h-full w-[30%] bg-saffron rounded-full shadow-lg shadow-saffron/40" />
                   </div>
                 </div>
               </div>
 
               {/* Savings Card Insight */}
-              <div className="mt-6 rounded-2xl bg-white/5 border border-white/10 p-4 flex items-center justify-between text-xs">
+              <div className="mt-6 rounded-2xl bg-mist-pure/5 border border-mist-pure/10 p-4 flex items-center justify-between text-xs">
                 <div>
                   <div className="text-white/60 text-[11px]">Net Savings per Session</div>
                   <div className="text-emerald-400 font-bold font-mono text-base">You Save 42 Tokens</div>
@@ -228,7 +228,7 @@ export default function Landing() {
       </section>
 
       {/* Spatial Workflow Architecture Grid */}
-      <section className="relative z-10 border-t border-ink/8 bg-white/60 backdrop-blur-xl py-24">
+      <section className="relative z-10 border-t border-ink/8 bg-mist-pure/60 backdrop-blur-xl py-24">
         <div className="mx-auto max-w-6xl px-6">
           <div className="max-w-xl">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-lagoon">

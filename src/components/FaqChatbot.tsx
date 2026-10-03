@@ -177,12 +177,12 @@ export const FaqChatbot: React.FC = () => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="group flex items-center gap-2.5 rounded-full spatial-dock px-4 py-3 shadow-xl hover:shadow-2xl transition-all cursor-pointer hover:scale-105 border border-ink/10 bg-white/95"
+          className="group flex items-center gap-2.5 rounded-full spatial-dock px-4 py-3 shadow-xl hover:shadow-2xl transition-all cursor-pointer hover:scale-105 border border-ink/10 bg-mist-pure/95"
           aria-label="Open SkillSwap FAQ Chatbot"
         >
           <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-ink text-white group-hover:bg-lagoon transition-colors shadow-xs">
             <MessageSquareText className="h-4 w-4" />
-            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-saffron border-2 border-white animate-pulse" />
+            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-saffron border-2 border-mist-pure animate-pulse" />
           </div>
           <div className="text-left pr-1 hidden sm:block">
             <div className="text-xs font-bold text-ink leading-tight flex items-center gap-1.5">
@@ -198,12 +198,12 @@ export const FaqChatbot: React.FC = () => {
 
       {/* Spatial Chat Modal Window */}
       {isOpen && (
-        <div className="flex h-[560px] w-[380px] sm:w-[420px] flex-col rounded-3xl glass-panel-elevated shadow-2xl border border-white/50 overflow-hidden relative">
+        <div className="flex h-[560px] w-[380px] sm:w-[420px] flex-col rounded-3xl glass-panel-elevated shadow-2xl border border-mist-pure/50 overflow-hidden relative">
           {/* Specular Edge */}
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-mist-pure/80 to-transparent pointer-events-none" />
 
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-ink/8 bg-white/80 backdrop-blur-md px-5 py-3.5">
+          <div className="flex items-center justify-between border-b border-ink/8 bg-mist-pure/80 backdrop-blur-md px-5 py-3.5">
             <div className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded-2xl bg-lagoon text-white shadow-xs">
                 <Sparkles className="h-4 w-4 text-saffron" />
@@ -288,28 +288,28 @@ export const FaqChatbot: React.FC = () => {
           </div>
 
           {/* Quick Question Suggestion Pills */}
-          <div className="border-t border-ink/6 bg-white/50 p-2.5 overflow-x-auto flex gap-1.5 no-scrollbar">
+          <div className="border-t border-ink/6 bg-mist-pure/50 p-2.5 overflow-x-auto flex gap-1.5 no-scrollbar">
             <button
               onClick={() => handleSend('How does the 70% swap discount work?')}
-              className="whitespace-nowrap rounded-full border border-ink/10 bg-white/90 px-2.5 py-1 text-[10px] font-medium text-ink/70 hover:border-lagoon hover:text-ink cursor-pointer"
+              className="whitespace-nowrap rounded-full border border-ink/10 bg-mist-pure/90 px-2.5 py-1 text-[10px] font-medium text-ink/70 hover:border-lagoon hover:text-ink cursor-pointer"
             >
               70% Swap Discount
             </button>
             <button
               onClick={() => handleSend('How does escrow protect my money?')}
-              className="whitespace-nowrap rounded-full border border-ink/10 bg-white/90 px-2.5 py-1 text-[10px] font-medium text-ink/70 hover:border-lagoon hover:text-ink cursor-pointer"
+              className="whitespace-nowrap rounded-full border border-ink/10 bg-mist-pure/90 px-2.5 py-1 text-[10px] font-medium text-ink/70 hover:border-lagoon hover:text-ink cursor-pointer"
             >
               Escrow Protection
             </button>
             <button
               onClick={() => handleSend('How do Google Meet links get generated?')}
-              className="whitespace-nowrap rounded-full border border-ink/10 bg-white/90 px-2.5 py-1 text-[10px] font-medium text-ink/70 hover:border-lagoon hover:text-ink cursor-pointer"
+              className="whitespace-nowrap rounded-full border border-ink/10 bg-mist-pure/90 px-2.5 py-1 text-[10px] font-medium text-ink/70 hover:border-lagoon hover:text-ink cursor-pointer"
             >
               Google Meet Links
             </button>
             <button
               onClick={() => handleSend('What happens on a no show or cancellation?')}
-              className="whitespace-nowrap rounded-full border border-ink/10 bg-white/90 px-2.5 py-1 text-[10px] font-medium text-ink/70 hover:border-lagoon hover:text-ink cursor-pointer"
+              className="whitespace-nowrap rounded-full border border-ink/10 bg-mist-pure/90 px-2.5 py-1 text-[10px] font-medium text-ink/70 hover:border-lagoon hover:text-ink cursor-pointer"
             >
               No-show & Strikes
             </button>
@@ -321,7 +321,7 @@ export const FaqChatbot: React.FC = () => {
               e.preventDefault();
               handleSend(input);
             }}
-            className="border-t border-ink/8 bg-white/90 p-3"
+            className="border-t border-ink/8 bg-mist-pure/90 p-3"
           >
             <div className="flex items-center gap-2">
               <input
@@ -329,7 +329,7 @@ export const FaqChatbot: React.FC = () => {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 placeholder="Ask about tokens, swaps, escrow..."
-                className="flex-1 rounded-full border border-ink/15 bg-white px-3.5 py-2 text-xs text-ink placeholder:text-ink/35 focus:border-lagoon focus:outline-none shadow-xs"
+                className="flex-1 rounded-full border border-ink/15 bg-mist-pure px-3.5 py-2 text-xs text-ink placeholder:text-ink/35 focus:border-lagoon focus:outline-none shadow-xs"
               />
               <button
                 type="submit"

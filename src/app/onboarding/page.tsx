@@ -7,7 +7,7 @@ import { getSession, saveProfile, type Profile } from '@/lib/auth';
 import { ArrowLeft, ArrowRight, Sparkles, Upload, User, ShieldCheck } from 'lucide-react';
 
 const fieldClass =
-  'mt-1.5 w-full rounded-2xl border border-ink/15 bg-white/90 px-4 py-3 text-sm text-ink outline-none transition-all placeholder:text-ink/35 focus:border-lagoon focus:bg-white focus:ring-4 focus:ring-lagoon/10 shadow-sm';
+  'mt-1.5 w-full rounded-2xl border border-ink/15 bg-mist-pure/90 px-4 py-3 text-sm text-ink outline-none transition-all placeholder:text-ink/35 focus:border-lagoon focus:bg-mist-pure focus:ring-4 focus:ring-lagoon/10 shadow-sm';
 
 const titles = ['Tell us about you', 'What can you teach?', 'What do you want to learn?'];
 const subtitles = [
@@ -122,7 +122,7 @@ export default function Onboarding() {
           {step === 1 && (
             <>
               {/* Avatar Uploader */}
-              <div className="flex items-center gap-5 p-4 rounded-2xl bg-white/60 border border-ink/8">
+              <div className="flex items-center gap-5 p-4 rounded-2xl bg-mist-pure/60 border border-ink/8">
                 {f.avatar ? (
                   <img
                     src={f.avatar}
@@ -135,7 +135,7 @@ export default function Onboarding() {
                   </div>
                 )}
                 <div>
-                  <label className="cursor-pointer inline-flex items-center gap-2 rounded-full border border-ink/20 bg-white px-4 py-2 text-xs font-semibold text-ink hover:bg-ink hover:text-white transition-colors shadow-sm">
+                  <label className="cursor-pointer inline-flex items-center gap-2 rounded-full border border-ink/20 bg-mist-pure px-4 py-2 text-xs font-semibold text-ink hover:bg-ink hover:text-white transition-colors shadow-sm">
                     <Upload className="h-3.5 w-3.5" />
                     <span>{f.avatar ? 'Change photo' : 'Upload photo'}</span>
                     <input
@@ -205,7 +205,7 @@ export default function Onboarding() {
                 disabled={f.noTeach}
               />
 
-              <label className="flex items-center gap-3 rounded-2xl bg-white/80 p-4 border border-ink/8 font-medium text-xs text-ink cursor-pointer hover:border-ink/20 transition-all select-none shadow-sm">
+              <label className="flex items-center gap-3 rounded-2xl bg-mist-pure/80 p-4 border border-ink/8 font-medium text-xs text-ink cursor-pointer hover:border-ink/20 transition-all select-none shadow-sm">
                 <input
                   type="checkbox"
                   checked={f.noTeach}
@@ -253,7 +253,7 @@ export default function Onboarding() {
                 setStep(step - 1);
               }}
               disabled={step === 1}
-              className="inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-semibold text-ink/70 hover:text-ink hover:bg-white disabled:invisible transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-semibold text-ink/70 hover:text-ink hover:bg-mist-pure disabled:invisible transition-all cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Back</span>

@@ -60,7 +60,7 @@ export default async function AdminUsersPage() {
         </div>
         
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <button className="flex items-center gap-2 rounded-full border border-ink/15 bg-white px-4 py-2 text-xs font-semibold text-ink hover:bg-ink/5 transition-colors shadow-xs">
+          <button className="flex items-center gap-2 rounded-full border border-ink/15 bg-mist-pure px-4 py-2 text-xs font-semibold text-ink hover:bg-ink/5 transition-colors shadow-xs">
             <Filter className="h-4 w-4" />
             Filter
           </button>
@@ -69,14 +69,14 @@ export default async function AdminUsersPage() {
             <input 
               type="text" 
               placeholder="Search users..." 
-              className="w-full rounded-full border border-ink/15 bg-white pl-9 pr-4 py-2 text-xs text-ink placeholder:text-ink/40 focus:border-lagoon focus:outline-none shadow-xs"
+              className="w-full rounded-full border border-ink/15 bg-mist-pure pl-9 pr-4 py-2 text-xs text-ink placeholder:text-ink/40 focus:border-lagoon focus:outline-none shadow-xs"
             />
           </div>
         </div>
       </div>
 
       {/* Data Table */}
-      <div className="bg-white rounded-3xl border border-ink/10 shadow-sm overflow-hidden">
+      <div className="bg-mist-pure rounded-3xl border border-ink/10 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -169,8 +169,8 @@ export default async function AdminUsersPage() {
         <div className="px-6 py-4 border-t border-ink/10 bg-mist flex items-center justify-between">
           <span className="text-xs text-ink/50 font-medium">Showing 4 of 4 users</span>
           <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 text-xs font-semibold text-ink/40 cursor-not-allowed border border-ink/10 rounded-lg bg-white">Previous</button>
-            <button className="px-3 py-1.5 text-xs font-semibold text-ink/40 cursor-not-allowed border border-ink/10 rounded-lg bg-white">Next</button>
+            <button className="px-3 py-1.5 text-xs font-semibold text-ink/40 cursor-not-allowed border border-ink/10 rounded-lg bg-mist-pure">Previous</button>
+            <button className="px-3 py-1.5 text-xs font-semibold text-ink/40 cursor-not-allowed border border-ink/10 rounded-lg bg-mist-pure">Next</button>
           </div>
         </div>
       </div>

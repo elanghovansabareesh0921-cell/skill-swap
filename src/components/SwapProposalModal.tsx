@@ -110,9 +110,9 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-xl p-4 overflow-y-auto">
-      <div className="relative w-full max-w-2xl glass-panel-elevated rounded-3xl p-7 sm:p-9 shadow-2xl border border-white/40 overflow-hidden">
+      <div className="relative w-full max-w-2xl glass-panel-elevated rounded-3xl p-7 sm:p-9 shadow-2xl border border-mist-pure/40 overflow-hidden">
         {/* Specular Top Hairline */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-mist-pure/80 to-transparent" />
 
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-ink/8 pb-4">
@@ -150,7 +150,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
             className={`flex flex-col items-start rounded-2xl p-4 border transition-all text-left cursor-pointer ${
               offerType === 'SWAP'
                 ? 'border-lagoon bg-lagoon/[0.06] shadow-xs'
-                : 'border-ink/10 bg-white/60 text-ink/60 hover:border-ink/20'
+                : 'border-ink/10 bg-mist-pure/60 text-ink/60 hover:border-ink/20'
             }`}
           >
             <div className="flex w-full items-center justify-between mb-1">
@@ -176,7 +176,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
             className={`flex flex-col items-start rounded-2xl p-4 border transition-all text-left cursor-pointer ${
               offerType === 'DIRECT'
                 ? 'border-lagoon bg-lagoon/[0.06] shadow-xs'
-                : 'border-ink/10 bg-white/60 text-ink/60 hover:border-ink/20'
+                : 'border-ink/10 bg-mist-pure/60 text-ink/60 hover:border-ink/20'
             }`}
           >
             <div className="flex w-full items-center justify-between mb-1">
@@ -207,7 +207,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-3.5 rounded-xl border border-ink/8 bg-white/95 shadow-xs">
+              <div className="p-3.5 rounded-xl border border-ink/8 bg-mist-pure/95 shadow-xs">
                 <span className="text-[10px] font-mono uppercase text-lagoon font-bold">Leg 1: You Learn</span>
                 <div className="font-semibold text-ink mt-1 text-sm">{match.teacherOfferingSkill.skillName}</div>
                 <div className="text-ink/60 text-[11px] mt-0.5">Taught by {match.teacher.fullName}</div>
@@ -217,7 +217,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl border border-ink/8 bg-white/95 shadow-xs">
+              <div className="p-3.5 rounded-xl border border-ink/8 bg-mist-pure/95 shadow-xs">
                 <span className="text-[10px] font-mono uppercase text-amber-700 font-bold">Leg 2: You Teach</span>
                 <select
                   value={selectedTeachSkill?.skillId}
@@ -255,7 +255,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
                 className={`flex-1 rounded-xl py-2 text-xs font-mono font-bold transition-all border cursor-pointer ${
                   duration === dur
                     ? 'border-ink bg-ink text-white shadow-xs'
-                    : 'border-ink/10 bg-white text-ink/70 hover:border-ink/20'
+                    : 'border-ink/10 bg-mist-pure text-ink/70 hover:border-ink/20'
                 }`}
               >
                 {dur} mins
@@ -274,12 +274,12 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
             onChange={e => setMessage(e.target.value)}
             placeholder="Introduce your goals, what you are hoping to practice, and your general availability..."
             rows={2}
-            className="w-full rounded-2xl border border-ink/15 bg-white/90 p-3 text-xs text-ink focus:border-lagoon focus:bg-white focus:outline-none shadow-xs transition-all placeholder:text-ink/35 resize-none"
+            className="w-full rounded-2xl border border-ink/15 bg-mist-pure/90 p-3 text-xs text-ink focus:border-lagoon focus:bg-mist-pure focus:outline-none shadow-xs transition-all placeholder:text-ink/35 resize-none"
           />
         </div>
 
         {/* Escrow Financial Invariant Summary */}
-        <div className="mt-4 rounded-2xl bg-white/80 border border-ink/8 p-4">
+        <div className="mt-4 rounded-2xl bg-mist-pure/80 border border-ink/8 p-4">
           <div className="flex items-center justify-between text-xs">
             <div className="space-y-0.5">
               <div className="text-ink/60 flex items-center gap-1.5 font-medium">

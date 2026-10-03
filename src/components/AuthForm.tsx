@@ -9,7 +9,7 @@ import { ArrowRightLeft, ShieldCheck, Lock, Sparkles, CheckCircle } from 'lucide
 import { getProfile, signInWithEmail, signInWithProvider } from '@/lib/auth';
 
 const fieldClass =
-  'mt-1.5 w-full rounded-2xl border border-ink/15 bg-white/90 px-4 py-3 text-sm text-ink outline-none transition-all placeholder:text-ink/35 focus:border-lagoon focus:bg-white focus:ring-4 focus:ring-lagoon/10 shadow-sm';
+  'mt-1.5 w-full rounded-2xl border border-ink/15 bg-mist-pure/90 px-4 py-3 text-sm text-ink outline-none transition-all placeholder:text-ink/35 focus:border-lagoon focus:bg-mist-pure focus:ring-4 focus:ring-lagoon/10 shadow-sm';
 
 export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
   const router = useRouter();
@@ -56,7 +56,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
 
         <div className="relative z-10">
           <Link href="/" className="inline-flex items-center gap-2 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-ink group-hover:bg-lagoon group-hover:text-white transition-colors shadow-md">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-mist-pure text-ink group-hover:bg-lagoon group-hover:text-white transition-colors shadow-md">
               <ArrowRightLeft className="h-4 w-4" />
             </div>
             <span className="font-display text-2xl font-bold tracking-tight text-white">
@@ -66,7 +66,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
         </div>
 
         <div className="relative z-10 space-y-6 my-auto max-w-sm">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1 text-xs font-mono font-medium text-teal-300">
+          <div className="inline-flex items-center gap-2 rounded-full bg-mist-pure/10 border border-mist-pure/15 px-3 py-1 text-xs font-mono font-medium text-teal-300">
             <Sparkles className="h-3.5 w-3.5 text-saffron" />
             ESCROW-PROTECTED TRADING
           </div>
@@ -127,7 +127,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
               type="button"
               disabled={busy}
               onClick={() => run(() => signInWithProvider('google'))}
-              className="flex items-center justify-center gap-3 rounded-2xl border border-ink/12 bg-white py-3 text-xs font-semibold text-ink hover:border-ink/30 hover:bg-mist transition-all shadow-sm disabled:opacity-50 cursor-pointer"
+              className="flex items-center justify-center gap-3 rounded-2xl border border-ink/12 bg-mist-pure py-3 text-xs font-semibold text-ink hover:border-ink/30 hover:bg-mist transition-all shadow-sm disabled:opacity-50 cursor-pointer"
             >
               <FcGoogle size={20} /> Continue with Google
             </button>
@@ -135,7 +135,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
               type="button"
               disabled={busy}
               onClick={() => run(() => signInWithProvider('github'))}
-              className="flex items-center justify-center gap-3 rounded-2xl border border-ink/12 bg-white py-3 text-xs font-semibold text-ink hover:border-ink/30 hover:bg-mist transition-all shadow-sm disabled:opacity-50 cursor-pointer"
+              className="flex items-center justify-center gap-3 rounded-2xl border border-ink/12 bg-mist-pure py-3 text-xs font-semibold text-ink hover:border-ink/30 hover:bg-mist transition-all shadow-sm disabled:opacity-50 cursor-pointer"
             >
               <FaGithub size={18} /> Continue with GitHub
             </button>
@@ -145,7 +145,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-ink/10" />
             </div>
-            <span className="relative bg-white px-3 text-xs text-ink/40 uppercase tracking-wider font-mono">
+            <span className="relative bg-mist-pure px-3 text-xs text-ink/40 uppercase tracking-wider font-mono">
               or with email
             </span>
           </div>

@@ -61,9 +61,9 @@ export const WalletModal: React.FC<WalletModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-xl p-4 overflow-y-auto">
-      <div className="relative w-full max-w-xl glass-panel-elevated rounded-3xl p-7 sm:p-9 shadow-2xl border border-white/40 overflow-hidden">
+      <div className="relative w-full max-w-xl glass-panel-elevated rounded-3xl p-7 sm:p-9 shadow-2xl border border-mist-pure/40 overflow-hidden">
         {/* Specular Edge */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-mist-pure/80 to-transparent pointer-events-none" />
 
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-ink/8 pb-4">
@@ -98,14 +98,14 @@ export const WalletModal: React.FC<WalletModalProps> = ({
             </div>
 
             <div className="text-right">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-mono text-emerald-300 border border-white/15">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-mist-pure/10 px-3 py-1 text-xs font-mono text-emerald-300 border border-mist-pure/15">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
                 <span>ESCROW READY</span>
               </div>
             </div>
           </div>
 
-          <div className="mt-5 pt-4 border-t border-white/10 grid grid-cols-2 gap-4 text-xs font-mono">
+          <div className="mt-5 pt-4 border-t border-mist-pure/10 grid grid-cols-2 gap-4 text-xs font-mono">
             <div>
               <span className="text-white/60 text-[10px] uppercase block">Locked in Escrow</span>
               <span className="text-saffron font-bold text-sm">{heldTokens} Tokens</span>
@@ -140,7 +140,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                 className={`rounded-2xl py-3 text-center transition-all border cursor-pointer ${
                   selectedPack === amount && !customAmount
                     ? 'border-ink bg-ink text-white shadow-xs'
-                    : 'border-ink/10 bg-white/80 text-ink hover:border-ink/20'
+                    : 'border-ink/10 bg-mist-pure/80 text-ink hover:border-ink/20'
                 }`}
               >
                 <div className="font-mono text-sm font-bold">{amount}T</div>
@@ -163,7 +163,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                   setCustomAmount(e.target.value);
                   setSelectedPack(0);
                 }}
-                className="w-full rounded-2xl border border-ink/15 bg-white pl-8 pr-4 py-2.5 text-xs text-ink placeholder:text-ink/35 focus:border-lagoon focus:outline-none shadow-xs"
+                className="w-full rounded-2xl border border-ink/15 bg-mist-pure pl-8 pr-4 py-2.5 text-xs text-ink placeholder:text-ink/35 focus:border-lagoon focus:outline-none shadow-xs"
               />
             </div>
           </div>
@@ -209,7 +209,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
             {transactions.map(tx => (
               <div
                 key={tx.id}
-                className="flex items-center justify-between p-2.5 rounded-xl border border-ink/6 bg-white/70 text-xs font-mono"
+                className="flex items-center justify-between p-2.5 rounded-xl border border-ink/6 bg-mist-pure/70 text-xs font-mono"
               >
                 <div>
                   <div className="text-ink font-semibold">{tx.description}</div>

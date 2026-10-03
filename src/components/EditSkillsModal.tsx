@@ -69,7 +69,7 @@ export const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
               disabled={noTeach}
             />
 
-            <label className="mt-4 flex items-center gap-3 rounded-2xl bg-white/80 p-4 border border-ink/8 font-medium text-xs text-ink cursor-pointer hover:border-ink/20 transition-all select-none shadow-sm">
+            <label className="mt-4 flex items-center gap-3 rounded-2xl bg-mist-pure/80 p-4 border border-ink/8 font-medium text-xs text-ink cursor-pointer hover:border-ink/20 transition-all select-none shadow-sm">
               <input
                 type="checkbox"
                 checked={noTeach}
@@ -98,7 +98,7 @@ export const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
         <div className="mt-8 flex justify-end gap-3 pt-4 border-t border-ink/10">
           <button
             onClick={onClose}
-            className="rounded-full px-5 py-2.5 text-xs font-semibold text-ink/70 hover:text-ink hover:bg-white transition-all cursor-pointer"
+            className="rounded-full px-5 py-2.5 text-xs font-semibold text-ink/70 hover:text-ink hover:bg-mist-pure transition-all cursor-pointer"
           >
             Cancel
           </button>

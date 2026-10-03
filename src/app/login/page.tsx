@@ -32,7 +32,7 @@ export default function LoginPage() {
                 type="email"
                 required
                 placeholder="student@campus.edu"
-                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 sm:px-4 sm:py-3 text-base sm:text-sm text-textMain outline-none transition-all placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full rounded-xl border border-gray-200 bg-mist-pure px-3 py-2.5 sm:px-4 sm:py-3 text-base sm:text-sm text-textMain outline-none transition-all placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>
 
@@ -57,7 +57,7 @@ export default function LoginPage() {
                 type="password"
                 required
                 placeholder="Enter your password"
-                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 sm:px-4 sm:py-3 text-base sm:text-sm text-textMain outline-none transition-all placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full rounded-xl border border-gray-200 bg-mist-pure px-3 py-2.5 sm:px-4 sm:py-3 text-base sm:text-sm text-textMain outline-none transition-all placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>
           </div>

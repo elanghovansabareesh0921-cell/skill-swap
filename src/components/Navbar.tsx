@@ -76,13 +76,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'radar'
                 ? 'bg-ink text-white shadow-sm'
-                : 'text-ink/70 hover:text-ink hover:bg-white/80'
+                : 'text-ink/70 hover:text-ink hover:bg-mist-pure/80'
             }`}
           >
             <Sparkles className={`h-3.5 w-3.5 ${activeTab === 'radar' ? 'text-saffron' : 'text-ink/50'}`} />
             <span>AI Radar</span>
             <span className={`ml-0.5 rounded-full px-1.5 py-0.2 text-[9px] font-mono font-bold ${
-              activeTab === 'radar' ? 'bg-white/20 text-white' : 'bg-emerald-500/15 text-emerald-700'
+              activeTab === 'radar' ? 'bg-mist-pure/20 text-white' : 'bg-emerald-500/15 text-emerald-700'
             }`}>
               LIVE
             </span>
@@ -93,7 +93,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'sessions'
                 ? 'bg-ink text-white shadow-sm'
-                : 'text-ink/70 hover:text-ink hover:bg-white/80'
+                : 'text-ink/70 hover:text-ink hover:bg-mist-pure/80'
             }`}
           >
             <Calendar className={`h-3.5 w-3.5 ${activeTab === 'sessions' ? 'text-saffron' : 'text-ink/50'}`} />
@@ -110,7 +110,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'chat'
                 ? 'bg-ink text-white shadow-sm'
-                : 'text-ink/70 hover:text-ink hover:bg-white/80'
+                : 'text-ink/70 hover:text-ink hover:bg-mist-pure/80'
             }`}
           >
             <MessageSquare className={`h-3.5 w-3.5 ${activeTab === 'chat' ? 'text-saffron' : 'text-ink/50'}`} />
@@ -123,7 +123,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'admin'
                   ? 'bg-ink text-white shadow-sm'
-                  : 'text-ink/70 hover:text-ink hover:bg-white/80'
+                  : 'text-ink/70 hover:text-ink hover:bg-mist-pure/80'
               }`}
             >
               <ShieldAlert className={`h-3.5 w-3.5 ${activeTab === 'admin' ? 'text-rose-400' : 'text-ink/50'}`} />
@@ -138,7 +138,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onOpenEditSkills}
             title="Update teach and learn skills"
-            className="hidden lg:flex items-center gap-1.5 rounded-full border border-ink/10 bg-white/70 px-3 py-1.5 text-xs font-medium text-ink/75 hover:bg-white hover:text-ink hover:border-ink/20 transition-all cursor-pointer shadow-xs"
+            className="hidden lg:flex items-center gap-1.5 rounded-full border border-ink/10 bg-mist-pure/70 px-3 py-1.5 text-xs font-medium text-ink/75 hover:bg-mist-pure hover:text-ink hover:border-ink/20 transition-all cursor-pointer shadow-xs"
           >
             <Sliders className="h-3 w-3 text-lagoon" />
             <span>Edit Skills</span>
@@ -148,7 +148,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             title="Toggle theme"
-            className="flex items-center justify-center h-8 w-8 rounded-full border border-ink/10 bg-white/70 hover:bg-white hover:border-ink/20 transition-all cursor-pointer shadow-xs text-ink/75 hover:text-lagoon"
+            className="flex items-center justify-center h-8 w-8 rounded-full border border-ink/10 bg-mist-pure/70 hover:bg-mist-pure hover:border-ink/20 transition-all cursor-pointer shadow-xs text-ink/75 hover:text-lagoon"
           >
             <Sun className="h-4 w-4 hidden dark:block" />
             <Moon className="h-4 w-4 block dark:hidden" />
@@ -158,7 +158,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onOpenWallet}
             title="Open Wallet & Escrow Ledger"
-            className="flex items-center gap-2.5 rounded-full border border-ink/10 bg-white/90 pl-3 pr-2 py-1 hover:border-lagoon/40 hover:shadow-md transition-all group cursor-pointer shadow-xs"
+            className="flex items-center gap-2.5 rounded-full border border-ink/10 bg-mist-pure/90 pl-3 pr-2 py-1 hover:border-lagoon/40 hover:shadow-md transition-all group cursor-pointer shadow-xs"
           >
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-lagoon/10 text-lagoon group-hover:bg-lagoon group-hover:text-white transition-colors">
               <Wallet className="h-3.5 w-3.5" />
@@ -180,7 +180,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           {/* User Profile Pill */}
-          <div className="flex items-center gap-2 rounded-full border border-ink/10 bg-white/70 pl-1.5 pr-2 py-1 shadow-xs">
+          <div className="flex items-center gap-2 rounded-full border border-ink/10 bg-mist-pure/70 pl-1.5 pr-2 py-1 shadow-xs">
             <img
               src={currentUser.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'}
               alt={currentUser.fullName}

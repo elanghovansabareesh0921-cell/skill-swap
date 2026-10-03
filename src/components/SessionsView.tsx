@@ -216,7 +216,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
                     </div>
 
                     {/* Right: Escrow summary */}
-                    <div className="text-left sm:text-right bg-white/70 sm:bg-transparent p-3 sm:p-0 rounded-2xl border border-ink/5 sm:border-0">
+                    <div className="text-left sm:text-right bg-mist-pure/70 sm:bg-transparent p-3 sm:p-0 rounded-2xl border border-ink/5 sm:border-0">
                       <div className="text-[10px] font-mono text-ink/50 uppercase">Escrow Locked</div>
                       <div className="text-2xl font-mono font-extrabold text-ink mt-0.5">
                         {session.chargedTokens} Tokens
@@ -248,7 +248,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
 
                       <button
                         onClick={() => onOpenChat(session.offerId)}
-                        className="flex items-center gap-1.5 rounded-full border border-ink/15 bg-white px-4 py-2.5 text-xs font-semibold text-ink hover:bg-ink/5 transition-colors cursor-pointer"
+                        className="flex items-center gap-1.5 rounded-full border border-ink/15 bg-mist-pure px-4 py-2.5 text-xs font-semibold text-ink hover:bg-ink/5 transition-colors cursor-pointer"
                       >
                         <MessageSquare className="h-3.5 w-3.5 text-lagoon" />
                         <span>Open Chat</span>
@@ -312,7 +312,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
       {/* Dispute Modal */}
       {selectedDisputeSessionId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-md p-4">
-          <div className="w-full max-w-lg glass-panel-elevated rounded-3xl p-7 shadow-2xl border border-white/40 space-y-4">
+          <div className="w-full max-w-lg glass-panel-elevated rounded-3xl p-7 shadow-2xl border border-mist-pure/40 space-y-4">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-500/15 text-rose-600 font-bold">
                 <AlertTriangle className="h-5 w-5" />
@@ -328,7 +328,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
               value={disputeReason}
               onChange={e => setDisputeReason(e.target.value)}
               placeholder="Explain what happened (e.g. partner was a no-show, technical failure, incorrect skill topic covered)..."
-              className="w-full rounded-2xl border border-ink/15 bg-white/90 p-3 text-xs text-ink focus:border-rose-500 focus:outline-none placeholder:text-ink/35 resize-none"
+              className="w-full rounded-2xl border border-ink/15 bg-mist-pure/90 p-3 text-xs text-ink focus:border-rose-500 focus:outline-none placeholder:text-ink/35 resize-none"
             />
 
             <div className="flex items-center justify-end gap-3 pt-2">

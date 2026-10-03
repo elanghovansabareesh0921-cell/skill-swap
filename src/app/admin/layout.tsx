@@ -28,7 +28,7 @@ export default async function AdminLayout({
   return (
     <div className="min-h-screen bg-mist text-ink flex overflow-hidden font-sans">
       {/* Sidebar Navigation */}
-      <aside className="w-64 bg-white border-r border-ink/10 hidden md:flex flex-col shadow-sm z-20">
+      <aside className="w-64 bg-mist-pure border-r border-ink/10 hidden md:flex flex-col shadow-sm z-20">
         <div className="h-16 flex items-center px-6 border-b border-ink/10">
           <Link href="/admin" className="font-display font-extrabold text-xl text-ink tracking-tight flex items-center gap-2">
             Admin<span className="text-lagoon bg-lagoon/10 px-2 py-0.5 rounded-md text-sm">Panel</span>
@@ -70,7 +70,7 @@ export default async function AdminLayout({
       {/* Main Content Wrapper */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* Top Navbar */}
-        <header className="h-16 bg-white/80 backdrop-blur-md border-b border-ink/10 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-10 shadow-xs">
+        <header className="h-16 bg-mist-pure/80 backdrop-blur-md border-b border-ink/10 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-10 shadow-xs">
           <div className="flex items-center md:hidden">
             <span className="font-display font-extrabold text-lg text-ink">AdminPanel</span>
           </div>

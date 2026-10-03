@@ -54,9 +54,9 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-xl p-4 overflow-y-auto">
-      <div className="relative w-full max-w-lg glass-panel-elevated rounded-3xl p-7 sm:p-9 shadow-2xl border border-white/40 overflow-hidden">
+      <div className="relative w-full max-w-lg glass-panel-elevated rounded-3xl p-7 sm:p-9 shadow-2xl border border-mist-pure/40 overflow-hidden">
         {/* Specular Edge */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-mist-pure/80 to-transparent pointer-events-none" />
 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-ink/8 pb-4">
@@ -142,7 +142,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                       className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all border cursor-pointer ${
                         selected
                           ? 'border-lagoon bg-lagoon text-white shadow-xs'
-                          : 'border-ink/10 bg-white/70 text-ink/70 hover:border-ink/20'
+                          : 'border-ink/10 bg-mist-pure/70 text-ink/70 hover:border-ink/20'
                       }`}
                     >
                       {tag}
@@ -162,7 +162,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                 value={feedback}
                 onChange={e => setFeedback(e.target.value)}
                 placeholder="Share constructive feedback about what was covered, pacing, and learning outcomes..."
-                className="w-full rounded-2xl border border-ink/15 bg-white p-3 text-xs text-ink placeholder:text-ink/35 focus:border-lagoon focus:outline-none shadow-xs resize-none"
+                className="w-full rounded-2xl border border-ink/15 bg-mist-pure p-3 text-xs text-ink placeholder:text-ink/35 focus:border-lagoon focus:outline-none shadow-xs resize-none"
               />
             </div>
 
