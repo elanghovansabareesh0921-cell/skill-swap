@@ -7,7 +7,7 @@ import { getSession, saveProfile, type Profile } from '@/lib/auth';
 import { ArrowLeft, ArrowRight, Sparkles, Upload, User, ShieldCheck } from 'lucide-react';
 
 const fieldClass =
-  'mt-1.5 w-full rounded-2xl border border-ink/15 bg-mist-pure/90 px-4 py-3 text-sm text-ink outline-none transition-all placeholder:text-ink/35 focus:border-lagoon focus:bg-mist-pure focus:ring-4 focus:ring-lagoon/10 shadow-sm';
+  'mt-1.5 w-full rounded-2xl border border-ink/15 bg-mist-pure px-4 py-3 text-sm text-ink outline-none transition-all placeholder:text-ink-muted/50 focus:border-lagoon focus:ring-4 focus:ring-lagoon/10 shadow-sm dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40';
 
 const titles = ['Tell us about you', 'What can you teach?', 'What do you want to learn?'];
 const subtitles = [
@@ -135,7 +135,7 @@ export default function Onboarding() {
                   </div>
                 )}
                 <div>
-                  <label className="cursor-pointer inline-flex items-center gap-2 rounded-full border border-ink/20 bg-mist-pure px-4 py-2 text-xs font-semibold text-ink hover:bg-ink hover:text-white transition-colors shadow-sm">
+                  <label className="cursor-pointer inline-flex items-center gap-2 rounded-full border border-ink/20 bg-mist-pure px-4 py-2 text-xs font-semibold text-ink hover:bg-ink hover:text-white dark:hover:bg-saffron dark:hover:text-black dark:hover:border-saffron transition-colors shadow-sm">
                     <Upload className="h-3.5 w-3.5" />
                     <span>{f.avatar ? 'Change photo' : 'Upload photo'}</span>
                     <input
@@ -222,7 +222,7 @@ export default function Onboarding() {
               </label>
 
               {f.noTeach && (
-                <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 text-xs text-amber-900 leading-relaxed">
+                <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 text-xs text-amber-900 dark:text-amber-300 leading-relaxed">
                   <strong>Notice:</strong> In learn-only mode, you pay the teacher's full list price in tokens. You can add a teachable skill anytime later to unlock up to 70% swap discounts.
                 </div>
               )}
@@ -238,7 +238,7 @@ export default function Onboarding() {
           {err && (
             <div
               role="alert"
-              className="rounded-2xl bg-red-50 border border-red-200 p-3.5 text-xs font-medium text-red-700"
+              className="rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/40 p-3.5 text-xs font-medium text-red-700 dark:text-red-300"
             >
               {err}
             </div>

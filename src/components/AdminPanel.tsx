@@ -128,7 +128,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => onResolveDispute(session.id, 'REFUND')}
-                    className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white hover:bg-black transition-all cursor-pointer shadow-xs"
+                    className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white hover:bg-black transition-all cursor-pointer shadow-xs dark:bg-saffron dark:text-black dark:hover:bg-saffron-light"
                   >
                     Refund Learner
                   </button>
@@ -154,7 +154,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
       {/* Dual Control Maker-Checker Panel */}
       <div className="rounded-3xl glass-panel p-7 border border-ink/8 space-y-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-white dark:bg-saffron dark:text-black">
             <UserCheck className="h-4 w-4" />
           </div>
           <div>
@@ -174,7 +174,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
               type="number"
               value={makerAmount}
               onChange={e => setMakerAmount(e.target.value)}
-              className="w-full rounded-2xl border border-ink/15 bg-mist-pure px-3 py-2.5 text-xs text-ink focus:border-lagoon focus:outline-none"
+              className="w-full rounded-2xl border border-ink/15 bg-mist-pure px-3 py-2.5 text-xs text-ink focus:border-lagoon focus:outline-none dark:bg-mist-subtle dark:border-white/15 dark:text-ink"
             />
           </div>
 
@@ -185,7 +185,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
               placeholder="e.g. Compensatory credit for verified platform outage #401"
               value={makerReason}
               onChange={e => setMakerReason(e.target.value)}
-              className="w-full rounded-2xl border border-ink/15 bg-mist-pure px-3 py-2.5 text-xs text-ink focus:border-lagoon focus:outline-none"
+              className="w-full rounded-2xl border border-ink/15 bg-mist-pure px-3 py-2.5 text-xs text-ink placeholder:text-ink-muted/50 focus:border-lagoon focus:outline-none dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40 dark:text-ink"
             />
           </div>
 
@@ -203,7 +203,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
         </form>
 
         {pendingApproval && (
-          <div className="mt-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 flex items-center justify-between text-xs text-amber-900">
+          <div className="mt-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 flex items-center justify-between text-xs text-amber-900 dark:text-amber-300">
             <div>
               <strong className="block font-bold">Pending Peer Checker Approval:</strong>
               <span>
@@ -213,7 +213,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
             <button
               type="button"
               onClick={handleCheckerApprove}
-              className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white hover:bg-black cursor-pointer shadow-xs"
+              className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white hover:bg-black cursor-pointer shadow-xs dark:bg-saffron dark:text-black dark:hover:bg-saffron-light"
             >
               2. Approve as Checker
             </button>

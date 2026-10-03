@@ -69,7 +69,7 @@ export default async function AdminUsersPage() {
             <input 
               type="text" 
               placeholder="Search users..." 
-              className="w-full rounded-full border border-ink/15 bg-mist-pure pl-9 pr-4 py-2 text-xs text-ink placeholder:text-ink/40 focus:border-lagoon focus:outline-none shadow-xs"
+              className="w-full rounded-full border border-ink/15 bg-mist-pure pl-9 pr-4 py-2 text-xs text-ink placeholder:text-ink-muted/50 focus:border-lagoon focus:outline-none shadow-xs dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40"
             />
           </div>
         </div>
@@ -110,7 +110,7 @@ export default async function AdminUsersPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${
                       user.role === 'Admin' 
-                        ? 'bg-saffron/20 text-amber-800 border border-saffron/30' 
+                        ? 'bg-saffron/20 text-amber-800 dark:text-amber-300 border border-saffron/30' 
                         : 'bg-ink/5 text-ink/70 border border-ink/10'
                     }`}>
                       {user.role === 'Admin' ? <ShieldCheck className="h-3 w-3" /> : <UserX className="h-3 w-3" />}
@@ -122,8 +122,8 @@ export default async function AdminUsersPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${
                       user.status === 'Active'
-                        ? 'bg-emerald-500/15 text-emerald-700 border border-emerald-500/20'
-                        : 'bg-rose-500/15 text-rose-700 border border-rose-500/20'
+                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
+                        : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/20'
                     }`}>
                       <span className={`h-1.5 w-1.5 rounded-full ${user.status === 'Active' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
                       {user.status}

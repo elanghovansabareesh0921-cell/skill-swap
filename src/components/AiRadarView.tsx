@@ -85,14 +85,14 @@ export const AiRadarView: React.FC<AiRadarViewProps> = ({
                 onClick={() => setFilterMode('swap')}
                 className={`flex items-center gap-2 rounded-full px-5 py-2 text-xs font-bold transition-all border cursor-pointer ${
                   filterMode === 'swap'
-                    ? 'border-saffron bg-saffron text-ink shadow-lg shadow-saffron/25'
+                    ? 'border-saffron bg-saffron text-ink dark:text-black shadow-lg shadow-saffron/25'
                     : 'border-white/15 bg-mist-pure/5 text-white hover:border-white/30'
                 }`}
               >
                 <ArrowRightLeft className="h-3.5 w-3.5" />
                 <span>Swap Matches Only</span>
                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
-                  filterMode === 'swap' ? 'bg-ink/20 text-ink' : 'bg-mist-pure/10 text-white'
+                  filterMode === 'swap' ? 'bg-ink/20 text-ink dark:text-black' : 'bg-mist-pure/10 text-white'
                 }`}>
                   {swapCount}
                 </span>
@@ -136,7 +136,7 @@ export const AiRadarView: React.FC<AiRadarViewProps> = ({
               </div>
 
               {/* Center User Node */}
-              <div className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full bg-ink border-2 border-lagoon text-white shadow-lg">
+              <div className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full bg-ink dark:bg-[#0f1b2d] border-2 border-lagoon text-white shadow-lg">
                 <Compass className="h-5 w-5 text-saffron" />
               </div>
 
@@ -175,7 +175,7 @@ export const AiRadarView: React.FC<AiRadarViewProps> = ({
             placeholder="Search skills, names, or topics..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full rounded-full border border-ink/10 bg-mist-pure/90 pl-10 pr-4 py-2.5 text-xs text-ink placeholder:text-ink/40 focus:border-lagoon focus:bg-mist-pure focus:outline-none shadow-xs transition-all"
+            className="w-full rounded-full border border-ink/10 bg-mist-pure pl-10 pr-4 py-2.5 text-xs text-ink placeholder:text-ink-muted/50 focus:border-lagoon focus:outline-none shadow-xs transition-all dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40"
           />
         </div>
 
@@ -187,7 +187,7 @@ export const AiRadarView: React.FC<AiRadarViewProps> = ({
               onClick={() => setSelectedCategory(cat)}
               className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-medium transition-all border cursor-pointer ${
                 selectedCategory === cat
-                  ? 'border-ink bg-ink text-white shadow-xs'
+                  ? 'border-ink bg-ink text-white shadow-xs dark:border-saffron dark:bg-saffron dark:text-black'
                   : 'border-ink/10 bg-mist-pure/70 text-ink/70 hover:border-ink/20 hover:text-ink'
               }`}
             >
@@ -334,7 +334,7 @@ export const AiRadarView: React.FC<AiRadarViewProps> = ({
                 ) : (
                   <button
                     onClick={() => onSelectMatch(match, 'DIRECT')}
-                    className="flex items-center gap-1.5 rounded-full border border-ink/15 bg-mist-pure px-4 py-2 text-xs font-semibold text-ink hover:bg-ink hover:text-white transition-all cursor-pointer shadow-xs"
+                    className="flex items-center gap-1.5 rounded-full border border-ink/15 bg-mist-pure px-4 py-2 text-xs font-semibold text-ink hover:bg-ink hover:text-white dark:hover:bg-saffron dark:hover:text-black dark:hover:border-saffron transition-all cursor-pointer shadow-xs"
                   >
                     <Zap className="h-3.5 w-3.5 text-saffron" />
                     <span>Request Direct</span>

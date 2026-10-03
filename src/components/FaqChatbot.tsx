@@ -180,9 +180,9 @@ export const FaqChatbot: React.FC = () => {
           className="group flex items-center gap-2.5 rounded-full spatial-dock px-4 py-3 shadow-xl hover:shadow-2xl transition-all cursor-pointer hover:scale-105 border border-ink/10 bg-mist-pure/95"
           aria-label="Open SkillSwap FAQ Chatbot"
         >
-          <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-ink text-white group-hover:bg-lagoon transition-colors shadow-xs">
+          <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-ink text-white dark:bg-saffron dark:text-black group-hover:bg-lagoon dark:group-hover:bg-saffron-light dark:group-hover:text-black transition-colors shadow-xs">
             <MessageSquareText className="h-4 w-4" />
-            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-saffron border-2 border-white animate-pulse" />
+            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-saffron dark:bg-emerald-400 border-2 border-white dark:border-black animate-pulse" />
           </div>
           <div className="text-left pr-1 hidden sm:block">
             <div className="text-xs font-bold text-ink leading-tight flex items-center gap-1.5">
@@ -236,11 +236,11 @@ export const FaqChatbot: React.FC = () => {
                 <div
                   className={`max-w-[85%] rounded-2xl p-3 leading-relaxed shadow-xs ${
                     msg.sender === 'user'
-                      ? 'bg-ink text-white rounded-br-none'
+                      ? 'bg-ink text-white dark:bg-saffron dark:text-black rounded-br-none'
                       : 'glass-panel text-ink border border-ink/8 rounded-bl-none'
                   }`}
                 >
-                  <div className="prose prose-sm prose-invert max-w-none">
+                  <div className={`prose prose-sm ${msg.sender === 'user' ? 'prose-invert dark:prose-neutral dark:text-black' : 'dark:prose-invert'} max-w-none`}>
                     <ReactMarkdown>{msg.text}</ReactMarkdown>
                   </div>
 
@@ -329,7 +329,7 @@ export const FaqChatbot: React.FC = () => {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 placeholder="Ask about tokens, swaps, escrow..."
-                className="flex-1 rounded-full border border-ink/15 bg-mist-pure px-3.5 py-2 text-xs text-ink placeholder:text-ink/35 focus:border-lagoon focus:outline-none shadow-xs"
+                className="flex-1 rounded-full border border-ink/15 bg-mist-pure px-3.5 py-2 text-xs text-ink placeholder:text-ink-muted/50 focus:border-lagoon focus:outline-none shadow-xs dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40"
               />
               <button
                 type="submit"

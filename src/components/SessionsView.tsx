@@ -138,7 +138,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
 
             <button
               onClick={() => onOpenChat(offers[0].id)}
-              className="flex items-center gap-2 rounded-full bg-ink px-5 py-2 text-xs font-semibold text-white hover:bg-lagoon transition-all shadow-xs cursor-pointer"
+              className="flex items-center gap-2 rounded-full bg-ink px-5 py-2 text-xs font-semibold text-white hover:bg-lagoon transition-all shadow-xs cursor-pointer dark:bg-saffron dark:text-black dark:hover:bg-saffron-light"
             >
               <MessageSquare className="h-3.5 w-3.5" />
               <span>Review in Chat</span>
@@ -188,10 +188,10 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
                         
                         <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-mono font-bold ${
                           session.status === 'SETTLED'
-                            ? 'bg-emerald-500/15 text-emerald-800'
+                            ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-400'
                             : session.status === 'DISPUTED'
-                            ? 'bg-rose-500/15 text-rose-800'
-                            : 'bg-saffron/20 text-amber-900'
+                            ? 'bg-rose-500/15 text-rose-800 dark:text-rose-400'
+                            : 'bg-saffron/20 text-amber-900 dark:text-amber-300'
                         }`}>
                           {session.status}
                         </span>
@@ -221,7 +221,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
                       <div className="text-2xl font-mono font-extrabold text-ink mt-0.5">
                         {session.chargedTokens} Tokens
                       </div>
-                      <div className="text-[11px] text-emerald-700 font-mono font-medium">
+                      <div className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono font-medium">
                         10% platform fee on settlement
                       </div>
                     </div>
@@ -233,11 +233,11 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
                       {session.meetLink ? (
                         <button
                           onClick={() => handleJoinMeet(session)}
-                          className="flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-xs font-semibold text-white hover:bg-lagoon transition-all shadow-xs cursor-pointer group"
+                          className="flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-xs font-semibold text-white hover:bg-lagoon transition-all shadow-xs cursor-pointer group dark:bg-saffron dark:text-black dark:hover:bg-saffron-light"
                         >
                           <Video className="h-4 w-4 text-emerald-400" />
                           <span>Join Google Meet</span>
-                          <ExternalLink className="h-3.5 w-3.5 text-white/50 group-hover:text-white transition-colors" />
+                          <ExternalLink className="h-3.5 w-3.5 text-white/50 group-hover:text-white dark:text-black/60 dark:group-hover:text-black transition-colors" />
                         </button>
                       ) : (
                         <div className="flex items-center gap-2 text-xs text-ink/60">
@@ -328,7 +328,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
               value={disputeReason}
               onChange={e => setDisputeReason(e.target.value)}
               placeholder="Explain what happened (e.g. partner was a no-show, technical failure, incorrect skill topic covered)..."
-              className="w-full rounded-2xl border border-ink/15 bg-mist-pure/90 p-3 text-xs text-ink focus:border-rose-500 focus:outline-none placeholder:text-ink/35 resize-none"
+              className="w-full rounded-2xl border border-ink/15 bg-mist-pure p-3 text-xs text-ink focus:border-rose-500 focus:outline-none placeholder:text-ink-muted/50 resize-none dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40"
             />
 
             <div className="flex items-center justify-end gap-3 pt-2">

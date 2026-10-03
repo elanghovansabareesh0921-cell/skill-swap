@@ -63,7 +63,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-xl p-4 overflow-y-auto">
       <div className="relative w-full max-w-xl glass-panel-elevated rounded-3xl p-7 sm:p-9 shadow-2xl border border-white/40 overflow-hidden">
         {/* Specular Edge */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/80 to-transparent pointer-events-none" />
 
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-ink/8 pb-4">
@@ -85,7 +85,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
         </div>
 
         {/* Wallet Balances Card */}
-        <div className="mt-5 rounded-2xl bg-gradient-to-br from-ink to-ink-light p-6 text-white shadow-xl relative overflow-hidden">
+        <div className="mt-5 rounded-2xl bg-linear-to-br from-ink to-ink-light p-6 text-white shadow-xl relative overflow-hidden">
           <div className="pointer-events-none absolute -right-10 -bottom-10 h-40 w-40 ambient-glow-lagoon opacity-40 blur-2xl" />
 
           <div className="relative z-10 flex items-start justify-between">
@@ -139,7 +139,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                 }}
                 className={`rounded-2xl py-3 text-center transition-all border cursor-pointer ${
                   selectedPack === amount && !customAmount
-                    ? 'border-ink bg-ink text-white shadow-xs'
+                    ? 'border-ink bg-ink text-white shadow-xs dark:border-saffron dark:bg-saffron dark:text-black'
                     : 'border-ink/10 bg-mist-pure/80 text-ink hover:border-ink/20'
                 }`}
               >
@@ -163,7 +163,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                   setCustomAmount(e.target.value);
                   setSelectedPack(0);
                 }}
-                className="w-full rounded-2xl border border-ink/15 bg-mist-pure pl-8 pr-4 py-2.5 text-xs text-ink placeholder:text-ink/35 focus:border-lagoon focus:outline-none shadow-xs"
+                className="w-full rounded-2xl border border-ink/15 bg-mist-pure pl-8 pr-4 py-2.5 text-xs text-ink placeholder:text-ink-muted/50 focus:border-lagoon focus:outline-none shadow-xs dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40"
               />
             </div>
           </div>

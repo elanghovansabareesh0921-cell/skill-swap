@@ -82,7 +82,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Sparkles className={`h-3.5 w-3.5 ${activeTab === 'radar' ? 'text-saffron' : 'text-ink/50'}`} />
             <span>AI Radar</span>
             <span className={`ml-0.5 rounded-full px-1.5 py-0.2 text-[9px] font-mono font-bold ${
-              activeTab === 'radar' ? 'bg-mist-pure/20 text-white' : 'bg-emerald-500/15 text-emerald-700'
+              activeTab === 'radar' ? 'bg-mist-pure/20 text-white dark:bg-black/15 dark:text-black' : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
             }`}>
               LIVE
             </span>
@@ -99,7 +99,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Calendar className={`h-3.5 w-3.5 ${activeTab === 'sessions' ? 'text-saffron' : 'text-ink/50'}`} />
             <span>Sessions</span>
             {pendingOffersCount > 0 && (
-              <span className="rounded-full bg-saffron text-ink px-1.5 text-[9px] font-extrabold shadow-xs">
+              <span className="rounded-full bg-saffron text-black px-1.5 text-[9px] font-extrabold shadow-xs">
                 {pendingOffersCount}
               </span>
             )}
@@ -174,7 +174,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
               )}
             </div>
-            <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold text-white group-hover:bg-lagoon transition-colors">
+            <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold text-white dark:bg-saffron dark:text-black dark:group-hover:bg-saffron-light transition-colors">
               + Top up
             </span>
           </button>

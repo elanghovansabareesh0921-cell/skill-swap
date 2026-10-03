@@ -9,7 +9,7 @@ import { ArrowRightLeft, ShieldCheck, Lock, Sparkles, CheckCircle } from 'lucide
 import { getProfile, signInWithEmail, signInWithProvider } from '@/lib/auth';
 
 const fieldClass =
-  'mt-1.5 w-full rounded-2xl border border-ink/15 bg-mist-pure/90 px-4 py-3 text-sm text-ink outline-none transition-all placeholder:text-ink/35 focus:border-lagoon focus:bg-mist-pure focus:ring-4 focus:ring-lagoon/10 shadow-sm';
+  'mt-1.5 w-full rounded-2xl border border-ink/15 bg-mist-pure px-4 py-3 text-sm text-ink outline-none transition-all placeholder:text-ink-muted/50 focus:border-lagoon focus:ring-4 focus:ring-lagoon/10 shadow-sm dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40';
 
 export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
   const router = useRouter();
@@ -145,7 +145,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-ink/10" />
             </div>
-            <span className="relative bg-mist-pure dark:bg-[#020617] px-3 text-xs text-ink/40 uppercase tracking-wider font-mono">
+            <span className="relative bg-mist-pure dark:bg-[#0a0a0a] px-3 text-xs text-ink/40 uppercase tracking-wider font-mono">
               or with email
             </span>
           </div>
@@ -196,7 +196,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
             {err && (
               <div
                 role="alert"
-                className="rounded-xl bg-red-50 border border-red-200 p-3 text-xs font-medium text-red-700"
+                className="rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/40 p-3 text-xs font-medium text-red-700 dark:text-red-300"
               >
                 {err}
               </div>

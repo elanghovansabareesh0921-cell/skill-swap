@@ -483,7 +483,7 @@ export default function Dashboard() {
             </div>
             <span className="hidden sm:inline text-ink/20">•</span>
             <div className="flex items-center gap-1.5 text-xs">
-              <span className="text-amber-700 font-bold font-mono text-[10px] uppercase tracking-wider">You Learn</span>
+              <span className="text-amber-700 dark:text-saffron font-bold font-mono text-[10px] uppercase tracking-wider">You Learn</span>
               <span className="text-ink font-medium bg-mist px-2 py-0.5 rounded-full border border-ink/8">
                 {authProfile.learn.join(', ')}
               </span>

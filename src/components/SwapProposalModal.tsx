@@ -112,7 +112,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-xl p-4 overflow-y-auto">
       <div className="relative w-full max-w-2xl glass-panel-elevated rounded-3xl p-7 sm:p-9 shadow-2xl border border-white/40 overflow-hidden">
         {/* Specular Top Hairline */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/80 to-transparent" />
 
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-ink/8 pb-4">
@@ -149,7 +149,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
             onClick={() => setOfferType('SWAP')}
             className={`flex flex-col items-start rounded-2xl p-4 border transition-all text-left cursor-pointer ${
               offerType === 'SWAP'
-                ? 'border-lagoon bg-lagoon/[0.06] shadow-xs'
+                ? 'border-lagoon bg-lagoon/6 shadow-xs'
                 : 'border-ink/10 bg-mist-pure/60 text-ink/60 hover:border-ink/20'
             }`}
           >
@@ -175,7 +175,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
             onClick={() => setOfferType('DIRECT')}
             className={`flex flex-col items-start rounded-2xl p-4 border transition-all text-left cursor-pointer ${
               offerType === 'DIRECT'
-                ? 'border-lagoon bg-lagoon/[0.06] shadow-xs'
+                ? 'border-lagoon bg-lagoon/6 shadow-xs'
                 : 'border-ink/10 bg-mist-pure/60 text-ink/60 hover:border-ink/20'
             }`}
           >
@@ -225,7 +225,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
                     const found = currentUser.teachSkills.find(s => s.skillId === e.target.value);
                     if (found) setSelectedTeachSkill(found);
                   }}
-                  className="mt-1 w-full rounded-lg bg-mist border border-ink/15 px-2 py-1 text-xs text-ink focus:outline-none focus:border-lagoon"
+                  className="mt-1 w-full rounded-lg bg-mist border border-ink/15 px-2 py-1 text-xs text-ink focus:outline-none focus:border-lagoon dark:bg-mist-subtle dark:border-white/15 dark:text-ink"
                 >
                   {currentUser.teachSkills.map(skill => (
                     <option key={skill.skillId} value={skill.skillId}>
@@ -254,7 +254,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
                 onClick={() => setDuration(dur)}
                 className={`flex-1 rounded-xl py-2 text-xs font-mono font-bold transition-all border cursor-pointer ${
                   duration === dur
-                    ? 'border-ink bg-ink text-white shadow-xs'
+                    ? 'border-ink bg-ink text-white shadow-xs dark:border-saffron dark:bg-saffron dark:text-black'
                     : 'border-ink/10 bg-mist-pure text-ink/70 hover:border-ink/20'
                 }`}
               >
@@ -274,7 +274,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
             onChange={e => setMessage(e.target.value)}
             placeholder="Introduce your goals, what you are hoping to practice, and your general availability..."
             rows={2}
-            className="w-full rounded-2xl border border-ink/15 bg-mist-pure/90 p-3 text-xs text-ink focus:border-lagoon focus:bg-mist-pure focus:outline-none shadow-xs transition-all placeholder:text-ink/35 resize-none"
+            className="w-full rounded-2xl border border-ink/15 bg-mist-pure p-3 text-xs text-ink focus:border-lagoon focus:outline-none shadow-xs transition-all placeholder:text-ink-muted/60 resize-none dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40"
           />
         </div>
 

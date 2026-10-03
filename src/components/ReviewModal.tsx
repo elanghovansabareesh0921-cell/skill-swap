@@ -162,7 +162,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                 value={feedback}
                 onChange={e => setFeedback(e.target.value)}
                 placeholder="Share constructive feedback about what was covered, pacing, and learning outcomes..."
-                className="w-full rounded-2xl border border-ink/15 bg-mist-pure p-3 text-xs text-ink placeholder:text-ink/35 focus:border-lagoon focus:outline-none shadow-xs resize-none"
+                className="w-full rounded-2xl border border-ink/15 bg-mist-pure p-3 text-xs text-ink placeholder:text-ink-muted/50 focus:border-lagoon focus:outline-none shadow-xs resize-none dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40"
               />
             </div>
 
