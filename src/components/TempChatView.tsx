@@ -100,7 +100,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-display font-bold text-ink text-sm">Ravi Kumar</h3>
-              <span className="rounded-full bg-saffron/20 px-2 py-0.2 text-[10px] font-mono font-bold text-amber-900 border border-saffron/30">
+              <span className="rounded-full bg-saffron/20 px-2 py-0.2 text-[10px] font-mono font-bold text-amber-900 dark:text-saffron dark:bg-saffron/15 dark:border-saffron/30 border border-saffron/30">
                 SWAP PARTNER
               </span>
             </div>

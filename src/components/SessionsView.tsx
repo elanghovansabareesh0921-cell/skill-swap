@@ -285,7 +285,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
                           {onOpenReview && (
                             <button
                               onClick={() => onOpenReview(session)}
-                              className="flex items-center gap-1.5 rounded-full border border-saffron/40 bg-saffron/10 px-3.5 py-1.5 text-xs font-semibold text-amber-900 hover:bg-saffron hover:text-ink transition-all cursor-pointer shadow-xs"
+                              className="flex items-center gap-1.5 rounded-full border border-saffron/40 bg-saffron/10 px-3.5 py-1.5 text-xs font-semibold text-amber-900 hover:bg-saffron hover:text-ink transition-all cursor-pointer shadow-xs dark:text-saffron dark:hover:text-black"
                             >
                               <Star className="h-3.5 w-3.5 text-saffron fill-saffron" />
                               <span>Review Peer</span>

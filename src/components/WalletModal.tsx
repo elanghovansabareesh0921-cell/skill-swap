@@ -85,7 +85,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
         </div>
 
         {/* Wallet Balances Card */}
-        <div className="mt-5 rounded-2xl bg-linear-to-br from-ink to-ink-light p-6 text-white shadow-xl relative overflow-hidden">
+        <div className="mt-5 rounded-2xl bg-linear-to-br from-[#0f1b2d] to-[#1e293b] dark:from-[#0a121e] dark:to-[#142032] border border-white/10 p-6 text-white shadow-xl relative overflow-hidden">
           <div className="pointer-events-none absolute -right-10 -bottom-10 h-40 w-40 ambient-glow-lagoon opacity-40 blur-2xl" />
 
           <div className="relative z-10 flex items-start justify-between">
@@ -119,8 +119,8 @@ export const WalletModal: React.FC<WalletModalProps> = ({
 
         {/* Success Alert */}
         {showSuccess && (
-          <div className="mt-4 flex items-center gap-2 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 p-3.5 text-xs text-emerald-900 font-medium">
-            <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0" />
+          <div className="mt-4 flex items-center gap-2 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 p-3.5 text-xs text-emerald-900 dark:text-emerald-300 font-medium">
+            <CheckCircle2 className="h-4 w-4 text-emerald-700 dark:text-emerald-400 shrink-0" />
             <span>Tokens successfully added via Razorpay test gateway! Your available balance has been credited.</span>
           </div>
         )}
@@ -215,7 +215,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                   <div className="text-ink font-semibold">{tx.description}</div>
                   <div className="text-[10px] text-ink/40">{tx.timestamp} • {tx.id}</div>
                 </div>
-                <div className={`font-bold ${tx.type === 'PURCHASE' ? 'text-emerald-700' : 'text-amber-800'}`}>
+                <div className={`font-bold ${tx.type === 'PURCHASE' ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-800 dark:text-saffron'}`}>
                   {tx.type === 'PURCHASE' ? '+' : '-'}{(tx.amountPaise / 100).toFixed(0)} Tokens
                 </div>
               </div>

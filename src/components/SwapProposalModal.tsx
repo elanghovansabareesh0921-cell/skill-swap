@@ -124,7 +124,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
               <h2 className="text-lg font-bold font-display text-ink flex items-center gap-2">
                 {offerType === 'SWAP' ? 'Configure Mutual Skill Swap' : 'Direct Learning Request'}
                 {match.isSwapMatch && offerType === 'SWAP' && (
-                  <span className="rounded-full bg-saffron/20 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-900 border border-saffron/30">
+                  <span className="rounded-full bg-saffron/20 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-900 dark:text-saffron dark:bg-saffron/15 dark:border-saffron/30 border border-saffron/30">
                     70% IN-KIND DISCOUNT
                   </span>
                 )}
@@ -218,7 +218,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
               </div>
 
               <div className="p-3.5 rounded-xl border border-ink/8 bg-mist-pure/95 shadow-xs">
-                <span className="text-[10px] font-mono uppercase text-amber-700 font-bold">Leg 2: You Teach</span>
+                <span className="text-[10px] font-mono uppercase text-amber-700 dark:text-saffron font-bold">Leg 2: You Teach</span>
                 <select
                   value={selectedTeachSkill?.skillId}
                   onChange={e => {
@@ -300,15 +300,15 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
           </div>
 
           {!isSufficientFunds && (
-            <div className="mt-3 flex items-center justify-between rounded-xl bg-amber-500/10 border border-amber-500/20 p-2.5 text-xs text-amber-900">
+            <div className="mt-3 flex items-center justify-between rounded-xl bg-amber-500/10 border border-amber-500/20 p-2.5 text-xs text-amber-900 dark:text-amber-300">
               <div className="flex items-center gap-1.5">
-                <AlertCircle className="h-4 w-4 text-amber-700 shrink-0" />
+                <AlertCircle className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0" />
                 <span>Insufficient tokens. You need {tokensNeeded - availableTokens} more tokens.</span>
               </div>
               <button
                 type="button"
                 onClick={onOpenWallet}
-                className="font-bold underline text-amber-900 hover:text-black cursor-pointer ml-2 text-xs"
+                className="font-bold underline text-amber-900 hover:text-black cursor-pointer ml-2 text-xs dark:text-amber-300 dark:hover:text-white"
               >
                 Top up now
               </button>

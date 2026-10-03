@@ -225,7 +225,7 @@ export const AiRadarView: React.FC<AiRadarViewProps> = ({
                   <div>
                     <h3 className="font-display font-bold text-ink text-base flex items-center gap-2">
                       {match.teacher.fullName}
-                      <span className="flex items-center text-xs font-mono font-bold text-amber-600">
+                      <span className="flex items-center text-xs font-mono font-bold text-amber-600 dark:text-saffron">
                         <Star className="h-3 w-3 fill-current mr-0.5" />
                         {match.teacher.reputationScore.toFixed(2)}
                       </span>
@@ -238,8 +238,8 @@ export const AiRadarView: React.FC<AiRadarViewProps> = ({
                 </div>
 
                 <div className="text-right">
-                  <div className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-xs font-mono font-bold text-emerald-800">
-                    <Sparkles className="h-3 w-3 text-emerald-600" />
+                  <div className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-xs font-mono font-bold text-emerald-800 dark:text-emerald-300">
+                    <Sparkles className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                     {match.matchScore}% FIT
                   </div>
                   {match.isSwapMatch && (
@@ -273,7 +273,7 @@ export const AiRadarView: React.FC<AiRadarViewProps> = ({
                 </div>
 
                 <div className="rounded-2xl border border-ink/8 bg-mist p-3">
-                  <div className="text-[10px] font-mono uppercase text-amber-700 font-bold flex items-center gap-1">
+                  <div className="text-[10px] font-mono uppercase text-amber-700 dark:text-saffron font-bold flex items-center gap-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-saffron" />
                     They Seek
                   </div>
