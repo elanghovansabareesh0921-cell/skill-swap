@@ -49,14 +49,14 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
   return (
     <main className="grid min-h-screen lg:grid-cols-12 bg-mist selection:bg-lagoon selection:text-white">
       {/* Left Spatial Atmospheric Column */}
-      <aside className="relative hidden lg:col-span-5 lg:flex flex-col justify-between bg-ink p-12 text-white overflow-hidden">
+      <aside className="relative hidden lg:col-span-5 lg:flex flex-col justify-between bg-[#0f1b2d] dark:bg-[#050505] p-12 text-white overflow-hidden border-r border-ink/5">
         {/* Subtle background glow */}
         <div className="pointer-events-none absolute -top-20 -left-20 h-96 w-96 ambient-glow-lagoon opacity-40 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 -right-20 h-96 w-96 ambient-glow-saffron opacity-30 blur-3xl" />
 
         <div className="relative z-10">
           <Link href="/" className="inline-flex items-center gap-2 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-mist-pure text-ink group-hover:bg-lagoon group-hover:text-white transition-colors shadow-md">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#0f1b2d] group-hover:bg-lagoon group-hover:text-white transition-colors shadow-md">
               <ArrowRightLeft className="h-4 w-4" />
             </div>
             <span className="font-display text-2xl font-bold tracking-tight text-white">
@@ -145,7 +145,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-ink/10" />
             </div>
-            <span className="relative bg-mist-pure px-3 text-xs text-ink/40 uppercase tracking-wider font-mono">
+            <span className="relative bg-mist-pure dark:bg-[#020617] px-3 text-xs text-ink/40 uppercase tracking-wider font-mono">
               or with email
             </span>
           </div>
