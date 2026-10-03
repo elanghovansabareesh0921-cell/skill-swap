@@ -275,11 +275,15 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="border-t border-ink/8 py-10 bg-mist">
-        <div className="mx-auto max-w-6xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ink/60">
-          <div>
-            SkillSwap Platform • 18+ members only • Stored value protected by double-entry ledger.
+        <div className="mx-auto max-w-6xl px-6 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-ink/60">
+          <div className="flex flex-col gap-1 text-center md:text-left">
+            <span>SkillSwap Platform • 18+ members only • Stored value protected by double-entry ledger.</span>
+            <span className="text-ink/40">© {new Date().getFullYear()} SkillSwap. All rights reserved.</span>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-6">
+            <Link href="/privacy" className="hover:text-ink transition-colors font-medium">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-ink transition-colors font-medium">Terms of Service</Link>
+            <span className="w-px h-3 bg-ink/10"></span>
             <Link href="/login" className="hover:text-ink transition-colors">Login</Link>
             <Link href="/signup" className="hover:text-ink transition-colors">Sign up</Link>
             <Link href="/onboarding" className="hover:text-ink transition-colors">Onboarding</Link>
