@@ -41,13 +41,13 @@ export default function Landing() {
       <header className="sticky top-5 z-40 mx-auto max-w-5xl px-4 sm:px-6">
         <div className="spatial-dock rounded-full px-5 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0f1b2d] dark:bg-white text-white dark:text-[#0f1b2d] group-hover:bg-saffron transition-colors shadow-sm">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-white dark:bg-saffron dark:text-black group-hover:bg-lagoon transition-colors shadow-sm">
               <ArrowRightLeft className="h-4 w-4" />
             </div>
             <span className="font-display text-xl font-bold tracking-tight text-ink">
               SkillSwap
             </span>
-            <span className="hidden sm:inline-block rounded-full bg-saffron/10 border border-saffron/20 px-2.5 py-0.5 text-[10px] font-mono font-semibold text-saffron">
+            <span className="hidden sm:inline-block rounded-full bg-lagoon/10 border border-lagoon/20 px-2.5 py-0.5 text-[10px] font-mono font-semibold text-lagoon dark:bg-saffron/10 dark:border-saffron/20 dark:text-saffron">
               ESCROW v0.2
             </span>
           </Link>
@@ -57,7 +57,7 @@ export default function Landing() {
               <>
                 <Link
                   href="/dashboard"
-                  className="flex items-center gap-2 rounded-full bg-saffron px-5 py-2 text-xs font-semibold text-ink hover:bg-saffron-light transition-all shadow-sm group"
+                  className="flex items-center gap-2 rounded-full bg-ink px-5 py-2 text-xs font-semibold text-white hover:bg-lagoon transition-all shadow-sm group dark:bg-saffron dark:text-black dark:hover:bg-saffron-light"
                 >
                   <span>Dashboard</span>
                   <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -82,7 +82,7 @@ export default function Landing() {
                 </Link>
                 <Link
                   href="/signup"
-                  className="rounded-full bg-saffron px-5 py-2 text-xs font-semibold text-ink hover:bg-saffron-light transition-all shadow-sm"
+                  className="rounded-full bg-ink px-5 py-2 text-xs font-semibold text-white hover:bg-lagoon transition-all shadow-sm dark:bg-saffron dark:text-black dark:hover:bg-saffron-light"
                 >
                   Sign up
                 </Link>

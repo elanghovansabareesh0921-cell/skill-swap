@@ -53,7 +53,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Brand & System Invariant Tag */}
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="flex items-center gap-2.5 group cursor-pointer">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0f1b2d] dark:bg-white text-white dark:text-[#0f1b2d] group-hover:bg-saffron transition-all shadow-sm">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-white dark:bg-saffron dark:text-black group-hover:bg-lagoon transition-all shadow-sm">
               <ArrowRightLeft className="h-4 w-4" />
             </div>
             <div>
@@ -61,7 +61,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="font-display text-base font-extrabold tracking-tight text-ink">
                   SkillSwap
                 </span>
-                <span className="hidden lg:inline-block rounded-full bg-saffron/10 border border-saffron/20 px-2 py-0.5 text-[9px] font-mono font-bold text-saffron">
+                <span className="hidden lg:inline-block rounded-full bg-lagoon/10 border border-lagoon/20 px-2 py-0.5 text-[9px] font-mono font-bold text-lagoon dark:bg-saffron/10 dark:border-saffron/20 dark:text-saffron">
                   ESCROW v0.2
                 </span>
               </div>
@@ -75,7 +75,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setActiveTab('radar')}
             className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'radar'
-                ? 'bg-ink text-white shadow-sm'
+                ? 'bg-ink text-white shadow-sm dark:bg-saffron dark:text-black'
                 : 'text-ink/70 hover:text-ink hover:bg-mist-pure/80'
             }`}
           >
@@ -92,7 +92,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setActiveTab('sessions')}
             className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'sessions'
-                ? 'bg-ink text-white shadow-sm'
+                ? 'bg-ink text-white shadow-sm dark:bg-saffron dark:text-black'
                 : 'text-ink/70 hover:text-ink hover:bg-mist-pure/80'
             }`}
           >
@@ -109,7 +109,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setActiveTab('chat')}
             className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'chat'
-                ? 'bg-ink text-white shadow-sm'
+                ? 'bg-ink text-white shadow-sm dark:bg-saffron dark:text-black'
                 : 'text-ink/70 hover:text-ink hover:bg-mist-pure/80'
             }`}
           >
@@ -122,7 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setActiveTab('admin')}
               className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'admin'
-                  ? 'bg-ink text-white shadow-sm'
+                  ? 'bg-ink text-white shadow-sm dark:bg-saffron dark:text-black'
                   : 'text-ink/70 hover:text-ink hover:bg-mist-pure/80'
               }`}
             >
