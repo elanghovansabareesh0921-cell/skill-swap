@@ -76,7 +76,7 @@ export const AiRadarView: React.FC<AiRadarViewProps> = ({
             </h1>
 
             <p className="text-sm text-white/75 max-w-2xl leading-relaxed font-normal">
-              Our spatial matcher ranks compatible peers based on mutual skill intersection, schedule overlap, language, and trust history. Tokens remain locked in automated escrow until both parties confirm completion.
+              Our spatial matcher ranks compatible peers based on mutual skill intersection, schedule overlap, language, and trust history. Skill points remain locked in automated escrow until both parties confirm completion.
             </p>
 
             {/* Quick Filter Pill Switcher */}
@@ -268,7 +268,7 @@ export const AiRadarView: React.FC<AiRadarViewProps> = ({
                     {match.teacherOfferingSkill.skillName}
                   </div>
                   <div className="text-[10px] text-ink/50 mt-0.5">
-                    {match.teacherOfferingSkill.level} • {match.teacherOfferingSkill.hourlyRate} T/hr
+                    {match.teacherOfferingSkill.level} • {match.teacherOfferingSkill.hourlyRate} SP/hr
                   </div>
                 </div>
 
@@ -306,10 +306,10 @@ export const AiRadarView: React.FC<AiRadarViewProps> = ({
                 {match.isSwapMatch && match.swapPriceTokens ? (
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-xl font-mono font-extrabold text-ink">
-                      {match.swapPriceTokens} Tokens
+                      {match.swapPriceTokens} SP
                     </span>
                     <span className="text-xs text-ink/40 line-through font-mono">
-                      {match.directPriceTokens}T
+                      {match.directPriceTokens} SP
                     </span>
                     <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.2 text-[9px] font-mono font-bold text-emerald-800">
                       -70% SAVED
@@ -317,7 +317,7 @@ export const AiRadarView: React.FC<AiRadarViewProps> = ({
                   </div>
                 ) : (
                   <div className="text-xl font-mono font-extrabold text-ink">
-                    {match.directPriceTokens} Tokens
+                    {match.directPriceTokens} SP
                   </div>
                 )}
               </div>

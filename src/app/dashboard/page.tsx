@@ -63,7 +63,7 @@ export default function Dashboard() {
       type: 'PURCHASE',
       amountPaise: 20000,
       timestamp: 'Yesterday, 19:30',
-      description: 'Razorpay UPI Token Pack purchase (200 Tokens)',
+      description: 'Razorpay UPI Skill Points Pack purchase (200 SP)',
       idempotencyKey: 'idemp-rzp-200',
     },
   ]);
@@ -230,7 +230,7 @@ export default function Dashboard() {
       expiresAt: new Date(Date.now() + 48 * 3600000).toISOString(),
     };
 
-    // 1. Lock tokens into Escrow (Available -> Held)
+    // 1. Lock skill points into Escrow (Available -> Held)
     const holdPaise = data.chargedTokens * 100;
     setWallet(prev => ({
       ...prev,
@@ -303,7 +303,7 @@ export default function Dashboard() {
     setActiveTab('sessions');
   };
 
-  // Action: Buy Tokens
+  // Action: Buy Skill Points
   const handleBuyTokens = (tokens: number) => {
     const paise = tokens * 100;
     setWallet(prev => ({
@@ -317,7 +317,7 @@ export default function Dashboard() {
       type: 'PURCHASE',
       amountPaise: paise,
       timestamp: 'Just now',
-      description: `Razorpay UPI purchase (${tokens} Tokens)`,
+      description: `Razorpay UPI purchase (${tokens} SP)`,
       idempotencyKey: `idemp-buy-${Date.now()}`,
     };
     setTransactions(prev => [newTx, ...prev]);

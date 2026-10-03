@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { FcGoogle } from 'react-icons/fc';
 import { FaGithub } from 'react-icons/fa';
 import { ArrowRightLeft, ShieldCheck, Lock, Sparkles, CheckCircle } from 'lucide-react';
-import { getProfile, signInWithEmail, signInWithProvider } from '@/lib/auth';
+import { getProfile, saveProfile, signInWithEmail, signInWithProvider, DEFAULT_DEMO_PROFILE } from '@/lib/auth';
 
 const fieldClass =
   'mt-1.5 w-full rounded-2xl border border-ink/15 bg-mist-pure px-4 py-3 text-sm text-ink outline-none transition-all placeholder:text-ink-muted/50 focus:border-lagoon focus:ring-4 focus:ring-lagoon/10 shadow-sm dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40';
@@ -26,7 +26,14 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
         // Do not redirect or unset busy state yet, let the browser OAuth redirect happen
         return;
       }
-      router.push(signup || !getProfile() ? '/onboarding' : '/dashboard');
+      if (signup) {
+        router.push('/onboarding');
+      } else {
+        if (!getProfile()) {
+          saveProfile(DEFAULT_DEMO_PROFILE);
+        }
+        router.push('/dashboard');
+      }
     } catch (e) {
       setErr((e as Error).message || 'Something went wrong. Please try again.');
       setBusy(false);
@@ -42,6 +49,9 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
     }
     if (signup && !f.get('age')) {
       return setErr('Please confirm that you are 18 years or older.');
+    }
+    if (signup && typeof window !== 'undefined') {
+      localStorage.removeItem('ss_profile');
     }
     run(() => signInWithEmail(String(f.get('email')), password));
   }
@@ -94,7 +104,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
         </div>
 
         <div className="relative z-10 text-xs text-white/50 font-mono">
-          1 Token = ₹1 • Closed-loop escrow network
+          1 Skill Point = ₹1 • Closed-loop escrow network
         </div>
       </aside>
 
@@ -126,7 +136,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
             <button
               type="button"
               disabled={busy}
-              onClick={() => run(() => signInWithProvider('google'))}
+              onClick={() => run(() => signInWithProvider('google', signup ? '/onboarding' : '/dashboard'))}
               className="flex items-center justify-center gap-3 rounded-2xl border border-ink/12 bg-mist-pure py-3 text-xs font-semibold text-ink hover:border-ink/30 hover:bg-mist transition-all shadow-sm disabled:opacity-50 cursor-pointer"
             >
               <FcGoogle size={20} /> Continue with Google
@@ -134,7 +144,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
             <button
               type="button"
               disabled={busy}
-              onClick={() => run(() => signInWithProvider('github'))}
+              onClick={() => run(() => signInWithProvider('github', signup ? '/onboarding' : '/dashboard'))}
               className="flex items-center justify-center gap-3 rounded-2xl border border-ink/12 bg-mist-pure py-3 text-xs font-semibold text-ink hover:border-ink/30 hover:bg-mist transition-all shadow-sm disabled:opacity-50 cursor-pointer"
             >
               <FaGithub size={18} /> Continue with GitHub

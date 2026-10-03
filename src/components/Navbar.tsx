@@ -52,7 +52,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="spatial-dock rounded-2xl sm:rounded-full px-4 py-2.5 sm:px-5 sm:py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-md">
         {/* Brand & System Invariant Tag */}
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="flex items-center gap-2.5 group cursor-pointer">
+          <Link href="/" className="flex items-center gap-2.5 group cursor-pointer">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-white dark:bg-saffron dark:text-black group-hover:bg-lagoon transition-all shadow-sm">
               <ArrowRightLeft className="h-4 w-4" />
             </div>
@@ -166,7 +166,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="text-left leading-tight">
               <div className="flex items-center gap-1 font-mono text-xs font-bold text-ink">
                 <span>{availableTokens}</span>
-                <span className="text-[10px] text-lagoon font-sans font-semibold">T</span>
+                <span className="text-[10px] text-lagoon font-sans font-semibold">SP</span>
               </div>
               {heldTokens > 0 && (
                 <div className="text-[9px] text-ink/50 font-mono">

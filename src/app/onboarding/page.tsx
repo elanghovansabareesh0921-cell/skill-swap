@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SkillPicker from '@/components/SkillPicker';
 import { getSession, saveProfile, type Profile } from '@/lib/auth';
-import { ArrowLeft, ArrowRight, Sparkles, Upload, User, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowRightLeft, Sparkles, Upload, User, ShieldCheck } from 'lucide-react';
 
 const fieldClass =
   'mt-1.5 w-full rounded-2xl border border-ink/15 bg-mist-pure px-4 py-3 text-sm text-ink outline-none transition-all placeholder:text-ink-muted/50 focus:border-lagoon focus:ring-4 focus:ring-lagoon/10 shadow-sm dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40';
@@ -12,7 +13,7 @@ const fieldClass =
 const titles = ['Tell us about you', 'What can you teach?', 'What do you want to learn?'];
 const subtitles = [
   'Basic profile details to verify your account identity on the escrow network.',
-  'Members who offer a skill pay up to 70% fewer tokens on reciprocal swaps.',
+  'Members who offer a skill pay up to 70% fewer skill points on reciprocal swaps.',
   'Your learning vectors feed our two-sided AI Radar to rank compatible peers.',
 ];
 
@@ -90,14 +91,24 @@ export default function Onboarding() {
       <div className="pointer-events-none absolute bottom-10 right-1/3 h-96 w-96 ambient-glow-saffron opacity-40 blur-3xl" />
 
       <main className="relative z-10 w-full max-w-2xl glass-panel rounded-3xl p-8 sm:p-12 shadow-2xl border border-ink/8">
-        {/* Step Indicator Header */}
-        <div className="flex items-center justify-between border-b border-ink/8 pb-5">
-          <div className="flex items-center gap-2 text-xs font-mono font-bold text-lagoon uppercase tracking-wider">
-            <Sparkles className="h-3.5 w-3.5 text-saffron" />
-            <span>Onboarding Wizard • Step {step} of 3</span>
-          </div>
-          <div className="text-xs text-ink/40 font-mono">
-            {step === 1 ? '33%' : step === 2 ? '66%' : '100%'} Completed
+        {/* Step Indicator Header with SkillSwap Logo Link */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/8 pb-5">
+          <Link href="/" className="inline-flex items-center gap-2 group cursor-pointer" title="Back to Home">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-ink text-white dark:bg-saffron dark:text-black group-hover:bg-lagoon transition-colors shadow-sm">
+              <ArrowRightLeft className="h-3.5 w-3.5" />
+            </div>
+            <span className="font-display text-base font-extrabold tracking-tight text-ink">
+              SkillSwap
+            </span>
+          </Link>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-lagoon uppercase tracking-wider">
+              <Sparkles className="h-3.5 w-3.5 text-saffron" />
+              <span>Step {step} of 3</span>
+            </div>
+            <div className="text-xs text-ink/40 font-mono">
+              {step === 1 ? '33%' : step === 2 ? '66%' : '100%'} Completed
+            </div>
           </div>
         </div>
 
@@ -223,7 +234,7 @@ export default function Onboarding() {
 
               {f.noTeach && (
                 <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 text-xs text-amber-900 dark:text-amber-300 leading-relaxed">
-                  <strong>Notice:</strong> In learn-only mode, you pay the teacher's full list price in tokens. You can add a teachable skill anytime later to unlock up to 70% swap discounts.
+                  <strong>Notice:</strong> In learn-only mode, you pay the teacher's full list price in skill points. You can add a teachable skill anytime later to unlock up to 70% swap discounts.
                 </div>
               )}
             </div>

@@ -35,20 +35,46 @@ const start = async (s: Session) => {
   if (typeof window !== "undefined") localStorage.setItem("ss_session", JSON.stringify(s));
 };
 
+export const DEFAULT_DEMO_PROFILE: Profile = {
+  name: 'Alex Chen',
+  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  sex: 'other',
+  dob: '1998-05-15',
+  teach: ['Full-Stack Web Dev', 'UI/UX Design'],
+  noTeach: false,
+  learn: ['Python for Data Science', 'Machine Learning'],
+};
+
 // Uses Supabase Auth to handle Google/GitHub Login and GMeet scopes
-export const signInWithProvider = async (p: "google" | "github") => {
+export const signInWithProvider = async (p: "google" | "github", nextUrl?: string) => {
   // Maintain mock compatibility before redirect
   if (typeof window !== "undefined") {
     localStorage.setItem("ss_session", JSON.stringify({ email: `${p}-user@example.com`, provider: p }));
+    if (nextUrl === '/dashboard' && !getProfile()) {
+      saveProfile(DEFAULT_DEMO_PROFILE);
+    } else if (nextUrl === '/onboarding') {
+      localStorage.removeItem("ss_profile");
+    }
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // Graceful fallback for mock/demo mode when Supabase is not configured
+    await new Promise((r) => setTimeout(r, 400));
+    return { isOAuth: false };
   }
 
   const supabase = createClient();
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const redirectTarget = nextUrl
+    ? `${origin}/auth/callback?next=${encodeURIComponent(nextUrl)}`
+    : `${origin}/auth/callback`;
   
   const { error } = await supabase.auth.signInWithOAuth({
     provider: p,
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo: redirectTarget,
       scopes: p === 'google' ? 'https://www.googleapis.com/auth/calendar.events' : undefined,
       queryParams: p === 'google' ? {
         access_type: 'offline',

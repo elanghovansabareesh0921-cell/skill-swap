@@ -101,7 +101,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
             <span>PROTECTED IN ESCROW</span>
           </div>
           <div className="mt-2 text-3xl font-extrabold text-emerald-700 font-mono">
-            {totalEscrowTokens} Tokens
+            {totalEscrowTokens} SP
           </div>
           <div className="text-[11px] text-ink/50 mt-1 font-mono">₹{totalEscrowTokens}.00 backed by double-entry ledger</div>
         </div>
@@ -131,7 +131,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
                   You have pending proposals awaiting your approval
                 </h3>
                 <p className="text-xs text-ink/70">
-                  Review exchange details and accept to lock mutual tokens into escrow.
+                  Review exchange details and accept to lock mutual skill points into escrow.
                 </p>
               </div>
             </div>
@@ -219,7 +219,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
                     <div className="text-left sm:text-right bg-mist-pure/70 sm:bg-transparent p-3 sm:p-0 rounded-2xl border border-ink/5 sm:border-0">
                       <div className="text-[10px] font-mono text-ink/50 uppercase">Escrow Locked</div>
                       <div className="text-2xl font-mono font-extrabold text-ink mt-0.5">
-                        {session.chargedTokens} Tokens
+                        {session.chargedTokens} SP
                       </div>
                       <div className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono font-medium">
                         10% platform fee on settlement
@@ -319,7 +319,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
               </div>
               <div>
                 <h3 className="font-display font-bold text-ink text-base">File Session Dispute</h3>
-                <p className="text-xs text-ink/60">Tokens remain frozen in escrow until review completes.</p>
+                <p className="text-xs text-ink/60">Skill points remain frozen in escrow until review completes.</p>
               </div>
             </div>
 

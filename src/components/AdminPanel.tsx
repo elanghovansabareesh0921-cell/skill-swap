@@ -68,7 +68,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="glass-panel rounded-3xl p-5 border border-ink/8 spatial-card">
-          <div className="text-[11px] font-mono text-ink/60 uppercase">Total Token GMV</div>
+          <div className="text-[11px] font-mono text-ink/60 uppercase">Total SP GMV</div>
           <div className="mt-1 text-2xl font-black text-ink font-mono">₹84,250</div>
           <div className="text-[10px] text-emerald-700 mt-0.5 font-medium">+14% this week</div>
         </div>
@@ -118,7 +118,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
                     <span className="text-xs font-mono text-ink/60">ID: {session.id}</span>
                   </div>
                   <h3 className="font-display font-bold text-ink text-base mt-1">
-                    {session.skillName} ({session.chargedTokens} Tokens in Escrow)
+                    {session.skillName} ({session.chargedTokens} SP in Escrow)
                   </h3>
                   <p className="text-xs text-ink/70 mt-1">
                     Dispute reason: <em>Partner was absent for scheduled slot after 15 minutes.</em>
@@ -162,14 +162,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
               Dual-Control Balance Adjustment (Maker-Checker Rule)
             </h3>
             <p className="text-xs text-ink/60">
-              No single administrator can credit or debit tokens without peer approval (PRD §8.2).
+              No single administrator can credit or debit skill points without peer approval (PRD §8.2).
             </p>
           </div>
         </div>
 
         <form onSubmit={handleProposeAdjustment} className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2">
           <div className="sm:col-span-3">
-            <label className="text-[11px] font-mono text-ink/60 uppercase block mb-1">Adjustment (Tokens)</label>
+            <label className="text-[11px] font-mono text-ink/60 uppercase block mb-1">Adjustment (SP)</label>
             <input
               type="number"
               value={makerAmount}
@@ -207,7 +207,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
             <div>
               <strong className="block font-bold">Pending Peer Checker Approval:</strong>
               <span>
-                Proposal to adjust {makerAmount} Tokens for: &ldquo;{makerReason}&rdquo;
+                Proposal to adjust {makerAmount} SP for: &ldquo;{makerReason}&rdquo;
               </span>
             </div>
             <button

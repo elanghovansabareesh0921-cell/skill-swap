@@ -163,7 +163,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
               </span>
             </div>
             <div className="text-xl font-bold font-mono text-ink mt-0.5">
-              {match.swapPriceTokens ?? quote.proposerLeg.chargedTokens} Tokens
+              {match.swapPriceTokens ?? quote.proposerLeg.chargedTokens} SP
             </div>
             <p className="text-[11px] text-ink/65 mt-1 leading-snug">
               You teach {selectedTeachSkill?.skillName || 'a skill'}, they teach you {match.teacherOfferingSkill.skillName}. Up to 70% in-kind savings.
@@ -186,10 +186,10 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
               </span>
             </div>
             <div className="text-xl font-bold font-mono text-ink mt-0.5">
-              {quote.proposerLeg.listPriceTokens} Tokens
+              {quote.proposerLeg.listPriceTokens} SP
             </div>
             <p className="text-[11px] text-ink/65 mt-1 leading-snug">
-              Standard 1:1 session. Pay the teacher's listed rate of {match.teacherOfferingSkill.hourlyRate} T/hr.
+              Standard 1:1 session. Pay the teacher's listed rate of {match.teacherOfferingSkill.hourlyRate} SP/hr.
             </p>
           </button>
         </div>
@@ -212,8 +212,8 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
                 <div className="font-semibold text-ink mt-1 text-sm">{match.teacherOfferingSkill.skillName}</div>
                 <div className="text-ink/60 text-[11px] mt-0.5">Taught by {match.teacher.fullName}</div>
                 <div className="mt-2 text-ink/60 flex items-center justify-between font-mono">
-                  <span>List: {quote.proposerLeg.listPriceTokens}T</span>
-                  <span className="text-emerald-700 font-bold">Swap: {quote.proposerLeg.chargedTokens}T</span>
+                  <span>List: {quote.proposerLeg.listPriceTokens} SP</span>
+                  <span className="text-emerald-700 font-bold">Swap: {quote.proposerLeg.chargedTokens} SP</span>
                 </div>
               </div>
 
@@ -229,14 +229,14 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
                 >
                   {currentUser.teachSkills.map(skill => (
                     <option key={skill.skillId} value={skill.skillId}>
-                      {skill.skillName} ({skill.hourlyRate} T/hr)
+                      {skill.skillName} ({skill.hourlyRate} SP/hr)
                     </option>
                   ))}
                 </select>
                 <div className="text-ink/60 text-[11px] mt-1">Taught to {match.teacher.fullName}</div>
                 <div className="mt-2 text-ink/60 flex items-center justify-between font-mono">
-                  <span>List: {quote.recipientLeg?.listPriceTokens}T</span>
-                  <span className="text-emerald-700 font-bold">Swap: {quote.recipientLeg?.chargedTokens}T</span>
+                  <span>List: {quote.recipientLeg?.listPriceTokens} SP</span>
+                  <span className="text-emerald-700 font-bold">Swap: {quote.recipientLeg?.chargedTokens} SP</span>
                 </div>
               </div>
             </div>
@@ -284,12 +284,12 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
             <div className="space-y-0.5">
               <div className="text-ink/60 flex items-center gap-1.5 font-medium">
                 <Lock className="h-3.5 w-3.5 text-lagoon" />
-                <span>Tokens Held in Escrow:</span>
-                <strong className="text-ink font-mono font-bold text-sm">{tokensNeeded} Tokens</strong>
+                <span>Skill Points Held in Escrow:</span>
+                <strong className="text-ink font-mono font-bold text-sm">{tokensNeeded} SP</strong>
                 <span className="text-[10px] text-ink/50 font-mono">(₹{tokensNeeded}.00)</span>
               </div>
               <div className="text-[11px] text-ink/55">
-                Wallet Balance: <strong className="text-ink font-mono">{availableTokens} Tokens</strong>
+                Wallet Balance: <strong className="text-ink font-mono">{availableTokens} SP</strong>
               </div>
             </div>
 
@@ -303,7 +303,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
             <div className="mt-3 flex items-center justify-between rounded-xl bg-amber-500/10 border border-amber-500/20 p-2.5 text-xs text-amber-900 dark:text-amber-300">
               <div className="flex items-center gap-1.5">
                 <AlertCircle className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0" />
-                <span>Insufficient tokens. You need {tokensNeeded - availableTokens} more tokens.</span>
+                <span>Insufficient skill points. You need {tokensNeeded - availableTokens} more skill points.</span>
               </div>
               <button
                 type="button"

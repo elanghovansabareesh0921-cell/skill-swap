@@ -29,17 +29,17 @@ interface FaqArticle {
 const FAQ_KNOWLEDGE_BASE: FaqArticle[] = [
   {
     id: 'art-pricing',
-    category: 'Tokens & Pricing',
+    category: 'Skill Points & Pricing',
     title: 'How does the 70% Swap Discount formula work?',
     excerpt: 'When both members teach each other, in-kind value is deducted so you only pay a 30% swap fee.',
-    content: 'Under PRD §7.6A, SkillSwap calculates the in-kind value exchanged, **M = min(Leg 1, Leg 2)**. Each learner pays: *(list price − M) + 0.30 × M*. For equal 60 Token sessions, both members pay only 18 Tokens each—a **70% reduction** compared to paying direct cash.'
+    content: 'Under PRD §7.6A, SkillSwap calculates the in-kind value exchanged, **M = min(Leg 1, Leg 2)**. Each learner pays: *(list price − M) + 0.30 × M*. For equal 60 SP sessions, both members pay only 18 SP each—a **70% reduction** compared to paying direct cash.'
   },
   {
     id: 'art-escrow',
     category: 'Escrow & Safety',
-    title: 'How does double-entry escrow protect my tokens?',
-    excerpt: 'Your tokens remain locked in our zero-overdraft ledger until both parties submit completion confirmation.',
-    content: 'When you propose or accept an exchange, tokens move from **Available** to **Held** status. \n\n* The tokens are never released to the teacher until both parties tap "Confirm Completed". \n* If a session is cancelled or declined, tokens are automatically credited back to your Available wallet.'
+    title: 'How does double-entry escrow protect my skill points?',
+    excerpt: 'Your skill points remain locked in our zero-overdraft ledger until both parties submit completion confirmation.',
+    content: 'When you propose or accept an exchange, skill points move from **Available** to **Held** status. \n\n* The skill points are never released to the teacher until both parties tap "Confirm Completed". \n* If a session is cancelled or declined, skill points are automatically credited back to your Available wallet.'
   },
   {
     id: 'art-meet',
@@ -58,9 +58,9 @@ const FAQ_KNOWLEDGE_BASE: FaqArticle[] = [
   {
     id: 'art-tokens',
     category: 'Wallet & Currency',
-    title: 'What is the token value and how do I top up?',
-    excerpt: '1 Token = ₹1.00 INR. Buy packs via Razorpay (UPI, Google Pay, Cards, Netbanking).',
-    content: 'SkillSwap tokens have a guaranteed **1:1 parity** with the Indian Rupee (1 Token = ₹1.00) and are stored in integer paise for precision. You can top up your wallet in standard packs (50, 100, 250, 500, 1000) or any custom amount starting at ₹50.'
+    title: 'What is the skill point value and how do I top up?',
+    excerpt: '1 Skill Point = ₹1.00 INR. Buy packs via Razorpay (UPI, Google Pay, Cards, Netbanking).',
+    content: 'SkillSwap skill points have a guaranteed **1:1 parity** with the Indian Rupee (1 SP = ₹1.00) and are stored in integer paise for precision. You can top up your wallet in standard packs (50, 100, 250, 500, 1000) or any custom amount starting at ₹50.'
   },
   {
     id: 'art-admin',
@@ -91,7 +91,7 @@ export const FaqChatbot: React.FC = () => {
     {
       id: 'msg-welcome',
       sender: 'bot',
-      text: 'Hi! I am the SkillSwap FAQ AI assistant. Ask me anything about our **70% swap discount**, **escrow safety**, **scheduling on Google Meet**, or **token purchases**.',
+      text: 'Hi! I am the SkillSwap FAQ AI assistant. Ask me anything about our **70% swap discount**, **escrow safety**, **scheduling on Google Meet**, or **skill point purchases**.',
       timestamp: 'Just now',
     }
   ]);
@@ -130,7 +130,7 @@ export const FaqChatbot: React.FC = () => {
         matchedArticle = FAQ_KNOWLEDGE_BASE.find(a => a.id === 'art-meet');
       } else if (lower.includes('no show') || lower.includes('show up') || lower.includes('dispute') || lower.includes('strike') || lower.includes('cancel')) {
         matchedArticle = FAQ_KNOWLEDGE_BASE.find(a => a.id === 'art-disputes');
-      } else if (lower.includes('token') || lower.includes('wallet') || lower.includes('rupee') || lower.includes('inr') || lower.includes('buy') || lower.includes('pack')) {
+      } else if (lower.includes('token') || lower.includes('skill point') || lower.includes('wallet') || lower.includes('rupee') || lower.includes('inr') || lower.includes('buy') || lower.includes('pack')) {
         matchedArticle = FAQ_KNOWLEDGE_BASE.find(a => a.id === 'art-tokens');
       } else if (lower.includes('admin') || lower.includes('support') || lower.includes('contact') || lower.includes('issue')) {
         matchedArticle = FAQ_KNOWLEDGE_BASE.find(a => a.id === 'art-admin');
@@ -149,7 +149,7 @@ export const FaqChatbot: React.FC = () => {
         const botMsg: ChatMessage = {
           id: `bot-${Date.now()}`,
           sender: 'bot',
-          text: "I want to make sure you get the exact right answer. My automated knowledge base covers platform policies, tokens, escrow, Google Meet scheduling, and swap calculations. Would you like me to open a support ticket for our operations team?",
+          text: "I want to make sure you get the exact right answer. My automated knowledge base covers platform policies, skill points, escrow, Google Meet scheduling, and swap calculations. Would you like me to open a support ticket for our operations team?",
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           canEscalate: true,
         };
@@ -328,7 +328,7 @@ export const FaqChatbot: React.FC = () => {
                 type="text"
                 value={input}
                 onChange={e => setInput(e.target.value)}
-                placeholder="Ask about tokens, swaps, escrow..."
+                placeholder="Ask about skill points, swaps, escrow..."
                 className="flex-1 rounded-full border border-ink/15 bg-mist-pure px-3.5 py-2 text-xs text-ink placeholder:text-ink-muted/50 focus:border-lagoon focus:outline-none shadow-xs dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40"
               />
               <button

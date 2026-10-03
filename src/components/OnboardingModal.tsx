@@ -199,7 +199,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 What can you teach to unlock Swap Pricing?
               </h2>
               <p className="text-xs text-zinc-400 mt-1">
-                Members who offer a skill pay up to 70% fewer tokens through mutual skill exchange.
+                Members who offer a skill pay up to 70% fewer skill points through mutual skill exchange.
               </p>
             </div>
 
@@ -248,7 +248,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
                   <div>
                     <label className="text-xs font-semibold text-zinc-300 block mb-1">
-                      Hourly Rate (Tokens/hr)
+                      Hourly Rate (SP/hr)
                     </label>
                     <input
                       type="number"

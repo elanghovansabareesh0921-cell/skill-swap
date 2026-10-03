@@ -13,8 +13,8 @@ const steps = [
   },
   {
     num: '02',
-    title: 'Lock tokens in escrow',
-    desc: 'Swapping reduces in-kind costs by up to 70%. Your tokens remain safely locked in escrow until the session completes.',
+    title: 'Lock skill points in escrow',
+    desc: 'Swapping reduces in-kind costs by up to 70%. Your skill points remain safely locked in escrow until the session completes.',
   },
   {
     num: '03',
@@ -110,7 +110,7 @@ export default function Landing() {
             </h1>
 
             <p className="max-w-xl text-lg text-ink/75 leading-relaxed font-normal">
-              Trade verified 1:1 lessons with peers who seek what you already know. When skills are exchanged in kind, learning costs up to <strong className="text-ink font-semibold">70% fewer tokens</strong> backed by automated escrow.
+              Trade verified 1:1 lessons with peers who seek what you already know. When skills are exchanged in kind, learning costs up to <strong className="text-ink font-semibold">70% fewer skill points</strong> backed by automated escrow.
             </p>
 
             {/* Spatial CTA Actions */}
@@ -151,7 +151,7 @@ export default function Landing() {
               </span>
               <span className="flex items-center gap-1.5 font-medium">
                 <Lock className="h-4 w-4 text-lagoon" />
-                1 Token = ₹1 Guaranteed
+                1 Skill Point = ₹1 Guaranteed
               </span>
               <span className="flex items-center gap-1.5 font-medium">
                 <Zap className="h-4 w-4 text-saffron" />
@@ -186,7 +186,7 @@ export default function Landing() {
                 <div>
                   <div className="flex justify-between text-xs font-mono text-white/70 mb-2">
                     <span>Direct Learn (List Price)</span>
-                    <span className="text-white font-bold">60 Tokens (₹60)</span>
+                    <span className="text-white font-bold">60 SP (₹60)</span>
                   </div>
                   <div className="h-3 w-full rounded-full bg-mist-pure/10 overflow-hidden">
                     <div className="h-full w-full bg-mist-pure/30 rounded-full" />
@@ -199,7 +199,7 @@ export default function Landing() {
                       <ArrowRightLeft className="h-3 w-3" />
                       Swap: You teach him Figma UI
                     </span>
-                    <span className="font-extrabold text-white text-sm">18 Tokens (₹18)</span>
+                    <span className="font-extrabold text-white text-sm">18 SP (₹18)</span>
                   </div>
                   <div className="h-3 w-full rounded-full bg-mist-pure/10 overflow-hidden">
                     <div className="h-full w-[30%] bg-saffron rounded-full shadow-lg shadow-saffron/40" />
@@ -211,7 +211,7 @@ export default function Landing() {
               <div className="mt-6 rounded-2xl bg-mist-pure/5 border border-white/10 p-4 flex items-center justify-between text-xs">
                 <div>
                   <div className="text-white/60 text-[11px]">Net Savings per Session</div>
-                  <div className="text-emerald-400 font-bold font-mono text-base">You Save 42 Tokens</div>
+                  <div className="text-emerald-400 font-bold font-mono text-base">You Save 42 Skill Points</div>
                 </div>
                 <div className="text-right">
                   <div className="text-white/60 text-[11px]">Rate in INR</div>
@@ -220,7 +220,7 @@ export default function Landing() {
               </div>
 
               <p className="mt-5 text-[11px] text-white/50 text-center leading-relaxed font-mono">
-                Tokens stay in escrow until both parties confirm completion.
+                Skill points stay in escrow until both parties confirm completion.
               </p>
             </div>
           </div>
@@ -232,7 +232,7 @@ export default function Landing() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="max-w-xl">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-lagoon">
-              Architecture & Mechanics
+              Architecture & Mechanics • How this product functions
             </span>
             <h2 className="mt-2 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-ink">
               How a skill swap works.
