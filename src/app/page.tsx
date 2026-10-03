@@ -9,7 +9,7 @@ const steps = [
   {
     num: '01',
     title: 'Declare your exchange vectors',
-    desc: 'List what you can teach and what you want to learn. Our two-sided AI Radar identifies reciprocal matches in seconds.',
+    desc: 'List what you can teach and what you want to learn. Our matching engine identifies reciprocal swap matches in seconds.',
   },
   {
     num: '02',

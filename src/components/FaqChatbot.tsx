@@ -186,9 +186,9 @@ export const FaqChatbot: React.FC = () => {
           </div>
           <div className="text-left pr-1 hidden sm:block">
             <div className="text-xs font-bold text-ink leading-tight flex items-center gap-1.5">
-              <span>FAQ Radar Bot</span>
+              <span>FAQ Assistant</span>
               <span className="rounded-full bg-lagoon/10 px-1.5 py-0.2 text-[9px] font-mono text-lagoon font-bold">
-                AI HELP
+                SUPPORT
               </span>
             </div>
             <div className="text-[10px] text-ink/50">Questions & Policy Guide</div>

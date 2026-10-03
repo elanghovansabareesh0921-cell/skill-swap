@@ -94,7 +94,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
             </div>
             <div className="flex items-center gap-2.5 text-xs text-white/80">
               <CheckCircle className="h-4 w-4 text-lagoon-light shrink-0" />
-              <span>Two-sided AI Radar compatibility matching</span>
+              <span>Two-sided peer compatibility matching</span>
             </div>
             <div className="flex items-center gap-2.5 text-xs text-white/80">
               <CheckCircle className="h-4 w-4 text-lagoon-light shrink-0" />

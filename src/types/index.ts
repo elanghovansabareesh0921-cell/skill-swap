@@ -171,3 +171,5 @@ export interface RadarMatch {
   teacherOfferingSkill: UserTeachSkill;
   matchingLearnSkill?: UserLearnSkill;
 }
+
+export type PeerMatch = RadarMatch;

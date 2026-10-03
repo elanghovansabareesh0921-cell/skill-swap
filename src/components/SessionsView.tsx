@@ -165,7 +165,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
           <div className="rounded-3xl glass-panel p-12 text-center text-ink/60 space-y-3">
             <Calendar className="h-10 w-10 mx-auto text-ink/30" />
             <p className="text-sm font-medium">No sessions scheduled yet.</p>
-            <p className="text-xs text-ink/50">Propose a swap from the AI Radar to get started.</p>
+            <p className="text-xs text-ink/50">Browse peer matches to propose your first swap.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-5">

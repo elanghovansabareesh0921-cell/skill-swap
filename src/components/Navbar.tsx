@@ -15,7 +15,8 @@ import {
   ShieldCheck, 
   Lock,
   Moon,
-  Sun
+  Sun,
+  Users
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Profile, Wallet as WalletType } from '@/types';
@@ -79,13 +80,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-ink/70 hover:text-ink hover:bg-mist-pure/80'
             }`}
           >
-            <Sparkles className={`h-3.5 w-3.5 ${activeTab === 'radar' ? 'text-saffron' : 'text-ink/50'}`} />
-            <span>AI Radar</span>
-            <span className={`ml-0.5 rounded-full px-1.5 py-0.2 text-[9px] font-mono font-bold ${
-              activeTab === 'radar' ? 'bg-mist-pure/20 text-white dark:bg-black/15 dark:text-black' : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
-            }`}>
-              LIVE
-            </span>
+            <Users className={`h-3.5 w-3.5 ${activeTab === 'radar' ? 'text-saffron dark:text-black' : 'text-ink/50'}`} />
+            <span>Peer Matches</span>
           </button>
 
           <button

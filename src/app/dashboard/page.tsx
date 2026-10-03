@@ -443,7 +443,7 @@ export default function Dashboard() {
   if (!isReady || !authProfile) {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center text-zinc-400 font-mono text-sm">
-        Authenticating session & loading SkillSwap Radar...
+        Authenticating session & loading peer matches...
       </div>
     );
   }
@@ -494,7 +494,7 @@ export default function Dashboard() {
             href="/onboarding"
             className="text-xs font-semibold text-lagoon hover:text-lagoon-dark transition-colors flex items-center gap-1 cursor-pointer"
           >
-            <span>Edit Skill Vectors</span>
+            <span>Edit Skills</span>
             <span aria-hidden="true">→</span>
           </Link>
         </div>

@@ -137,3 +137,5 @@ export function computeRadarMatches(learner: Profile, teachers: Profile[]): Rada
     return b.matchScore - a.matchScore;
   });
 }
+
+export const computePeerMatches = computeRadarMatches;

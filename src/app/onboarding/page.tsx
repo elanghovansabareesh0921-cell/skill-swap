@@ -14,7 +14,7 @@ const titles = ['Tell us about you', 'What can you teach?', 'What do you want to
 const subtitles = [
   'Basic profile details to verify your account identity on the escrow network.',
   'Members who offer a skill pay up to 70% fewer skill points on reciprocal swaps.',
-  'Your learning vectors feed our two-sided AI Radar to rank compatible peers.',
+  'Your learning goals connect you with compatible peer teachers across the network.',
 ];
 
 const calculateAge = (dob: string) => {
