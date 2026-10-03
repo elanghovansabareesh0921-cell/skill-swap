@@ -53,7 +53,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Brand & System Invariant Tag */}
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="flex items-center gap-2.5 group cursor-pointer">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-white group-hover:bg-lagoon transition-all shadow-sm">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0f1b2d] dark:bg-white text-white dark:text-[#0f1b2d] group-hover:bg-saffron transition-all shadow-sm">
               <ArrowRightLeft className="h-4 w-4" />
             </div>
             <div>
@@ -61,7 +61,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="font-display text-base font-extrabold tracking-tight text-ink">
                   SkillSwap
                 </span>
-                <span className="hidden lg:inline-block rounded-full bg-lagoon/10 border border-lagoon/20 px-2 py-0.5 text-[9px] font-mono font-bold text-lagoon">
+                <span className="hidden lg:inline-block rounded-full bg-saffron/10 border border-saffron/20 px-2 py-0.5 text-[9px] font-mono font-bold text-saffron">
                   ESCROW v0.2
                 </span>
               </div>
