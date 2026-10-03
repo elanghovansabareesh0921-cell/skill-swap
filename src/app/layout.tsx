@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "next-themes";
 import { FaqChatbot } from "@/components/FaqChatbot";
 
 const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage" });
@@ -13,10 +14,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable}`}>
+    <html lang="en" className={`${display.variable} ${sans.variable}`} suppressHydrationWarning>
       <body className="antialiased min-h-screen">
-        {children}
-        <FaqChatbot />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+          <FaqChatbot />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -70,8 +70,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
   };
 
   const handleProposeTimeSubmit = () => {
-    const meetId = `ssw-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 6)}`;
-    const meetLink = `https://meet.google.com/${meetId}`;
+    const meetLink = 'https://meet.google.com/new';
 
     onSendMessage(`Proposed time for Leg ${proposedLegIndex}: ${proposedDate} (${proposedTime})`, 'PROPOSE_TIME', {
       proposedDate,

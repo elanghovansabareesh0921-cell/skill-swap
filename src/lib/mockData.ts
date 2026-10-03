@@ -329,7 +329,7 @@ export const INITIAL_SESSIONS: SessionLeg[] = [
     teacherPayoutTokens: 16.2,
     scheduledStart: new Date(Date.now() + 3600000 * 2).toISOString(), // in 2 hours
     scheduledEnd: new Date(Date.now() + 3600000 * 3).toISOString(),
-    meetLink: 'https://meet.google.com/ssw-pyth-fig',
+    meetLink: 'https://meet.google.com/new',
     status: 'SCHEDULED',
     teacherConfirmed: false,
     learnerConfirmed: false,
@@ -349,7 +349,7 @@ export const INITIAL_SESSIONS: SessionLeg[] = [
     teacherPayoutTokens: 16.2,
     scheduledStart: new Date(Date.now() + 3600000 * 26).toISOString(), // tomorrow
     scheduledEnd: new Date(Date.now() + 3600000 * 27).toISOString(),
-    meetLink: 'https://meet.google.com/ssw-figm-code',
+    meetLink: 'https://meet.google.com/new',
     status: 'SCHEDULED',
     teacherConfirmed: false,
     learnerConfirmed: false,
@@ -388,7 +388,7 @@ export const INITIAL_CHAT_MESSAGES: ChatMessage[] = [
       proposedTime: '18:00 - 19:00 IST',
       durationMinutes: 60,
       legIndex: 1,
-      meetLink: 'https://meet.google.com/ssw-pyth-fig',
+      meetLink: 'https://meet.google.com/new',
     },
   },
   {
@@ -400,7 +400,7 @@ export const INITIAL_CHAT_MESSAGES: ChatMessage[] = [
     timestamp: '14:30',
     type: 'TIME_CONFIRMED',
     metadata: {
-      meetLink: 'https://meet.google.com/ssw-pyth-fig',
+      meetLink: 'https://meet.google.com/new',
     },
   },
 ];

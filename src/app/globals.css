@@ -1,21 +1,53 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-ink: #0f1b2d;
-  --color-ink-light: #1e293b;
-  --color-ink-muted: #475569;
-  --color-lagoon: #0e7c7b;
-  --color-lagoon-dark: #0a5e5d;
-  --color-lagoon-light: #14a09f;
-  --color-saffron: #f2a541;
-  --color-saffron-light: #f6b865;
-  --color-mist: #f8fafb;
-  --color-mist-pure: #ffffff;
-  --color-mist-subtle: #f1f5f7;
-  --color-surface-glass: rgba(255, 255, 255, 0.82);
-  --color-surface-dark-glass: rgba(15, 27, 45, 0.88);
+  --color-ink: var(--theme-ink);
+  --color-ink-light: var(--theme-ink-light);
+  --color-ink-muted: var(--theme-ink-muted);
+  --color-lagoon: var(--theme-lagoon);
+  --color-lagoon-dark: var(--theme-lagoon-dark);
+  --color-lagoon-light: var(--theme-lagoon-light);
+  --color-saffron: var(--theme-saffron);
+  --color-saffron-light: var(--theme-saffron-light);
+  --color-mist: var(--theme-mist);
+  --color-mist-pure: var(--theme-mist-pure);
+  --color-mist-subtle: var(--theme-mist-subtle);
+  --color-surface-glass: var(--theme-surface-glass);
+  --color-surface-dark-glass: var(--theme-surface-dark-glass);
   --font-display: var(--font-bricolage), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-sans: var(--font-dm), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+:root {
+  --theme-ink: #0f1b2d;
+  --theme-ink-light: #1e293b;
+  --theme-ink-muted: #475569;
+  --theme-lagoon: #0e7c7b;
+  --theme-lagoon-dark: #0a5e5d;
+  --theme-lagoon-light: #14a09f;
+  --theme-saffron: #f2a541;
+  --theme-saffron-light: #f6b865;
+  --theme-mist: #f8fafb;
+  --theme-mist-pure: #ffffff;
+  --theme-mist-subtle: #f1f5f7;
+  --theme-surface-glass: rgba(255, 255, 255, 0.82);
+  --theme-surface-dark-glass: rgba(15, 27, 45, 0.88);
+}
+
+.dark {
+  --theme-ink: #f8fafb;
+  --theme-ink-light: #e2e8f0;
+  --theme-ink-muted: #94a3b8;
+  --theme-lagoon: #14a09f;
+  --theme-lagoon-dark: #0e7c7b;
+  --theme-lagoon-light: #2dd4bf;
+  --theme-saffron: #f6b865;
+  --theme-saffron-light: #fcd34d;
+  --theme-mist: #0f1b2d;
+  --theme-mist-pure: #020617;
+  --theme-mist-subtle: #1e293b;
+  --theme-surface-glass: rgba(15, 27, 45, 0.82);
+  --theme-surface-dark-glass: rgba(255, 255, 255, 0.88);
 }
 
 body {

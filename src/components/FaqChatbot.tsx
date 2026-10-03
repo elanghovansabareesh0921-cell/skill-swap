@@ -13,8 +13,10 @@ import {
   ArrowRightLeft, 
   ChevronRight,
   Headphones,
-  CheckCircle2
+  CheckCircle2,
+  Bot
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface FaqArticle {
   id: string;
@@ -30,35 +32,42 @@ const FAQ_KNOWLEDGE_BASE: FaqArticle[] = [
     category: 'Tokens & Pricing',
     title: 'How does the 70% Swap Discount formula work?',
     excerpt: 'When both members teach each other, in-kind value is deducted so you only pay a 30% swap fee.',
-    content: 'Under PRD §7.6A, SkillSwap calculates the in-kind value exchanged, M = min(Leg 1, Leg 2). Each learner pays: (list price − M) + 0.30 × M. For equal 60 Token sessions, both members pay only 18 Tokens each—a 70% reduction compared to paying direct cash.'
+    content: 'Under PRD §7.6A, SkillSwap calculates the in-kind value exchanged, **M = min(Leg 1, Leg 2)**. Each learner pays: *(list price − M) + 0.30 × M*. For equal 60 Token sessions, both members pay only 18 Tokens each—a **70% reduction** compared to paying direct cash.'
   },
   {
     id: 'art-escrow',
     category: 'Escrow & Safety',
     title: 'How does double-entry escrow protect my tokens?',
     excerpt: 'Your tokens remain locked in our zero-overdraft ledger until both parties submit completion confirmation.',
-    content: 'When you propose or accept an exchange, tokens move from Available to Held status. The tokens are never released to the teacher until both parties tap "Confirm Completed". If a session is cancelled or declined, tokens are automatically credited back to your Available wallet.'
+    content: 'When you propose or accept an exchange, tokens move from **Available** to **Held** status. \n\n* The tokens are never released to the teacher until both parties tap "Confirm Completed". \n* If a session is cancelled or declined, tokens are automatically credited back to your Available wallet.'
   },
   {
     id: 'art-meet',
     category: 'Scheduling & Google Meet',
     title: 'How do we schedule sessions and get Google Meet links?',
     excerpt: 'Propose a time inside the temporary 1:1 chat. Once both peers confirm, a Google Meet link is generated automatically.',
-    content: 'Inside the temporary chat thread, either participant can propose a date and time slot. When the other member taps "Accept", the platform automatically generates an authenticated Google Meet link (meet.google.com) and attaches it to both your calendar and session view.'
+    content: 'Inside the temporary chat thread, either participant can propose a date and time slot. When the other member taps "Accept", the platform automatically generates an authenticated **Google Meet** link (`meet.google.com`) and attaches it to both your calendar and session view.'
   },
   {
     id: 'art-disputes',
     category: 'Trust & Disputes',
     title: 'What happens if a partner does not show up?',
     excerpt: 'Teacher no-shows trigger a 100% full refund plus a strike on their profile. 3 strikes lead to review.',
-    content: 'If a partner is absent after 15 minutes, you can tap "Dispute" on the session page. Escrow is immediately frozen, and our operations team reviews chat timestamps and join telemetry. Validated no-shows result in a 100% refund to the learner and a penalty strike on the absent member.'
+    content: 'If a partner is absent after 15 minutes, you can tap **"Dispute"** on the session page. Escrow is immediately frozen, and our operations team reviews chat timestamps and join telemetry. Validated no-shows result in a **100% refund** to the learner and a penalty strike on the absent member.'
   },
   {
     id: 'art-tokens',
     category: 'Wallet & Currency',
     title: 'What is the token value and how do I top up?',
     excerpt: '1 Token = ₹1.00 INR. Buy packs via Razorpay (UPI, Google Pay, Cards, Netbanking).',
-    content: 'SkillSwap tokens have a guaranteed 1:1 parity with the Indian Rupee (1 Token = ₹1.00) and are stored in integer paise for precision. You can top up your wallet in standard packs (50, 100, 250, 500, 1000) or any custom amount starting at ₹50.'
+    content: 'SkillSwap tokens have a guaranteed **1:1 parity** with the Indian Rupee (1 Token = ₹1.00) and are stored in integer paise for precision. You can top up your wallet in standard packs (50, 100, 250, 500, 1000) or any custom amount starting at ₹50.'
+  },
+  {
+    id: 'art-admin',
+    category: 'Admin & Support',
+    title: 'How do I contact support or access the admin panel?',
+    excerpt: 'Only verified admins can access the Escrow Admin dashboard.',
+    content: 'The **Escrow Admin** panel is restricted to authorized platform administrators (e.g., `elanghovansabareesh0921@gmail.com`). If you have an issue with a session, please use the **Dispute** button on the session page or escalate through this chat to open a ticket.'
   }
 ];
 
@@ -82,7 +91,7 @@ export const FaqChatbot: React.FC = () => {
     {
       id: 'msg-welcome',
       sender: 'bot',
-      text: 'Hi! I am the SkillSwap FAQ AI assistant. Ask me anything about our 70% swap discount, escrow safety, scheduling on Google Meet, or token purchases.',
+      text: 'Hi! I am the SkillSwap FAQ AI assistant. Ask me anything about our **70% swap discount**, **escrow safety**, **scheduling on Google Meet**, or **token purchases**.',
       timestamp: 'Just now',
     }
   ]);
@@ -123,6 +132,8 @@ export const FaqChatbot: React.FC = () => {
         matchedArticle = FAQ_KNOWLEDGE_BASE.find(a => a.id === 'art-disputes');
       } else if (lower.includes('token') || lower.includes('wallet') || lower.includes('rupee') || lower.includes('inr') || lower.includes('buy') || lower.includes('pack')) {
         matchedArticle = FAQ_KNOWLEDGE_BASE.find(a => a.id === 'art-tokens');
+      } else if (lower.includes('admin') || lower.includes('support') || lower.includes('contact') || lower.includes('issue')) {
+        matchedArticle = FAQ_KNOWLEDGE_BASE.find(a => a.id === 'art-admin');
       }
 
       if (matchedArticle) {
@@ -229,7 +240,9 @@ export const FaqChatbot: React.FC = () => {
                       : 'glass-panel text-ink border border-ink/8 rounded-bl-none'
                   }`}
                 >
-                  {msg.text}
+                  <div className="prose prose-sm prose-invert max-w-none">
+                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                  </div>
 
                   {/* Knowledge Base Citation */}
                   {msg.citedArticle && (

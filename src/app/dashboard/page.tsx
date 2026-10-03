@@ -267,7 +267,7 @@ export default function Dashboard() {
         teacherPayoutTokens: quote.proposerLeg.teacherPayoutTokens,
         scheduledStart: new Date(Date.now() + 2 * 3600000).toISOString(),
         scheduledEnd: new Date(Date.now() + 3 * 3600000).toISOString(),
-        meetLink: `https://meet.google.com/ssw-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 6)}`,
+        meetLink: 'https://meet.google.com/new',
         status: 'SCHEDULED',
         teacherConfirmed: false,
         learnerConfirmed: false,
@@ -290,7 +290,7 @@ export default function Dashboard() {
         teacherPayoutTokens: quote.recipientLeg.teacherPayoutTokens,
         scheduledStart: new Date(Date.now() + 26 * 3600000).toISOString(),
         scheduledEnd: new Date(Date.now() + 27 * 3600000).toISOString(),
-        meetLink: `https://meet.google.com/ssw-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 6)}`,
+        meetLink: 'https://meet.google.com/new',
         status: 'SCHEDULED',
         teacherConfirmed: false,
         learnerConfirmed: false,
@@ -531,7 +531,7 @@ export default function Dashboard() {
           />
         )}
 
-        {activeTab === 'admin' && (
+        {activeTab === 'admin' && currentUser.email === 'elanghovansabareesh0921@gmail.com' && (
           <AdminPanel sessions={sessions} onResolveDispute={handleResolveDispute} />
         )}
       </main>
