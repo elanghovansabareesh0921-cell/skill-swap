@@ -8,6 +8,21 @@ export type Profile = {
   teach: string[];
   noTeach: boolean;
   learn: string[];
+  headline?: string;
+  bio?: string;
+  city?: string;
+  country?: string;
+  timezone?: string;
+  languages?: string[];
+  hourlyRate?: number;
+  experienceYears?: number;
+  isAcceptingRequests?: boolean;
+  githubUrl?: string;
+  linkedinUrl?: string;
+  websiteUrl?: string;
+  twitterUrl?: string;
+  allowedDurations?: number[];
+  availability?: Record<string, string[]>;
 };
 
 export type Session = { email: string; provider: "google" | "github" | "email" };
@@ -43,6 +58,18 @@ export const DEFAULT_DEMO_PROFILE: Profile = {
   teach: ['Full-Stack Web Dev', 'UI/UX Design'],
   noTeach: false,
   learn: ['Python for Data Science', 'Machine Learning'],
+  headline: 'Full-Stack Engineer & Interaction Designer',
+  bio: 'Passionate about building intuitive software, teaching web architecture, and learning machine learning. 5+ years of production experience in React, Node, and TypeScript.',
+  city: 'Bengaluru',
+  country: 'IN',
+  timezone: 'Asia/Kolkata',
+  languages: ['English', 'Hindi'],
+  hourlyRate: 50,
+  experienceYears: 4,
+  isAcceptingRequests: true,
+  githubUrl: 'https://github.com/alexchen',
+  linkedinUrl: 'https://linkedin.com/in/alexchen',
+  websiteUrl: 'https://alexchen.dev',
 };
 
 // Uses Supabase Auth to handle Google/GitHub Login and GMeet scopes

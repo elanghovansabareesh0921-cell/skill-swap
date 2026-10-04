@@ -125,7 +125,11 @@ export default function Dashboard() {
 
     const session = getSession();
 
-    // Map teaching skills from onboarding
+    // Map teaching skills from onboarding/profile
+    const hourlyRate = authProfile.hourlyRate || 50;
+    const experienceYears = authProfile.experienceYears || 3;
+    const allowedDurations = authProfile.allowedDurations || [30, 45, 60];
+
     const teachSkills: UserTeachSkill[] = authProfile.noTeach
       ? []
       : authProfile.teach.map((skillName, index) => ({
@@ -133,13 +137,13 @@ export default function Dashboard() {
           skillName,
           category: 'Skill Exchange',
           level: 'advanced',
-          yearsExperience: 3,
-          hourlyRate: 50,
-          allowedDurations: [30, 45, 60],
+          yearsExperience: experienceYears,
+          hourlyRate: hourlyRate,
+          allowedDurations: allowedDurations,
           isVerified: true,
         }));
 
-    // Map learning skills from onboarding
+    // Map learning skills from onboarding/profile
     const learnSkills: UserLearnSkill[] = authProfile.learn.map((skillName, index) => ({
       skillId: `sk-learn-${index}`,
       skillName,
@@ -155,20 +159,20 @@ export default function Dashboard() {
       avatarUrl:
         authProfile.avatar ||
         'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      bio: `SkillSwap member trading skills: ${authProfile.teach.join(', ') || 'Learner'}`,
-      city: 'Bengaluru',
-      country: 'IN',
-      timezone: 'Asia/Kolkata',
-      languages: ['English', 'Hindi'],
+      bio: authProfile.bio || (authProfile.headline ? `${authProfile.headline}. Trading: ${authProfile.teach.join(', ') || 'Learner'}` : `SkillSwap member trading skills: ${authProfile.teach.join(', ') || 'Learner'}`),
+      city: authProfile.city || 'Bengaluru',
+      country: authProfile.country || 'IN',
+      timezone: authProfile.timezone || 'Asia/Kolkata',
+      languages: authProfile.languages || ['English', 'Hindi'],
       phoneVerified: true,
       isOnboarded: true,
-      isAcceptingRequests: true,
+      isAcceptingRequests: authProfile.isAcceptingRequests !== undefined ? authProfile.isAcceptingRequests : true,
       strikesCount: 0,
       reputationScore: 5.0,
       completedSessionsCount: 0,
       teachSkills,
       learnSkills,
-      availability: defaultAvailability,
+      availability: authProfile.availability || defaultAvailability,
     };
   }, [authProfile]);
 
@@ -461,7 +465,8 @@ export default function Dashboard() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenWallet={() => setIsWalletOpen(true)}
-        onOpenOnboarding={() => router.push('/onboarding')}
+        onOpenOnboarding={() => router.push('/profile')}
+        onOpenProfile={() => router.push('/profile')}
         onOpenEditSkills={() => setIsEditSkillsOpen(true)}
         onSignOut={handleSignOut}
         pendingOffersCount={offers.filter(o => o.status === 'PENDING').length}
@@ -490,13 +495,21 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <Link
-            href="/onboarding"
-            className="text-xs font-semibold text-lagoon hover:text-lagoon-dark transition-colors flex items-center gap-1 cursor-pointer"
-          >
-            <span>Edit Skills</span>
-            <span aria-hidden="true">→</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsEditSkillsOpen(true)}
+              className="text-xs font-semibold text-ink/60 hover:text-ink transition-colors cursor-pointer"
+            >
+              Quick Skills
+            </button>
+            <Link
+              href="/profile"
+              className="text-xs font-semibold text-lagoon hover:text-lagoon-dark transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <span>Edit Profile</span>
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
         </div>
       </div>
 

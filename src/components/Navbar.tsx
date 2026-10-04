@@ -27,7 +27,8 @@ interface NavbarProps {
   activeTab: 'radar' | 'sessions' | 'chat' | 'admin';
   setActiveTab: (tab: 'radar' | 'sessions' | 'chat' | 'admin') => void;
   onOpenWallet: () => void;
-  onOpenOnboarding: () => void;
+  onOpenOnboarding?: () => void;
+  onOpenProfile?: () => void;
   onOpenEditSkills: () => void;
   onSignOut?: () => void;
   pendingOffersCount: number;
@@ -40,6 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   setActiveTab,
   onOpenWallet,
   onOpenOnboarding,
+  onOpenProfile,
   onOpenEditSkills,
   onSignOut,
   pendingOffersCount,
@@ -176,23 +178,31 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           {/* User Profile Pill */}
-          <div className="flex items-center gap-2 rounded-full border border-ink/10 bg-mist-pure/70 pl-1.5 pr-2 py-1 shadow-xs">
-            <img
-              src={currentUser.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'}
-              alt={currentUser.fullName}
-              className="h-6 w-6 rounded-full object-cover border border-ink/10"
-            />
-            <span className="hidden sm:inline-block max-w-[90px] truncate text-xs font-medium text-ink">
-              {currentUser.fullName.split(' ')[0]}
-            </span>
+          <div className="flex items-center gap-2 rounded-full border border-ink/10 bg-mist-pure/70 pl-1.5 pr-2 py-1 shadow-xs hover:border-ink/20 transition-all">
+            <Link
+              href="/profile"
+              onClick={onOpenProfile}
+              title="View & Edit Profile"
+              className="flex items-center gap-2 group/avatar cursor-pointer"
+            >
+              <img
+                src={currentUser.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'}
+                alt={currentUser.fullName}
+                className="h-6 w-6 rounded-full object-cover border border-ink/10 group-hover/avatar:ring-2 group-hover/avatar:ring-lagoon transition-all"
+              />
+              <span className="hidden sm:inline-block max-w-[90px] truncate text-xs font-medium text-ink group-hover/avatar:text-lagoon transition-colors">
+                {currentUser.fullName.split(' ')[0]}
+              </span>
+            </Link>
 
-            <button
-              onClick={onOpenOnboarding}
+            <Link
+              href="/profile"
+              onClick={onOpenProfile}
               title="Edit Profile"
               className="hidden sm:inline-block text-[10px] uppercase font-bold text-ink/40 hover:text-ink transition-colors ml-1 cursor-pointer"
             >
               Edit Profile
-            </button>
+            </Link>
 
             {onSignOut && (
               <button
