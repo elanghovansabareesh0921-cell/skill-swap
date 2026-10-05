@@ -34,9 +34,11 @@ export async function POST(request: Request) {
       keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || 'rzp_test_fallback',
       message: 'Razorpay order created. Proceed with checkout.'
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Razorpay Order Error:', error);
+    const errorMessage = error?.error?.description || error?.message || 'Failed to create payment order.';
     return NextResponse.json(
-      { error: (error as Error).message || 'Failed to create payment order.' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
