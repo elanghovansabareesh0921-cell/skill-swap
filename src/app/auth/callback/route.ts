@@ -10,6 +10,7 @@ export async function GET(request: Request) {
 
   if (code) {
     const cookieStore = await cookies();
+    console.log('All cookies:', cookieStore.getAll().map(c => ({ name: c.name, value: c.value })));
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -42,6 +43,8 @@ export async function GET(request: Request) {
       const response = NextResponse.redirect(`${origin}${next}`);
       
       return response;
+    } else {
+      console.error('OAuth exchangeCodeForSession error:', error);
     }
   }
 
