@@ -46,17 +46,77 @@ export const WalletModal: React.FC<WalletModalProps> = ({
 
   const packs = [50, 100, 250, 500, 1000];
 
-  const handleCheckout = () => {
+  const initializeRazorpay = () => {
+    return new Promise((resolve) => {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
+  };
+
+  const handleCheckout = async () => {
     const amount = customAmount ? parseInt(customAmount, 10) : selectedPack;
     if (!amount || amount < 50 || amount > 10000) return;
 
     setIsProcessing(true);
-    setTimeout(() => {
-      onBuyTokens(amount);
+    
+    try {
+      const res = await fetch('/api/wallet/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amountTokens: amount, userId: wallet.userId }),
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Payment initialization failed');
+      }
+
+      const resLoad = await initializeRazorpay();
+      if (!resLoad) {
+        alert("Razorpay SDK Failed to load");
+        setIsProcessing(false);
+        return;
+      }
+
+      const options = {
+        key: data.keyId,
+        amount: data.amountPaise.toString(),
+        currency: data.currency,
+        name: "SkillSwap",
+        description: `Purchase of ${data.amountTokens} Skill Points (SP)`,
+        order_id: data.orderId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        handler: function (response: any) {
+          onBuyTokens(amount);
+          setShowSuccess(true);
+          setTimeout(() => setShowSuccess(false), 2400);
+        },
+        prefill: {
+          name: "SkillSwap User",
+          email: "user@example.com",
+        },
+        theme: {
+          color: "#0f766e",
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.open();
+      
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      paymentObject.on('payment.failed', function (response: any) {
+         alert(response.error.description);
+      });
+    } catch (err) {
+      console.error(err);
+      alert('Could not start checkout');
+    } finally {
       setIsProcessing(false);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 2400);
-    }, 900);
+    }
   };
 
   return (

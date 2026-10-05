@@ -1,4 +1,10 @@
 import { NextResponse } from 'next/server';
+import Razorpay from 'razorpay';
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_fallback',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || 'fallback_secret',
+});
 
 export async function POST(request: Request) {
   try {
@@ -11,17 +17,21 @@ export async function POST(request: Request) {
       );
     }
 
-    const orderId = `order_${Math.random().toString(36).substring(2, 10)}`;
-    const receipt = `rcpt_${Date.now()}`;
     const amountPaise = amountTokens * 100;
 
-    return NextResponse.json({
-      orderId,
-      receipt,
-      amountTokens,
-      amountPaise,
+    const order = await razorpay.orders.create({
+      amount: amountPaise,
       currency: 'INR',
-      keyId: 'rzp_test_skillswap_sandbox',
+      receipt: `rcpt_${Date.now()}`,
+    });
+
+    return NextResponse.json({
+      orderId: order.id,
+      receipt: order.receipt,
+      amountTokens,
+      amountPaise: order.amount,
+      currency: order.currency,
+      keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || 'rzp_test_fallback',
       message: 'Razorpay order created. Proceed with checkout.'
     });
   } catch (error) {
