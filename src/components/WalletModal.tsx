@@ -111,9 +111,9 @@ export const WalletModal: React.FC<WalletModalProps> = ({
       paymentObject.on('payment.failed', function (response: any) {
          alert(response.error.description);
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Could not start checkout');
+      alert(`Could not start checkout: ${err.message || 'Unknown error'}`);
     } finally {
       setIsProcessing(false);
     }
