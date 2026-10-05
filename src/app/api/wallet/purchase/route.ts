@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_fallback',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'fallback_secret',
-});
-
 export async function POST(request: Request) {
   try {
+    const razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_fallback',
+      key_secret: process.env.RAZORPAY_KEY_SECRET || 'fallback_secret',
+    });
+    
     const { amountTokens, userId } = await request.json();
 
     if (!amountTokens || typeof amountTokens !== 'number' || amountTokens < 50 || amountTokens > 10000) {
