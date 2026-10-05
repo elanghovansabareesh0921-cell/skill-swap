@@ -138,7 +138,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 What skill do you want to learn?
               </h2>
               <p className="text-xs text-zinc-400 mt-1">
-                The AI Radar will scan our network for verified teachers and mutual swap partners.
+                Our matching system will connect you with verified teachers and mutual swap partners.
               </p>
             </div>
 
@@ -199,7 +199,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 What can you teach to unlock Swap Pricing?
               </h2>
               <p className="text-xs text-zinc-400 mt-1">
-                Members who offer a skill pay up to 70% fewer tokens through mutual skill exchange.
+                Members who offer a skill pay up to 70% fewer skill points through mutual skill exchange.
               </p>
             </div>
 
@@ -248,7 +248,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
                   <div>
                     <label className="text-xs font-semibold text-zinc-300 block mb-1">
-                      Hourly Rate (Tokens/hr)
+                      Hourly Rate (SP/hr)
                     </label>
                     <input
                       type="number"
@@ -276,7 +276,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 When are you free for sessions?
               </h2>
               <p className="text-xs text-zinc-400 mt-1">
-                The AI Radar uses availability intersection to ensure you match with peers who are free when you are.
+                Our matching system uses availability intersection to connect you with peers who are free when you are.
               </p>
             </div>
 
@@ -370,7 +370,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               className="flex items-center gap-1.5 rounded-xl bg-yellow-400 px-5 py-2 text-xs font-bold text-black hover:bg-yellow-300 shadow-lg shadow-yellow-400/20"
             >
               <Sparkles className="h-4 w-4" />
-              Recalculate AI Radar Matches
+              Update Matching Profile
             </button>
           )}
         </div>

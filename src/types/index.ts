@@ -14,7 +14,7 @@ export interface UserTeachSkill {
   category: string;
   level: SkillLevel;
   yearsExperience: number;
-  hourlyRate: number; // in Tokens (1 token = ₹1)
+  hourlyRate: number; // in Skill Points (1 SP = ₹1)
   allowedDurations: number[]; // e.g. [30, 45, 60, 90]
   isVerified?: boolean;
 }
@@ -51,7 +51,7 @@ export interface Profile {
 
 export interface Wallet {
   userId: string;
-  availablePaise: number; // 1 token = 100 paise
+  availablePaise: number; // 1 skill point = 100 paise
   heldPaise: number;
   lifetimeEarnedPaise: number;
   lifetimeSpentPaise: number;
@@ -171,3 +171,5 @@ export interface RadarMatch {
   teacherOfferingSkill: UserTeachSkill;
   matchingLearnSkill?: UserLearnSkill;
 }
+
+export type PeerMatch = RadarMatch;

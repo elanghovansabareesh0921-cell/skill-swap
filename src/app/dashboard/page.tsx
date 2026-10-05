@@ -63,7 +63,7 @@ export default function Dashboard() {
       type: 'PURCHASE',
       amountPaise: 20000,
       timestamp: 'Yesterday, 19:30',
-      description: 'Razorpay UPI Token Pack purchase (200 Tokens)',
+      description: 'Razorpay UPI Skill Points Pack purchase (200 SP)',
       idempotencyKey: 'idemp-rzp-200',
     },
   ]);
@@ -125,7 +125,11 @@ export default function Dashboard() {
 
     const session = getSession();
 
-    // Map teaching skills from onboarding
+    // Map teaching skills from onboarding/profile
+    const hourlyRate = authProfile.hourlyRate || 50;
+    const experienceYears = authProfile.experienceYears || 3;
+    const allowedDurations = authProfile.allowedDurations || [30, 45, 60];
+
     const teachSkills: UserTeachSkill[] = authProfile.noTeach
       ? []
       : authProfile.teach.map((skillName, index) => ({
@@ -133,13 +137,13 @@ export default function Dashboard() {
           skillName,
           category: 'Skill Exchange',
           level: 'advanced',
-          yearsExperience: 3,
-          hourlyRate: 50,
-          allowedDurations: [30, 45, 60],
+          yearsExperience: experienceYears,
+          hourlyRate: hourlyRate,
+          allowedDurations: allowedDurations,
           isVerified: true,
         }));
 
-    // Map learning skills from onboarding
+    // Map learning skills from onboarding/profile
     const learnSkills: UserLearnSkill[] = authProfile.learn.map((skillName, index) => ({
       skillId: `sk-learn-${index}`,
       skillName,
@@ -155,20 +159,20 @@ export default function Dashboard() {
       avatarUrl:
         authProfile.avatar ||
         'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      bio: `SkillSwap member trading skills: ${authProfile.teach.join(', ') || 'Learner'}`,
-      city: 'Bengaluru',
-      country: 'IN',
-      timezone: 'Asia/Kolkata',
-      languages: ['English', 'Hindi'],
+      bio: authProfile.bio || (authProfile.headline ? `${authProfile.headline}. Trading: ${authProfile.teach.join(', ') || 'Learner'}` : `SkillSwap member trading skills: ${authProfile.teach.join(', ') || 'Learner'}`),
+      city: authProfile.city || 'Bengaluru',
+      country: authProfile.country || 'IN',
+      timezone: authProfile.timezone || 'Asia/Kolkata',
+      languages: authProfile.languages || ['English', 'Hindi'],
       phoneVerified: true,
       isOnboarded: true,
-      isAcceptingRequests: true,
+      isAcceptingRequests: authProfile.isAcceptingRequests !== undefined ? authProfile.isAcceptingRequests : true,
       strikesCount: 0,
       reputationScore: 5.0,
       completedSessionsCount: 0,
       teachSkills,
       learnSkills,
-      availability: defaultAvailability,
+      availability: authProfile.availability || defaultAvailability,
     };
   }, [authProfile]);
 
@@ -230,7 +234,7 @@ export default function Dashboard() {
       expiresAt: new Date(Date.now() + 48 * 3600000).toISOString(),
     };
 
-    // 1. Lock tokens into Escrow (Available -> Held)
+    // 1. Lock skill points into Escrow (Available -> Held)
     const holdPaise = data.chargedTokens * 100;
     setWallet(prev => ({
       ...prev,
@@ -303,7 +307,7 @@ export default function Dashboard() {
     setActiveTab('sessions');
   };
 
-  // Action: Buy Tokens
+  // Action: Buy Skill Points
   const handleBuyTokens = (tokens: number) => {
     const paise = tokens * 100;
     setWallet(prev => ({
@@ -317,7 +321,7 @@ export default function Dashboard() {
       type: 'PURCHASE',
       amountPaise: paise,
       timestamp: 'Just now',
-      description: `Razorpay UPI purchase (${tokens} Tokens)`,
+      description: `Razorpay UPI purchase (${tokens} SP)`,
       idempotencyKey: `idemp-buy-${Date.now()}`,
     };
     setTransactions(prev => [newTx, ...prev]);
@@ -443,7 +447,7 @@ export default function Dashboard() {
   if (!isReady || !authProfile) {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center text-zinc-400 font-mono text-sm">
-        Authenticating session & loading SkillSwap Radar...
+        Authenticating session & loading peer matches...
       </div>
     );
   }
@@ -461,7 +465,8 @@ export default function Dashboard() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenWallet={() => setIsWalletOpen(true)}
-        onOpenOnboarding={() => router.push('/onboarding')}
+        onOpenOnboarding={() => router.push('/profile')}
+        onOpenProfile={() => router.push('/profile')}
         onOpenEditSkills={() => setIsEditSkillsOpen(true)}
         onSignOut={handleSignOut}
         pendingOffersCount={offers.filter(o => o.status === 'PENDING').length}
@@ -483,20 +488,28 @@ export default function Dashboard() {
             </div>
             <span className="hidden sm:inline text-ink/20">•</span>
             <div className="flex items-center gap-1.5 text-xs">
-              <span className="text-amber-700 font-bold font-mono text-[10px] uppercase tracking-wider">You Learn</span>
+              <span className="text-amber-700 dark:text-saffron font-bold font-mono text-[10px] uppercase tracking-wider">You Learn</span>
               <span className="text-ink font-medium bg-mist px-2 py-0.5 rounded-full border border-ink/8">
                 {authProfile.learn.join(', ')}
               </span>
             </div>
           </div>
 
-          <Link
-            href="/onboarding"
-            className="text-xs font-semibold text-lagoon hover:text-lagoon-dark transition-colors flex items-center gap-1 cursor-pointer"
-          >
-            <span>Edit Skill Vectors</span>
-            <span aria-hidden="true">→</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsEditSkillsOpen(true)}
+              className="text-xs font-semibold text-ink/60 hover:text-ink transition-colors cursor-pointer"
+            >
+              Quick Skills
+            </button>
+            <Link
+              href="/profile"
+              className="text-xs font-semibold text-lagoon hover:text-lagoon-dark transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <span>Edit Profile</span>
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
         </div>
       </div>
 

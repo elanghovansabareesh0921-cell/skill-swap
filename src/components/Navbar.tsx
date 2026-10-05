@@ -15,7 +15,8 @@ import {
   ShieldCheck, 
   Lock,
   Moon,
-  Sun
+  Sun,
+  Users
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Profile, Wallet as WalletType } from '@/types';
@@ -26,7 +27,8 @@ interface NavbarProps {
   activeTab: 'radar' | 'sessions' | 'chat' | 'admin';
   setActiveTab: (tab: 'radar' | 'sessions' | 'chat' | 'admin') => void;
   onOpenWallet: () => void;
-  onOpenOnboarding: () => void;
+  onOpenOnboarding?: () => void;
+  onOpenProfile?: () => void;
   onOpenEditSkills: () => void;
   onSignOut?: () => void;
   pendingOffersCount: number;
@@ -39,6 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   setActiveTab,
   onOpenWallet,
   onOpenOnboarding,
+  onOpenProfile,
   onOpenEditSkills,
   onSignOut,
   pendingOffersCount,
@@ -52,7 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="spatial-dock rounded-2xl sm:rounded-full px-4 py-2.5 sm:px-5 sm:py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-md">
         {/* Brand & System Invariant Tag */}
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="flex items-center gap-2.5 group cursor-pointer">
+          <Link href="/" className="flex items-center gap-2.5 group cursor-pointer">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-white dark:bg-saffron dark:text-black group-hover:bg-lagoon transition-all shadow-sm">
               <ArrowRightLeft className="h-4 w-4" />
             </div>
@@ -79,13 +82,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-ink/70 hover:text-ink hover:bg-mist-pure/80'
             }`}
           >
-            <Sparkles className={`h-3.5 w-3.5 ${activeTab === 'radar' ? 'text-saffron' : 'text-ink/50'}`} />
-            <span>AI Radar</span>
-            <span className={`ml-0.5 rounded-full px-1.5 py-0.2 text-[9px] font-mono font-bold ${
-              activeTab === 'radar' ? 'bg-mist-pure/20 text-white' : 'bg-emerald-500/15 text-emerald-700'
-            }`}>
-              LIVE
-            </span>
+            <Users className={`h-3.5 w-3.5 ${activeTab === 'radar' ? 'text-saffron dark:text-black' : 'text-ink/50'}`} />
+            <span>Peer Matches</span>
           </button>
 
           <button
@@ -99,7 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Calendar className={`h-3.5 w-3.5 ${activeTab === 'sessions' ? 'text-saffron' : 'text-ink/50'}`} />
             <span>Sessions</span>
             {pendingOffersCount > 0 && (
-              <span className="rounded-full bg-saffron text-ink px-1.5 text-[9px] font-extrabold shadow-xs">
+              <span className="rounded-full bg-saffron text-black px-1.5 text-[9px] font-extrabold shadow-xs">
                 {pendingOffersCount}
               </span>
             )}
@@ -166,7 +164,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="text-left leading-tight">
               <div className="flex items-center gap-1 font-mono text-xs font-bold text-ink">
                 <span>{availableTokens}</span>
-                <span className="text-[10px] text-lagoon font-sans font-semibold">T</span>
+                <span className="text-[10px] text-lagoon font-sans font-semibold">SP</span>
               </div>
               {heldTokens > 0 && (
                 <div className="text-[9px] text-ink/50 font-mono">
@@ -174,29 +172,37 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
               )}
             </div>
-            <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold text-white group-hover:bg-lagoon transition-colors">
+            <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold text-white dark:bg-saffron dark:text-black dark:group-hover:bg-saffron-light transition-colors">
               + Top up
             </span>
           </button>
 
           {/* User Profile Pill */}
-          <div className="flex items-center gap-2 rounded-full border border-ink/10 bg-mist-pure/70 pl-1.5 pr-2 py-1 shadow-xs">
-            <img
-              src={currentUser.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'}
-              alt={currentUser.fullName}
-              className="h-6 w-6 rounded-full object-cover border border-ink/10"
-            />
-            <span className="hidden sm:inline-block max-w-[90px] truncate text-xs font-medium text-ink">
-              {currentUser.fullName.split(' ')[0]}
-            </span>
+          <div className="flex items-center gap-2 rounded-full border border-ink/10 bg-mist-pure/70 pl-1.5 pr-2 py-1 shadow-xs hover:border-ink/20 transition-all">
+            <Link
+              href="/profile"
+              onClick={onOpenProfile}
+              title="View & Edit Profile"
+              className="flex items-center gap-2 group/avatar cursor-pointer"
+            >
+              <img
+                src={currentUser.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'}
+                alt={currentUser.fullName}
+                className="h-6 w-6 rounded-full object-cover border border-ink/10 group-hover/avatar:ring-2 group-hover/avatar:ring-lagoon transition-all"
+              />
+              <span className="hidden sm:inline-block max-w-[90px] truncate text-xs font-medium text-ink group-hover/avatar:text-lagoon transition-colors">
+                {currentUser.fullName.split(' ')[0]}
+              </span>
+            </Link>
 
-            <button
-              onClick={onOpenOnboarding}
+            <Link
+              href="/profile"
+              onClick={onOpenProfile}
               title="Edit Profile"
               className="hidden sm:inline-block text-[10px] uppercase font-bold text-ink/40 hover:text-ink transition-colors ml-1 cursor-pointer"
             >
               Edit Profile
-            </button>
+            </Link>
 
             {onSignOut && (
               <button

@@ -68,7 +68,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="glass-panel rounded-3xl p-5 border border-ink/8 spatial-card">
-          <div className="text-[11px] font-mono text-ink/60 uppercase">Total Token GMV</div>
+          <div className="text-[11px] font-mono text-ink/60 uppercase">Total SP GMV</div>
           <div className="mt-1 text-2xl font-black text-ink font-mono">₹84,250</div>
           <div className="text-[10px] text-emerald-700 mt-0.5 font-medium">+14% this week</div>
         </div>
@@ -81,7 +81,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
 
         <div className="glass-panel rounded-3xl p-5 border border-ink/8 spatial-card">
           <div className="text-[11px] font-mono text-ink/60 uppercase">Escrow in Transit</div>
-          <div className="mt-1 text-2xl font-black text-amber-700 font-mono">₹3,240</div>
+          <div className="mt-1 text-2xl font-black text-amber-700 dark:text-saffron font-mono">₹3,240</div>
           <div className="text-[10px] text-ink/50 mt-0.5">Locked across active legs</div>
         </div>
 
@@ -118,7 +118,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
                     <span className="text-xs font-mono text-ink/60">ID: {session.id}</span>
                   </div>
                   <h3 className="font-display font-bold text-ink text-base mt-1">
-                    {session.skillName} ({session.chargedTokens} Tokens in Escrow)
+                    {session.skillName} ({session.chargedTokens} SP in Escrow)
                   </h3>
                   <p className="text-xs text-ink/70 mt-1">
                     Dispute reason: <em>Partner was absent for scheduled slot after 15 minutes.</em>
@@ -128,7 +128,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => onResolveDispute(session.id, 'REFUND')}
-                    className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white hover:bg-black transition-all cursor-pointer shadow-xs"
+                    className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white hover:bg-black transition-all cursor-pointer shadow-xs dark:bg-saffron dark:text-black dark:hover:bg-saffron-light"
                   >
                     Refund Learner
                   </button>
@@ -154,7 +154,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
       {/* Dual Control Maker-Checker Panel */}
       <div className="rounded-3xl glass-panel p-7 border border-ink/8 space-y-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-white dark:bg-saffron dark:text-black">
             <UserCheck className="h-4 w-4" />
           </div>
           <div>
@@ -162,19 +162,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
               Dual-Control Balance Adjustment (Maker-Checker Rule)
             </h3>
             <p className="text-xs text-ink/60">
-              No single administrator can credit or debit tokens without peer approval (PRD §8.2).
+              No single administrator can credit or debit skill points without peer approval (PRD §8.2).
             </p>
           </div>
         </div>
 
         <form onSubmit={handleProposeAdjustment} className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2">
           <div className="sm:col-span-3">
-            <label className="text-[11px] font-mono text-ink/60 uppercase block mb-1">Adjustment (Tokens)</label>
+            <label className="text-[11px] font-mono text-ink/60 uppercase block mb-1">Adjustment (SP)</label>
             <input
               type="number"
               value={makerAmount}
               onChange={e => setMakerAmount(e.target.value)}
-              className="w-full rounded-2xl border border-ink/15 bg-mist-pure px-3 py-2.5 text-xs text-ink focus:border-lagoon focus:outline-none"
+              className="w-full rounded-2xl border border-ink/15 bg-mist-pure px-3 py-2.5 text-xs text-ink focus:border-lagoon focus:outline-none dark:bg-mist-subtle dark:border-white/15 dark:text-ink"
             />
           </div>
 
@@ -185,7 +185,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
               placeholder="e.g. Compensatory credit for verified platform outage #401"
               value={makerReason}
               onChange={e => setMakerReason(e.target.value)}
-              className="w-full rounded-2xl border border-ink/15 bg-mist-pure px-3 py-2.5 text-xs text-ink focus:border-lagoon focus:outline-none"
+              className="w-full rounded-2xl border border-ink/15 bg-mist-pure px-3 py-2.5 text-xs text-ink placeholder:text-ink-muted/50 focus:border-lagoon focus:outline-none dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40 dark:text-ink"
             />
           </div>
 
@@ -203,17 +203,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
         </form>
 
         {pendingApproval && (
-          <div className="mt-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 flex items-center justify-between text-xs text-amber-900">
+          <div className="mt-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 flex items-center justify-between text-xs text-amber-900 dark:text-amber-300">
             <div>
               <strong className="block font-bold">Pending Peer Checker Approval:</strong>
               <span>
-                Proposal to adjust {makerAmount} Tokens for: &ldquo;{makerReason}&rdquo;
+                Proposal to adjust {makerAmount} SP for: &ldquo;{makerReason}&rdquo;
               </span>
             </div>
             <button
               type="button"
               onClick={handleCheckerApprove}
-              className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white hover:bg-black cursor-pointer shadow-xs"
+              className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white hover:bg-black cursor-pointer shadow-xs dark:bg-saffron dark:text-black dark:hover:bg-saffron-light"
             >
               2. Approve as Checker
             </button>

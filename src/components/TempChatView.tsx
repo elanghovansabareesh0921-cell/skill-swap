@@ -82,9 +82,9 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
   };
 
   return (
-    <div className="flex h-[740px] flex-col rounded-3xl glass-panel border border-ink/10 overflow-hidden shadow-2xl relative">
+    <div className="flex h-185 flex-col rounded-3xl glass-panel border border-ink/10 overflow-hidden shadow-2xl relative">
       {/* Specular Edge */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/80 to-transparent pointer-events-none" />
 
       {/* Chat Top Header */}
       <div className="flex items-center justify-between border-b border-ink/8 bg-mist-pure/80 backdrop-blur-md px-6 py-4">
@@ -100,7 +100,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-display font-bold text-ink text-sm">Ravi Kumar</h3>
-              <span className="rounded-full bg-saffron/20 px-2 py-0.2 text-[10px] font-mono font-bold text-amber-900 border border-saffron/30">
+              <span className="rounded-full bg-saffron/20 px-2 py-0.2 text-[10px] font-mono font-bold text-amber-900 dark:text-saffron dark:bg-saffron/15 dark:border-saffron/30 border border-saffron/30">
                 SWAP PARTNER
               </span>
             </div>
@@ -114,7 +114,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowProposeModal(true)}
-            className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white hover:bg-lagoon transition-all shadow-xs cursor-pointer"
+            className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white hover:bg-lagoon transition-all shadow-xs cursor-pointer dark:bg-saffron dark:text-black dark:hover:bg-saffron-light"
           >
             <Calendar className="h-3.5 w-3.5 text-saffron" />
             <span>Propose Meeting Time</span>
@@ -166,7 +166,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
                             href={msg.metadata.meetLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-1.5 text-xs font-semibold text-white hover:bg-lagoon transition-all shadow-xs"
+                            className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-1.5 text-xs font-semibold text-white hover:bg-lagoon transition-all shadow-xs dark:bg-saffron dark:text-black dark:hover:bg-saffron-light"
                           >
                             <Video className="h-3 w-3 text-emerald-400" />
                             <span>Join Meet</span>
@@ -206,7 +206,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
               <div
                 className={`max-w-md rounded-2xl px-4 py-3 text-xs leading-relaxed shadow-xs ${
                   isMe
-                    ? 'bg-ink text-white rounded-br-none'
+                    ? 'bg-ink text-white dark:bg-saffron dark:text-black rounded-br-none'
                     : 'glass-panel text-ink border border-ink/8 rounded-bl-none'
                 }`}
               >
@@ -222,14 +222,14 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
 
       {/* Safety Warning Pill */}
       {offPlatformWarning && (
-        <div className="bg-amber-500/10 border-t border-amber-500/20 px-6 py-2 flex items-center justify-between text-xs text-amber-900">
+        <div className="bg-amber-500/10 border-t border-amber-500/20 px-6 py-2 flex items-center justify-between text-xs text-amber-900 dark:text-amber-300">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-700 shrink-0" />
+            <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0" />
             <span>{offPlatformWarning}</span>
           </div>
           <button
             onClick={() => setOffPlatformWarning(null)}
-            className="text-amber-800 hover:text-black cursor-pointer font-bold"
+            className="text-amber-800 dark:text-amber-300 hover:text-black dark:hover:text-white cursor-pointer font-bold"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -244,7 +244,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
             value={inputText}
             onChange={handleInputChange}
             placeholder="Type your message to coordinate swap goals or availability..."
-            className="flex-1 rounded-full border border-ink/15 bg-mist-pure px-5 py-3 text-xs text-ink placeholder:text-ink/35 focus:border-lagoon focus:outline-none shadow-xs transition-all"
+            className="flex-1 rounded-full border border-ink/15 bg-mist-pure px-5 py-3 text-xs text-ink placeholder:text-ink-muted/50 focus:border-lagoon focus:outline-none shadow-xs transition-all dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40"
           />
 
           <button
@@ -284,7 +284,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
                 <select
                   value={proposedLegIndex}
                   onChange={e => setProposedLegIndex(parseInt(e.target.value, 10))}
-                  className="w-full rounded-xl border border-ink/15 bg-mist-pure p-2.5 text-xs text-ink focus:border-lagoon focus:outline-none"
+                  className="w-full rounded-xl border border-ink/15 bg-mist-pure p-2.5 text-xs text-ink focus:border-lagoon focus:outline-none dark:bg-mist-subtle dark:border-white/15 dark:text-ink"
                 >
                   <option value={1}>Leg 1: Python Async (You Learn)</option>
                   <option value={2}>Leg 2: Figma UI (You Teach)</option>
@@ -298,7 +298,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
                   value={proposedDate}
                   onChange={e => setProposedDate(e.target.value)}
                   placeholder="e.g. Tomorrow (Wed, 30 Sep)"
-                  className="w-full rounded-xl border border-ink/15 bg-mist-pure p-2.5 text-xs text-ink focus:border-lagoon focus:outline-none"
+                  className="w-full rounded-xl border border-ink/15 bg-mist-pure p-2.5 text-xs text-ink placeholder:text-ink-muted/50 focus:border-lagoon focus:outline-none dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40 dark:text-ink"
                 />
               </div>
 
@@ -309,7 +309,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
                   value={proposedTime}
                   onChange={e => setProposedTime(e.target.value)}
                   placeholder="e.g. 18:00 - 19:00 IST"
-                  className="w-full rounded-xl border border-ink/15 bg-mist-pure p-2.5 text-xs text-ink focus:border-lagoon focus:outline-none"
+                  className="w-full rounded-xl border border-ink/15 bg-mist-pure p-2.5 text-xs text-ink placeholder:text-ink-muted/50 focus:border-lagoon focus:outline-none dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40 dark:text-ink"
                 />
               </div>
             </div>

@@ -112,7 +112,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-xl p-4 overflow-y-auto">
       <div className="relative w-full max-w-2xl glass-panel-elevated rounded-3xl p-7 sm:p-9 shadow-2xl border border-white/40 overflow-hidden">
         {/* Specular Top Hairline */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/80 to-transparent" />
 
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-ink/8 pb-4">
@@ -124,7 +124,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
               <h2 className="text-lg font-bold font-display text-ink flex items-center gap-2">
                 {offerType === 'SWAP' ? 'Configure Mutual Skill Swap' : 'Direct Learning Request'}
                 {match.isSwapMatch && offerType === 'SWAP' && (
-                  <span className="rounded-full bg-saffron/20 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-900 border border-saffron/30">
+                  <span className="rounded-full bg-saffron/20 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-900 dark:text-saffron dark:bg-saffron/15 dark:border-saffron/30 border border-saffron/30">
                     70% IN-KIND DISCOUNT
                   </span>
                 )}
@@ -149,7 +149,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
             onClick={() => setOfferType('SWAP')}
             className={`flex flex-col items-start rounded-2xl p-4 border transition-all text-left cursor-pointer ${
               offerType === 'SWAP'
-                ? 'border-lagoon bg-lagoon/[0.06] shadow-xs'
+                ? 'border-lagoon bg-lagoon/6 shadow-xs'
                 : 'border-ink/10 bg-mist-pure/60 text-ink/60 hover:border-ink/20'
             }`}
           >
@@ -163,7 +163,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
               </span>
             </div>
             <div className="text-xl font-bold font-mono text-ink mt-0.5">
-              {match.swapPriceTokens ?? quote.proposerLeg.chargedTokens} Tokens
+              {match.swapPriceTokens ?? quote.proposerLeg.chargedTokens} SP
             </div>
             <p className="text-[11px] text-ink/65 mt-1 leading-snug">
               You teach {selectedTeachSkill?.skillName || 'a skill'}, they teach you {match.teacherOfferingSkill.skillName}. Up to 70% in-kind savings.
@@ -175,7 +175,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
             onClick={() => setOfferType('DIRECT')}
             className={`flex flex-col items-start rounded-2xl p-4 border transition-all text-left cursor-pointer ${
               offerType === 'DIRECT'
-                ? 'border-lagoon bg-lagoon/[0.06] shadow-xs'
+                ? 'border-lagoon bg-lagoon/6 shadow-xs'
                 : 'border-ink/10 bg-mist-pure/60 text-ink/60 hover:border-ink/20'
             }`}
           >
@@ -186,10 +186,10 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
               </span>
             </div>
             <div className="text-xl font-bold font-mono text-ink mt-0.5">
-              {quote.proposerLeg.listPriceTokens} Tokens
+              {quote.proposerLeg.listPriceTokens} SP
             </div>
             <p className="text-[11px] text-ink/65 mt-1 leading-snug">
-              Standard 1:1 session. Pay the teacher's listed rate of {match.teacherOfferingSkill.hourlyRate} T/hr.
+              Standard 1:1 session. Pay the teacher's listed rate of {match.teacherOfferingSkill.hourlyRate} SP/hr.
             </p>
           </button>
         </div>
@@ -212,31 +212,31 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
                 <div className="font-semibold text-ink mt-1 text-sm">{match.teacherOfferingSkill.skillName}</div>
                 <div className="text-ink/60 text-[11px] mt-0.5">Taught by {match.teacher.fullName}</div>
                 <div className="mt-2 text-ink/60 flex items-center justify-between font-mono">
-                  <span>List: {quote.proposerLeg.listPriceTokens}T</span>
-                  <span className="text-emerald-700 font-bold">Swap: {quote.proposerLeg.chargedTokens}T</span>
+                  <span>List: {quote.proposerLeg.listPriceTokens} SP</span>
+                  <span className="text-emerald-700 font-bold">Swap: {quote.proposerLeg.chargedTokens} SP</span>
                 </div>
               </div>
 
               <div className="p-3.5 rounded-xl border border-ink/8 bg-mist-pure/95 shadow-xs">
-                <span className="text-[10px] font-mono uppercase text-amber-700 font-bold">Leg 2: You Teach</span>
+                <span className="text-[10px] font-mono uppercase text-amber-700 dark:text-saffron font-bold">Leg 2: You Teach</span>
                 <select
                   value={selectedTeachSkill?.skillId}
                   onChange={e => {
                     const found = currentUser.teachSkills.find(s => s.skillId === e.target.value);
                     if (found) setSelectedTeachSkill(found);
                   }}
-                  className="mt-1 w-full rounded-lg bg-mist border border-ink/15 px-2 py-1 text-xs text-ink focus:outline-none focus:border-lagoon"
+                  className="mt-1 w-full rounded-lg bg-mist border border-ink/15 px-2 py-1 text-xs text-ink focus:outline-none focus:border-lagoon dark:bg-mist-subtle dark:border-white/15 dark:text-ink"
                 >
                   {currentUser.teachSkills.map(skill => (
                     <option key={skill.skillId} value={skill.skillId}>
-                      {skill.skillName} ({skill.hourlyRate} T/hr)
+                      {skill.skillName} ({skill.hourlyRate} SP/hr)
                     </option>
                   ))}
                 </select>
                 <div className="text-ink/60 text-[11px] mt-1">Taught to {match.teacher.fullName}</div>
                 <div className="mt-2 text-ink/60 flex items-center justify-between font-mono">
-                  <span>List: {quote.recipientLeg?.listPriceTokens}T</span>
-                  <span className="text-emerald-700 font-bold">Swap: {quote.recipientLeg?.chargedTokens}T</span>
+                  <span>List: {quote.recipientLeg?.listPriceTokens} SP</span>
+                  <span className="text-emerald-700 font-bold">Swap: {quote.recipientLeg?.chargedTokens} SP</span>
                 </div>
               </div>
             </div>
@@ -254,7 +254,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
                 onClick={() => setDuration(dur)}
                 className={`flex-1 rounded-xl py-2 text-xs font-mono font-bold transition-all border cursor-pointer ${
                   duration === dur
-                    ? 'border-ink bg-ink text-white shadow-xs'
+                    ? 'border-ink bg-ink text-white shadow-xs dark:border-saffron dark:bg-saffron dark:text-black'
                     : 'border-ink/10 bg-mist-pure text-ink/70 hover:border-ink/20'
                 }`}
               >
@@ -274,7 +274,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
             onChange={e => setMessage(e.target.value)}
             placeholder="Introduce your goals, what you are hoping to practice, and your general availability..."
             rows={2}
-            className="w-full rounded-2xl border border-ink/15 bg-mist-pure/90 p-3 text-xs text-ink focus:border-lagoon focus:bg-mist-pure focus:outline-none shadow-xs transition-all placeholder:text-ink/35 resize-none"
+            className="w-full rounded-2xl border border-ink/15 bg-mist-pure p-3 text-xs text-ink focus:border-lagoon focus:outline-none shadow-xs transition-all placeholder:text-ink-muted/60 resize-none dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40"
           />
         </div>
 
@@ -284,12 +284,12 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
             <div className="space-y-0.5">
               <div className="text-ink/60 flex items-center gap-1.5 font-medium">
                 <Lock className="h-3.5 w-3.5 text-lagoon" />
-                <span>Tokens Held in Escrow:</span>
-                <strong className="text-ink font-mono font-bold text-sm">{tokensNeeded} Tokens</strong>
+                <span>Skill Points Held in Escrow:</span>
+                <strong className="text-ink font-mono font-bold text-sm">{tokensNeeded} SP</strong>
                 <span className="text-[10px] text-ink/50 font-mono">(₹{tokensNeeded}.00)</span>
               </div>
               <div className="text-[11px] text-ink/55">
-                Wallet Balance: <strong className="text-ink font-mono">{availableTokens} Tokens</strong>
+                Wallet Balance: <strong className="text-ink font-mono">{availableTokens} SP</strong>
               </div>
             </div>
 
@@ -300,15 +300,15 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
           </div>
 
           {!isSufficientFunds && (
-            <div className="mt-3 flex items-center justify-between rounded-xl bg-amber-500/10 border border-amber-500/20 p-2.5 text-xs text-amber-900">
+            <div className="mt-3 flex items-center justify-between rounded-xl bg-amber-500/10 border border-amber-500/20 p-2.5 text-xs text-amber-900 dark:text-amber-300">
               <div className="flex items-center gap-1.5">
-                <AlertCircle className="h-4 w-4 text-amber-700 shrink-0" />
-                <span>Insufficient tokens. You need {tokensNeeded - availableTokens} more tokens.</span>
+                <AlertCircle className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0" />
+                <span>Insufficient skill points. You need {tokensNeeded - availableTokens} more skill points.</span>
               </div>
               <button
                 type="button"
                 onClick={onOpenWallet}
-                className="font-bold underline text-amber-900 hover:text-black cursor-pointer ml-2 text-xs"
+                className="font-bold underline text-amber-900 hover:text-black cursor-pointer ml-2 text-xs dark:text-amber-300 dark:hover:text-white"
               >
                 Top up now
               </button>
