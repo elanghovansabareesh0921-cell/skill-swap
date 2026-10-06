@@ -5,16 +5,22 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SkillPicker from '@/components/SkillPicker';
 import { getSession, saveProfile, type Profile } from '@/lib/auth';
-import { ArrowLeft, ArrowRight, ArrowRightLeft, Sparkles, Upload, User, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowRightLeft, Sparkles, Upload, User } from 'lucide-react';
 
 const fieldClass =
   'mt-1.5 w-full rounded-2xl border border-ink/15 bg-mist-pure px-4 py-3 text-sm text-ink outline-none transition-all placeholder:text-ink-muted/50 focus:border-lagoon focus:ring-4 focus:ring-lagoon/10 shadow-sm dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40';
 
-const titles = ['Tell us about you', 'What can you teach?', 'What do you want to learn?'];
+const titles = [
+  'Tell us about you',
+  'What can you teach?',
+  'What do you want to learn?',
+  'Connect your profiles',
+];
 const subtitles = [
   'Basic profile details to verify your account identity on the escrow network.',
   'Members who offer a skill pay up to 70% fewer skill points on reciprocal swaps.',
   'Your learning goals connect you with compatible peer teachers across the network.',
+  'Build trust in the community by adding your professional credentials.',
 ];
 
 const calculateAge = (dob: string) => {
@@ -30,14 +36,27 @@ export default function Onboarding() {
   const [ready, setReady] = useState(false);
   const [step, setStep] = useState(1);
   const [err, setErr] = useState('');
+  const [langStr, setLangStr] = useState('');
+  
   const [f, setF] = useState<Profile>({
     name: '',
     avatar: '',
     sex: '',
     dob: '',
+    city: '',
+    country: '',
+    languages: [],
     teach: [],
     noTeach: false,
+    experienceYears: undefined,
+    hourlyRate: 10,
     learn: [],
+    headline: '',
+    bio: '',
+    githubUrl: '',
+    linkedinUrl: '',
+    twitterUrl: '',
+    websiteUrl: '',
   });
 
   useEffect(() => {
@@ -65,9 +84,17 @@ export default function Onboarding() {
       if (!f.sex) return 'Please select your sex.';
       if (!f.dob || !(calculateAge(f.dob) >= 18))
         return 'You must be 18 or older to trade on SkillSwap.';
+      if (!f.city?.trim() || !f.country?.trim())
+        return 'Please enter your city and country.';
+      if (!langStr.trim())
+        return 'Please enter at least one language you speak.';
     }
-    if (step === 2 && !f.noTeach && f.teach.length === 0)
-      return 'Pick at least one skill you can teach, or select "I don\'t have any skills to teach right now".';
+    if (step === 2) {
+      if (!f.noTeach && f.teach.length === 0)
+        return 'Pick at least one skill you can teach, or select "I don\'t have any skills to teach right now".';
+      if (!f.noTeach && (f.experienceYears === undefined || f.experienceYears < 0))
+        return 'Please enter your years of experience for the skills you teach.';
+    }
     if (step === 3 && f.learn.length === 0)
       return 'Pick at least one skill you want to learn.';
     return '';
@@ -77,7 +104,19 @@ export default function Onboarding() {
     const e = validate();
     setErr(e);
     if (e) return;
-    if (step < 3) return setStep(step + 1);
+
+    if (step === 1) {
+      // Parse languages from string
+      const langs = langStr.split(',').map(s => s.trim()).filter(Boolean);
+      set('languages', langs);
+    }
+
+    if (step < 4) {
+      setStep(step + 1);
+      return;
+    }
+    
+    // Final save
     saveProfile({ ...f, name: f.name.trim() });
     router.push('/dashboard');
   }
@@ -90,7 +129,7 @@ export default function Onboarding() {
       <div className="pointer-events-none absolute top-10 left-1/3 h-96 w-96 ambient-glow-lagoon opacity-50 blur-3xl" />
       <div className="pointer-events-none absolute bottom-10 right-1/3 h-96 w-96 ambient-glow-saffron opacity-40 blur-3xl" />
 
-      <main className="relative z-10 w-full max-w-2xl glass-panel rounded-3xl p-8 sm:p-12 shadow-2xl border border-ink/8">
+      <main className="relative z-10 w-full max-w-2xl glass-panel rounded-3xl p-6 sm:p-12 shadow-2xl border border-ink/8">
         {/* Step Indicator Header with SkillSwap Logo Link */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/8 pb-5">
           <Link href="/" className="inline-flex items-center gap-2 group cursor-pointer" title="Back to Home">
@@ -104,10 +143,10 @@ export default function Onboarding() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-lagoon uppercase tracking-wider">
               <Sparkles className="h-3.5 w-3.5 text-saffron" />
-              <span>Step {step} of 3</span>
+              <span>Step {step} of 4</span>
             </div>
-            <div className="text-xs text-ink/40 font-mono">
-              {step === 1 ? '33%' : step === 2 ? '66%' : '100%'} Completed
+            <div className="text-xs text-ink/40 font-mono hidden sm:block">
+              {Math.round((step / 4) * 100)}% Completed
             </div>
           </div>
         </div>
@@ -116,7 +155,7 @@ export default function Onboarding() {
         <div className="mt-3 h-1.5 w-full bg-ink/5 rounded-full overflow-hidden">
           <div
             className="h-full bg-lagoon transition-all duration-300 ease-out rounded-full"
-            style={{ width: `${(step / 3) * 100}%` }}
+            style={{ width: `${(step / 4) * 100}%` }}
           />
         </div>
 
@@ -129,7 +168,7 @@ export default function Onboarding() {
           </p>
         </div>
 
-        <div className="mt-8 space-y-6">
+        <div className="mt-8 space-y-5">
           {step === 1 && (
             <>
               {/* Avatar Uploader */}
@@ -189,7 +228,6 @@ export default function Onboarding() {
                     </select>
                   </label>
                 </div>
-
                 <div>
                   <label className="text-xs font-semibold text-ink block">
                     Date of birth (18+ only)
@@ -204,11 +242,48 @@ export default function Onboarding() {
                   </label>
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-ink block">
+                    City
+                    <input
+                      value={f.city}
+                      onChange={e => set('city', e.target.value)}
+                      placeholder="e.g. Bangalore"
+                      className={fieldClass}
+                    />
+                  </label>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-ink block">
+                    Country
+                    <input
+                      value={f.country}
+                      onChange={e => set('country', e.target.value)}
+                      placeholder="e.g. India"
+                      className={fieldClass}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-ink block">
+                  Languages you speak
+                  <input
+                    value={langStr}
+                    onChange={e => setLangStr(e.target.value)}
+                    placeholder="e.g. English, Hindi, Tamil"
+                    className={fieldClass}
+                  />
+                </label>
+              </div>
             </>
           )}
 
           {step === 2 && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <SkillPicker
                 value={f.teach}
                 onChange={v => set('teach', v)}
@@ -226,11 +301,45 @@ export default function Onboarding() {
                       ...p,
                       noTeach: e.target.checked,
                       teach: e.target.checked ? [] : p.teach,
+                      experienceYears: e.target.checked ? undefined : p.experienceYears,
                     }))
                   }
                 />
                 <span>I don't have any skills to teach right now (Learn-only mode)</span>
               </label>
+
+              {!f.noTeach && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-mist-pure/60 border border-ink/8">
+                  <div>
+                    <label className="text-xs font-semibold text-ink block">
+                      Years of Experience
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={f.experienceYears === undefined ? '' : f.experienceYears}
+                        onChange={e => set('experienceYears', e.target.value ? Number(e.target.value) : undefined)}
+                        placeholder="e.g. 3"
+                        className={fieldClass}
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-ink block">
+                      Hourly Rate (Skill Points)
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={f.hourlyRate === undefined ? '' : f.hourlyRate}
+                        onChange={e => set('hourlyRate', e.target.value ? Number(e.target.value) : undefined)}
+                        placeholder="e.g. 15"
+                        className={fieldClass}
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
 
               {f.noTeach && (
                 <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 text-xs text-amber-900 dark:text-amber-300 leading-relaxed">
@@ -246,6 +355,88 @@ export default function Onboarding() {
             </div>
           )}
 
+          {step === 4 && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-ink block">
+                  Professional Headline
+                  <input
+                    value={f.headline}
+                    onChange={e => set('headline', e.target.value)}
+                    placeholder="e.g. Senior Frontend Developer at TechCorp"
+                    className={fieldClass}
+                  />
+                </label>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-ink block">
+                  Short Bio
+                  <textarea
+                    value={f.bio}
+                    onChange={e => set('bio', e.target.value)}
+                    placeholder="Tell the community a bit about yourself..."
+                    className={`${fieldClass} resize-none h-24`}
+                  />
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-ink block">
+                    LinkedIn Profile URL
+                    <input
+                      type="url"
+                      value={f.linkedinUrl}
+                      onChange={e => set('linkedinUrl', e.target.value)}
+                      placeholder="https://linkedin.com/in/..."
+                      className={fieldClass}
+                    />
+                  </label>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-ink block">
+                    GitHub Profile URL
+                    <input
+                      type="url"
+                      value={f.githubUrl}
+                      onChange={e => set('githubUrl', e.target.value)}
+                      placeholder="https://github.com/..."
+                      className={fieldClass}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-ink block">
+                    Twitter Profile URL
+                    <input
+                      type="url"
+                      value={f.twitterUrl}
+                      onChange={e => set('twitterUrl', e.target.value)}
+                      placeholder="https://twitter.com/..."
+                      className={fieldClass}
+                    />
+                  </label>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-ink block">
+                    Personal Website
+                    <input
+                      type="url"
+                      value={f.websiteUrl}
+                      onChange={e => set('websiteUrl', e.target.value)}
+                      placeholder="https://yourdomain.com"
+                      className={fieldClass}
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
           {err && (
             <div
               role="alert"
@@ -256,7 +447,7 @@ export default function Onboarding() {
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex items-center justify-between pt-6 border-t border-ink/8">
+          <div className="flex items-center justify-between pt-6 border-t border-ink/8 mt-4">
             <button
               type="button"
               onClick={() => {
@@ -275,7 +466,7 @@ export default function Onboarding() {
               onClick={next}
               className="inline-flex items-center gap-2 rounded-full bg-lagoon px-8 py-3 text-xs font-semibold text-white hover:bg-lagoon-dark transition-all shadow-lg shadow-lagoon/20 hover:shadow-xl cursor-pointer"
             >
-              <span>{step === 3 ? 'Complete & Enter Radar' : 'Next Step'}</span>
+              <span>{step === 4 ? 'Complete & Enter Radar' : 'Next Step'}</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
