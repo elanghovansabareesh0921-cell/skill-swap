@@ -22,7 +22,10 @@ export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerM
     let matchedLearnSkill: UserLearnSkill | null = null;
 
     for (const wantToLearn of learner.learnSkills) {
-      const offered = teacher.teachSkills.find(t => t.skillId === wantToLearn.skillId);
+      const offered = teacher.teachSkills.find(t => 
+        t.skillId === wantToLearn.skillId || 
+        t.skillName.toLowerCase().trim() === wantToLearn.skillName.toLowerCase().trim()
+      );
       if (offered) {
         matchedTeachSkill = offered;
         matchedLearnSkill = wantToLearn;
@@ -41,7 +44,10 @@ export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerM
     let reverseLearnerCanTeach: UserTeachSkill | null = null;
 
     for (const teacherWants of teacher.learnSkills) {
-      const learnerCan = learner.teachSkills.find(l => l.skillId === teacherWants.skillId);
+      const learnerCan = learner.teachSkills.find(l => 
+        l.skillId === teacherWants.skillId || 
+        l.skillName.toLowerCase().trim() === teacherWants.skillName.toLowerCase().trim()
+      );
       if (learnerCan) {
         isSwapMatch = true;
         reverseTeacherWant = teacherWants;

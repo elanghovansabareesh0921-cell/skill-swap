@@ -48,35 +48,35 @@ export async function POST(req: NextRequest) {
     }, { onConflict: 'user_id' }).select();
 
     // 2. Fetch all skills from taxonomy to map names to IDs
-    const { data: taxonomy, error: taxonomyError } = await supabaseAdmin.from('skill_taxonomy').select('*');
+    const { data: taxonomy, error: taxonomyError } = await supabaseAdmin.from('skills').select('*');
     if (taxonomyError || !taxonomy) {
       console.error('Taxonomy fetch error:', taxonomyError);
-      return NextResponse.json({ error: 'Failed to fetch skill taxonomy' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to fetch skills' }, { status: 500 });
     }
 
-    const nameToSkillMap = new Map(taxonomy.map(t => [t.name.toLowerCase(), t]));
+    const nameToSkillMap = new Map(taxonomy.map(t => [t.name.toLowerCase().trim(), t]));
 
     // 3. Clear existing skills
-    await supabaseAdmin.from('user_skills_teach').delete().eq('user_id', userId);
-    await supabaseAdmin.from('user_skills_learn').delete().eq('user_id', userId);
+    await supabaseAdmin.from('user_skills').delete().eq('user_id', userId);
 
     // 4. Insert Teach Skills
     if (profile.teach && profile.teach.length > 0 && !profile.noTeach) {
       const teachInserts = [];
       for (const skillName of profile.teach) {
-        let skill = nameToSkillMap.get(skillName.toLowerCase());
+        const cleanName = skillName.trim();
+        let skill = nameToSkillMap.get(cleanName.toLowerCase());
         
         // If skill doesn't exist, create it dynamically
         if (!skill) {
           const { data: newSkill, error: insertError } = await supabaseAdmin
-            .from('skill_taxonomy')
-            .insert({ name: skillName, category: 'Other', min_hourly_rate: 20, max_hourly_rate: 1000 })
+            .from('skills')
+            .insert({ name: cleanName, category: 'Other' })
             .select()
             .single();
             
           if (newSkill) {
             skill = newSkill;
-            nameToSkillMap.set(skillName.toLowerCase(), skill);
+            nameToSkillMap.set(cleanName.toLowerCase(), skill);
           }
         }
 
@@ -84,16 +84,15 @@ export async function POST(req: NextRequest) {
           teachInserts.push({
             user_id: userId,
             skill_id: skill.id,
-            level: 'expert',
-            years_experience: profile.experienceYears || 2,
-            hourly_rate: profile.hourlyRate || 50,
-            allowed_durations: profile.allowedDurations || [30, 45, 60]
+            skill_type: 'TEACH',
+            level: 'Advanced',
+            goal: ''
           });
         }
       }
       
       if (teachInserts.length > 0) {
-        await supabaseAdmin.from('user_skills_teach').insert(teachInserts);
+        await supabaseAdmin.from('user_skills').insert(teachInserts);
       }
     }
 
@@ -101,18 +100,19 @@ export async function POST(req: NextRequest) {
     if (profile.learn && profile.learn.length > 0) {
       const learnInserts = [];
       for (const skillName of profile.learn) {
-        let skill = nameToSkillMap.get(skillName.toLowerCase());
+        const cleanName = skillName.trim();
+        let skill = nameToSkillMap.get(cleanName.toLowerCase());
         
         if (!skill) {
           const { data: newSkill } = await supabaseAdmin
-            .from('skill_taxonomy')
-            .insert({ name: skillName, category: 'Other', min_hourly_rate: 20, max_hourly_rate: 1000 })
+            .from('skills')
+            .insert({ name: cleanName, category: 'Other' })
             .select()
             .single();
             
           if (newSkill) {
             skill = newSkill;
-            nameToSkillMap.set(skillName.toLowerCase(), skill);
+            nameToSkillMap.set(cleanName.toLowerCase(), skill);
           }
         }
 
@@ -120,14 +120,15 @@ export async function POST(req: NextRequest) {
           learnInserts.push({
             user_id: userId,
             skill_id: skill.id,
-            target_level: 'intermediate',
+            skill_type: 'LEARN',
+            level: 'Beginner',
             goal: 'Looking to learn ' + skill.name
           });
         }
       }
       
       if (learnInserts.length > 0) {
-        await supabaseAdmin.from('user_skills_learn').insert(learnInserts);
+        await supabaseAdmin.from('user_skills').insert(learnInserts);
       }
     }
 

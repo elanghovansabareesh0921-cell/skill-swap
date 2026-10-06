@@ -54,8 +54,7 @@ export default function Dashboard() {
         .from('profiles')
         .select(`
           *,
-          user_skills_teach (*),
-          user_skills_learn (*)
+          user_skills (*, skills (*))
         `);
 
       if (error || !data) {
@@ -64,43 +63,48 @@ export default function Dashboard() {
         return;
       }
 
-      const realTeachers: Profile[] = data.map((p: any) => ({
-        id: p.id,
-        email: p.email,
-        fullName: p.full_name,
-        avatarUrl: p.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-        bio: p.bio || 'SkillSwap member',
-        city: p.city || '',
-        country: p.country || 'IN',
-        timezone: p.timezone || 'Asia/Kolkata',
-        languages: p.languages || ['English'],
-        phoneVerified: p.phone_verified || false,
-        isOnboarded: p.is_onboarded || false,
-        isAcceptingRequests: p.is_accepting_requests !== false,
-        strikesCount: p.strikes_count || 0,
-        reputationScore: Number(p.reputation_score) || 5.0,
-        completedSessionsCount: 0,
-        availability: {
-          Mon: ['18:00-21:00'], Tue: ['19:00-21:00'], Thu: ['18:00-21:00'], Sat: ['10:00-14:00']
-        },
-        teachSkills: (p.user_skills_teach || []).map((t: any) => ({
-          skillId: t.skill_id,
-          skillName: 'Skill (ID: ' + t.skill_id.substring(0,4) + ')', // To be joined with taxonomy
-          category: 'Software & Tech',
-          level: t.level,
-          yearsExperience: Number(t.years_experience),
-          hourlyRate: t.hourly_rate,
-          allowedDurations: t.allowed_durations || [30, 60],
-          isVerified: t.is_verified || false
-        })),
-        learnSkills: (p.user_skills_learn || []).map((l: any) => ({
-          skillId: l.skill_id,
-          skillName: 'Skill (ID: ' + l.skill_id.substring(0,4) + ')',
-          category: 'Software & Tech',
-          targetLevel: l.target_level,
-          goal: l.goal
-        }))
-      }));
+      const realTeachers: Profile[] = data.map((p: any) => {
+        const teachSkills = (p.user_skills || []).filter((s: any) => s.skill_type === 'TEACH');
+        const learnSkills = (p.user_skills || []).filter((s: any) => s.skill_type === 'LEARN');
+
+        return {
+          id: p.id,
+          email: p.email,
+          fullName: p.full_name || 'Anonymous User',
+          avatarUrl: p.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+          bio: p.bio || 'SkillSwap member',
+          city: p.city || '',
+          country: p.country || 'IN',
+          timezone: p.timezone || 'Asia/Kolkata',
+          languages: p.languages || ['English'],
+          phoneVerified: p.phone_verified || false,
+          isOnboarded: p.is_onboarded || false,
+          isAcceptingRequests: p.is_accepting_requests !== false,
+          strikesCount: p.strikes_count || 0,
+          reputationScore: Number(p.reputation_score) || 5.0,
+          completedSessionsCount: 0,
+          availability: {
+            Mon: ['18:00-21:00'], Tue: ['19:00-21:00'], Thu: ['18:00-21:00'], Sat: ['10:00-14:00']
+          },
+          teachSkills: teachSkills.map((t: any) => ({
+            skillId: t.skill_id,
+            skillName: t.skills?.name || 'Unknown Skill',
+            category: t.skills?.category || 'Software & Tech',
+            level: t.level || 'expert',
+            yearsExperience: 2,
+            hourlyRate: 50,
+            allowedDurations: [30, 60],
+            isVerified: true
+          })),
+          learnSkills: learnSkills.map((l: any) => ({
+            skillId: l.skill_id,
+            skillName: l.skills?.name || 'Unknown Skill',
+            category: l.skills?.category || 'Software & Tech',
+            targetLevel: l.level || 'intermediate',
+            goal: l.goal || ''
+          }))
+        };
+      });
 
       // Merge with INITIAL_TEACHERS (which is now empty) just in case
       setTeachers([...INITIAL_TEACHERS, ...realTeachers]);
