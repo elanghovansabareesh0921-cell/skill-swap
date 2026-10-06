@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FcGoogle } from 'react-icons/fc';
-import { FaGithub } from 'react-icons/fa';
 import { ArrowRightLeft, ShieldCheck, Lock, Sparkles, CheckCircle } from 'lucide-react';
 import { getProfile, saveProfile, signInWithEmail, signInWithProvider, DEFAULT_DEMO_PROFILE } from '@/lib/auth';
 
@@ -140,14 +139,6 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
               className="flex items-center justify-center gap-3 rounded-2xl border border-ink/12 bg-mist-pure py-3 text-xs font-semibold text-ink hover:border-ink/30 hover:bg-mist transition-all shadow-sm disabled:opacity-50 cursor-pointer"
             >
               <FcGoogle size={20} /> Continue with Google
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => run(() => signInWithProvider('github', signup ? '/onboarding' : '/dashboard'))}
-              className="flex items-center justify-center gap-3 rounded-2xl border border-ink/12 bg-mist-pure py-3 text-xs font-semibold text-ink hover:border-ink/30 hover:bg-mist transition-all shadow-sm disabled:opacity-50 cursor-pointer"
-            >
-              <FaGithub size={18} /> Continue with GitHub
             </button>
           </div>
 
