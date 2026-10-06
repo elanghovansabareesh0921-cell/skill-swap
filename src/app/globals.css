@@ -37,8 +37,8 @@
   --border: #e3dccb;
   --text: #2a2623;
   --text-muted: #6f675d;
-  --accent: #b5386f;
-  --accent-soft: #f9d5e3;
+  --accent: #e63946;
+  --accent-soft: rgba(230, 57, 70, 0.15);
   --chip-active-bg: #2a2623;
   --chip-active-text: #f5f0e3;
 }
