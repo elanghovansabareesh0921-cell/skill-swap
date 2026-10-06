@@ -463,18 +463,18 @@ export default function ProfilePage() {
             </div>
 
             {/* Quick Stats Block */}
-            <div className="hidden lg:flex flex-col gap-2.5 min-w-[200px] rounded-2xl bg-mist-pure/60 p-4 border border-ink/8 text-xs">
-              <div className="flex items-center justify-between">
+            <div className="hidden lg:flex flex-col gap-2.5 min-w-[260px] rounded-2xl bg-mist-pure/60 p-5 border border-ink/8 text-xs">
+              <div className="flex items-center justify-between gap-4">
                 <span className="text-ink/60">Swaps Completed</span>
-                <span className="font-mono font-bold text-ink">14 Sessions</span>
+                <span className="font-mono font-bold text-ink whitespace-nowrap">14 Sessions</span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <span className="text-ink/60">Escrow Security</span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">100% Guaranteed</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">100% Guaranteed</span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <span className="text-ink/60">Account Standing</span>
-                <span className="font-semibold text-lagoon">0 Strikes</span>
+                <span className="font-semibold text-lagoon whitespace-nowrap">0 Strikes</span>
               </div>
             </div>
           </div>
