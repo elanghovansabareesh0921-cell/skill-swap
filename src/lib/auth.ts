@@ -38,8 +38,28 @@ const read = <T>(k: string): T | null => {
 
 export const getSession = () => read<Session>("ss_session");
 export const getProfile = () => read<Profile>("ss_profile");
-export const saveProfile = (p: Profile) => {
+export const saveProfile = async (p: Profile) => {
   if (typeof window !== "undefined") localStorage.setItem("ss_profile", JSON.stringify(p));
+
+  // Sync to Supabase in the background
+  try {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) {
+      await fetch('/api/profile/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          email: user.email,
+          profile: p
+        })
+      });
+    }
+  } catch (err) {
+    console.error('Failed to sync profile to Supabase', err);
+  }
 };
 export const signOut = () => {
   if (typeof window !== "undefined") localStorage.removeItem("ss_session");
