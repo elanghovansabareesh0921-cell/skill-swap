@@ -10,17 +10,17 @@ import {
   Zap,
   Check
 } from 'lucide-react';
-import { RadarMatch, Profile, SessionLeg } from '@/types';
+import { PeerMatch, Profile, SessionLeg } from '@/types';
 
-interface AiRadarViewProps {
-  matches: RadarMatch[];
-  onSelectMatch: (match: RadarMatch, initialMode?: 'SWAP' | 'DIRECT') => void;
+interface MatchesViewProps {
+  matches: PeerMatch[];
+  onSelectMatch: (match: PeerMatch, initialMode?: 'SWAP' | 'DIRECT') => void;
   onOpenEditSkills: () => void;
   currentUser: Profile;
   sessions: SessionLeg[];
 }
 
-export const AiRadarView: React.FC<AiRadarViewProps> = ({
+export const MatchesView: React.FC<MatchesViewProps> = ({
   matches,
   onSelectMatch,
   onOpenEditSkills,

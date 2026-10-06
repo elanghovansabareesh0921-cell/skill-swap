@@ -12,18 +12,18 @@ import {
   CheckCircle2, 
   HelpCircle 
 } from 'lucide-react';
-import { Profile, RadarMatch, UserTeachSkill, OfferType, Wallet } from '@/types';
+import { Profile, PeerMatch, UserTeachSkill, OfferType, Wallet } from '@/types';
 import { generateQuoteBreakdown } from '@/lib/pricing';
 
 interface SwapProposalModalProps {
-  match: RadarMatch;
+  match: PeerMatch;
   currentUser: Profile;
   wallet: Wallet;
   isOpen: boolean;
   onClose: () => void;
   onSubmitOffer: (offerData: {
     type: OfferType;
-    match: RadarMatch;
+    match: PeerMatch;
     proposerTeachSkill?: UserTeachSkill;
     durationMinutes: number;
     message: string;

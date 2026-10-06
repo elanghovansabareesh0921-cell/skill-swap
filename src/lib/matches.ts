@@ -1,8 +1,8 @@
-import { Profile, RadarMatch, UserTeachSkill, UserLearnSkill } from '@/types';
+import { Profile, PeerMatch, UserTeachSkill, UserLearnSkill } from '@/types';
 import { generateQuoteBreakdown } from './pricing';
 
-export function computeRadarMatches(learner: Profile, teachers: Profile[]): RadarMatch[] {
-  const matches: RadarMatch[] = [];
+export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerMatch[] {
+  const matches: PeerMatch[] = [];
 
   for (const teacher of teachers) {
     if (teacher.id === learner.id || !teacher.isAcceptingRequests) {
@@ -137,5 +137,3 @@ export function computeRadarMatches(learner: Profile, teachers: Profile[]): Rada
     return b.matchScore - a.matchScore;
   });
 }
-
-export const computePeerMatches = computeRadarMatches;

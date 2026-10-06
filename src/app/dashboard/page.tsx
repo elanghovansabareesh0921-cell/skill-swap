@@ -7,7 +7,7 @@ import { getProfile, getSession, saveProfile, signOut, Profile as AuthProfile } 
 import { createClient } from '@/lib/supabase/client';
 import { Navbar } from '@/components/Navbar';
 import { EditSkillsModal } from '@/components/EditSkillsModal';
-import { AiRadarView } from '@/components/AiRadarView';
+import { MatchesView } from '@/components/MatchesView';
 import { SwapProposalModal } from '@/components/SwapProposalModal';
 import { SessionsView } from '@/components/SessionsView';
 import { TempChatView } from '@/components/TempChatView';
@@ -21,7 +21,7 @@ import {
   INITIAL_SESSIONS,
   INITIAL_CHAT_MESSAGES,
 } from '@/lib/mockData';
-import { computeRadarMatches } from '@/lib/radar';
+import { computePeerMatches } from '@/lib/matches';
 import { generateQuoteBreakdown } from '@/lib/pricing';
 import {
   Profile,
@@ -29,7 +29,7 @@ import {
   Offer,
   SessionLeg,
   ChatMessage,
-  RadarMatch,
+  PeerMatch,
   LedgerTransaction,
   OfferType,
   UserTeachSkill,
@@ -135,8 +135,8 @@ export default function Dashboard() {
   ]);
 
   // UI Navigation State
-  const [activeTab, setActiveTab] = useState<'radar' | 'sessions' | 'chat' | 'admin'>('radar');
-  const [selectedMatchForModal, setSelectedMatchForModal] = useState<RadarMatch | null>(null);
+  const [activeTab, setActiveTab] = useState<'matches' | 'sessions' | 'chat' | 'admin'>('matches');
+  const [selectedMatchForModal, setSelectedMatchForModal] = useState<PeerMatch | null>(null);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [isEditSkillsOpen, setIsEditSkillsOpen] = useState(false);
   const [sessionForReview, setSessionForReview] = useState<SessionLeg | null>(null);
@@ -242,9 +242,9 @@ export default function Dashboard() {
     };
   }, [authProfile]);
 
-  // Compute live AI Radar matches dynamically based on the onboarded skills
-  const radarMatches = useMemo(() => {
-    return computeRadarMatches(currentUser, teachers);
+  // Compute live peer matches dynamically based on the onboarded skills
+  const peerMatches = useMemo(() => {
+    return computePeerMatches(currentUser, teachers);
   }, [currentUser, teachers]);
 
   const handleSignOut = () => {
@@ -255,7 +255,7 @@ export default function Dashboard() {
   // Action: Create and submit new offer
   const handleSubmitOffer = (data: {
     type: OfferType;
-    match: RadarMatch;
+    match: PeerMatch;
     proposerTeachSkill?: UserTeachSkill;
     durationMinutes: number;
     message: string;
@@ -534,11 +534,13 @@ export default function Dashboard() {
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
 
       {/* Main Tab Views */}
-        {activeTab === 'radar' && (
-          <AiRadarView
-            matches={radarMatches}
+        {activeTab === 'matches' && (
+          <MatchesView
+            matches={peerMatches}
             onSelectMatch={match => setSelectedMatchForModal(match)}
             onOpenEditSkills={() => setIsEditSkillsOpen(true)}
+            currentUser={currentUser}
+            sessions={sessions}
           />
         )}
 

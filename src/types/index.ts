@@ -160,7 +160,7 @@ export interface ChatMessage {
   };
 }
 
-export interface RadarMatch {
+export interface PeerMatch {
   teacher: Profile;
   matchScore: number; // 0 - 100
   isSwapMatch: boolean;
@@ -171,5 +171,3 @@ export interface RadarMatch {
   teacherOfferingSkill: UserTeachSkill;
   matchingLearnSkill?: UserLearnSkill;
 }
-
-export type PeerMatch = RadarMatch;

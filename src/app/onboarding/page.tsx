@@ -466,7 +466,7 @@ export default function Onboarding() {
               onClick={next}
               className="inline-flex items-center gap-2 rounded-full bg-lagoon px-8 py-3 text-xs font-semibold text-white hover:bg-lagoon-dark transition-all shadow-lg shadow-lagoon/20 hover:shadow-xl cursor-pointer"
             >
-              <span>{step === 4 ? 'Complete & Enter Radar' : 'Next Step'}</span>
+              <span>{step === 4 ? 'Complete & View Matches' : 'Next Step'}</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>

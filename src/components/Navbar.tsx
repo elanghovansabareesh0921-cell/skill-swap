@@ -20,8 +20,8 @@ import { Profile, Wallet as WalletType } from '@/types';
 interface NavbarProps {
   currentUser: Profile;
   wallet: WalletType;
-  activeTab: 'radar' | 'sessions' | 'chat' | 'admin';
-  setActiveTab: (tab: 'radar' | 'sessions' | 'chat' | 'admin') => void;
+  activeTab: 'matches' | 'sessions' | 'chat' | 'admin';
+  setActiveTab: (tab: 'matches' | 'sessions' | 'chat' | 'admin') => void;
   onOpenWallet: () => void;
   onOpenOnboarding?: () => void;
   onOpenProfile?: () => void;
@@ -47,7 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const getBreadcrumb = () => {
     switch (activeTab) {
-      case 'radar': return 'Discover';
+      case 'matches': return 'Discover';
       case 'sessions': return 'Sessions';
       case 'chat': return 'My swaps';
       case 'admin': return 'Admin Panel';
@@ -56,7 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const navItems = [
-    { id: 'radar', label: 'Discover', icon: Compass },
+    { id: 'matches', label: 'Discover', icon: Compass },
     { id: 'chat', label: 'My swaps', icon: ArrowRightLeft },
     { id: 'sessions', label: 'Sessions', icon: Calendar },
   ];
