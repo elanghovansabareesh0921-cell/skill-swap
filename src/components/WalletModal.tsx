@@ -63,7 +63,8 @@ export const WalletModal: React.FC<WalletModalProps> = ({
     setIsProcessing(true);
     
     try {
-      const res = await fetch('/api/wallet/purchase', {
+      // 1. Create order on backend
+      const res = await fetch('/api/razorpay/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amountTokens: amount, userId: wallet.userId }),
@@ -76,23 +77,51 @@ export const WalletModal: React.FC<WalletModalProps> = ({
 
       const resLoad = await initializeRazorpay();
       if (!resLoad) {
-        alert("Razorpay SDK Failed to load");
-        setIsProcessing(false);
-        return;
+        throw new Error('Razorpay SDK failed to load. Are you online?');
       }
 
+      // 2. Clean frontend key from accidental quotes/spaces
+      const publicKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID?.replace(/['"]/g, '').trim() || data.keyId;
+
+      // 3. Initialize Razorpay
       const options = {
-        key: data.keyId,
+        key: publicKey,
         amount: data.amountPaise.toString(),
         currency: data.currency,
         name: "SkillSwap",
         description: `Purchase of ${data.amountTokens} Skill Points (SP)`,
         order_id: data.orderId,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        handler: function (response: any) {
-          onBuyTokens(amount);
-          setShowSuccess(true);
-          setTimeout(() => setShowSuccess(false), 2400);
+        handler: async function (response: any) {
+          // 4. Verify Signature
+          try {
+            const verifyRes = await fetch('/api/razorpay/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              }),
+            });
+            const verifyData = await verifyRes.json();
+            
+            if (verifyRes.ok && verifyData.success) {
+              onBuyTokens(amount);
+              setShowSuccess(true);
+              setTimeout(() => setShowSuccess(false), 2400);
+            } else {
+              throw new Error(verifyData.error || 'Verification failed');
+            }
+          } catch (err: any) {
+            console.error(err);
+            alert(`Payment verification failed: ${err.message}`);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setIsProcessing(false);
+          },
         },
         prefill: {
           name: "SkillSwap User",
@@ -109,12 +138,12 @@ export const WalletModal: React.FC<WalletModalProps> = ({
       
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       paymentObject.on('payment.failed', function (response: any) {
-         alert(response.error.description);
+         alert(`Payment Failed: ${response.error.description}`);
+         setIsProcessing(false);
       });
     } catch (err: any) {
       console.error(err);
       alert(`Could not start checkout: ${err.message || 'Unknown error'}`);
-    } finally {
       setIsProcessing(false);
     }
   };
