@@ -64,7 +64,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
     
     try {
       // 1. Create order on backend
-      const res = await fetch('/api/razorpay/order', {
+      const res = await fetch('/api/wallet/purchase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amountTokens: amount, userId: wallet.userId }),
@@ -80,12 +80,10 @@ export const WalletModal: React.FC<WalletModalProps> = ({
         throw new Error('Razorpay SDK failed to load. Are you online?');
       }
 
-      // 2. Clean frontend key from accidental quotes/spaces
-      const publicKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID?.replace(/['"]/g, '').trim() || data.keyId;
-
-      // 3. Initialize Razorpay
+      // 2. Initialize Razorpay options using the returned keyId 
+      // (Next.js public vars might be missing if build was cached, so backend keyId is more reliable)
       const options = {
-        key: publicKey,
+        key: data.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: data.amountPaise.toString(),
         currency: data.currency,
         name: "SkillSwap",

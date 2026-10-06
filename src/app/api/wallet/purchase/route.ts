@@ -1,11 +1,23 @@
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 
+const cleanEnv = (val?: string) => val ? val.replace(/['"]/g, '').trim() : undefined;
+
 export async function POST(request: Request) {
   try {
+    const key_id = cleanEnv(process.env.RAZORPAY_KEY_ID) || cleanEnv(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID);
+    const key_secret = cleanEnv(process.env.RAZORPAY_KEY_SECRET);
+
+    if (!key_id || !key_secret) {
+      return NextResponse.json(
+        { error: 'Razorpay keys are not properly configured on the server.' },
+        { status: 500 }
+      );
+    }
+
     const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_fallback',
-      key_secret: process.env.RAZORPAY_KEY_SECRET || 'fallback_secret',
+      key_id,
+      key_secret,
     });
     
     const { amountTokens, userId } = await request.json();
@@ -17,7 +29,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const amountPaise = amountTokens * 100;
+    const amountPaise = Math.round(amountTokens * 100);
 
     const order = await razorpay.orders.create({
       amount: amountPaise,
@@ -31,7 +43,7 @@ export async function POST(request: Request) {
       amountTokens,
       amountPaise: order.amount,
       currency: order.currency,
-      keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || 'rzp_test_fallback',
+      keyId: key_id,
       message: 'Razorpay order created. Proceed with checkout.'
     });
   } catch (error: any) {
