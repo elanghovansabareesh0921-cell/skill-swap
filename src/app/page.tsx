@@ -162,21 +162,21 @@ export default function Landing() {
 
           {/* Right Column: Spatial Floating Comparison Tile */}
           <div className="lg:col-span-5 relative">
-            <div className="glass-panel-dark rounded-3xl p-7 text-white spatial-card shadow-2xl relative overflow-hidden">
+            <div className="glass-panel rounded-[16px] p-7 text-ink spatial-card shadow-2xl relative overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)]">
               {/* Subtle top edge specular highlight */}
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-ink/5 to-transparent dark:via-white/10" />
               
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center justify-between border-b border-ink/10 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-mist-pure/10 text-saffron font-bold text-sm">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-ink/5 text-saffron font-bold text-sm">
                     PY
                   </div>
                   <div>
-                    <h3 className="font-display text-sm font-bold text-white">Python Async & FastApi</h3>
-                    <p className="text-[11px] text-white/60">Taught by Ravi Kumar • 60 mins</p>
+                    <h3 className="font-display text-sm font-bold text-ink">Python Async & FastApi</h3>
+                    <p className="text-[11px] text-ink/60">Taught by Ravi Kumar • 60 mins</p>
                   </div>
                 </div>
-                <span className="rounded-full bg-lagoon/20 border border-lagoon/40 px-2.5 py-0.5 text-[10px] font-mono font-bold text-teal-300">
+                <span className="rounded-full bg-lagoon/10 border border-lagoon/20 px-2.5 py-0.5 text-[10px] font-mono font-bold text-lagoon dark:text-teal-300">
                   70% DISCOUNT
                 </span>
               </div>
@@ -184,12 +184,12 @@ export default function Landing() {
               {/* Price Bars Comparison */}
               <div className="mt-6 space-y-5">
                 <div>
-                  <div className="flex justify-between text-xs font-mono text-white/70 mb-2">
+                  <div className="flex justify-between text-xs font-mono text-ink/70 mb-2">
                     <span>Direct Learn (List Price)</span>
-                    <span className="text-white font-bold">60 SP (₹60)</span>
+                    <span className="text-ink font-bold">60 SP (₹60)</span>
                   </div>
-                  <div className="h-3 w-full rounded-full bg-mist-pure/10 overflow-hidden">
-                    <div className="h-full w-full bg-mist-pure/30 rounded-full" />
+                  <div className="h-3 w-full rounded-full bg-ink/5 overflow-hidden">
+                    <div className="h-full w-full bg-ink/10 rounded-full" />
                   </div>
                 </div>
 
@@ -199,27 +199,27 @@ export default function Landing() {
                       <ArrowRightLeft className="h-3 w-3" />
                       Swap: You teach him Figma UI
                     </span>
-                    <span className="font-extrabold text-white text-sm">18 SP (₹18)</span>
+                    <span className="font-extrabold text-ink text-sm">18 SP (₹18)</span>
                   </div>
-                  <div className="h-3 w-full rounded-full bg-mist-pure/10 overflow-hidden">
+                  <div className="h-3 w-full rounded-full bg-ink/5 overflow-hidden">
                     <div className="h-full w-[30%] bg-saffron rounded-full shadow-lg shadow-saffron/40" />
                   </div>
                 </div>
               </div>
 
               {/* Savings Card Insight */}
-              <div className="mt-6 rounded-2xl bg-mist-pure/5 border border-white/10 p-4 flex items-center justify-between text-xs">
+              <div className="mt-6 rounded-[12px] bg-ink/5 border border-ink/10 p-4 flex items-center justify-between text-xs">
                 <div>
-                  <div className="text-white/60 text-[11px]">Net Savings per Session</div>
-                  <div className="text-emerald-400 font-bold font-mono text-base">You Save 42 Skill Points</div>
+                  <div className="text-ink/60 text-[11px]">Net Savings per Session</div>
+                  <div className="text-emerald-600 dark:text-emerald-400 font-bold font-mono text-base">You Save 42 Skill Points</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-white/60 text-[11px]">Rate in INR</div>
-                  <div className="text-white font-mono font-bold text-base">₹18 only</div>
+                  <div className="text-ink/60 text-[11px]">Rate in INR</div>
+                  <div className="text-ink font-mono font-bold text-base">₹18 only</div>
                 </div>
               </div>
 
-              <p className="mt-5 text-[11px] text-white/50 text-center leading-relaxed font-mono">
+              <p className="mt-5 text-[11px] text-ink/50 text-center leading-relaxed font-mono">
                 Skill points stay in escrow until both parties confirm completion.
               </p>
             </div>
