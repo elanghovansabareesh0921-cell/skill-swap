@@ -17,6 +17,7 @@ import {
   Bot
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { motion } from 'framer-motion';
 
 interface FaqArticle {
   id: string;
@@ -172,7 +173,7 @@ export const FaqChatbot: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <motion.div drag dragMomentum={false} className="fixed bottom-6 right-6 z-50">
       {/* Floating Trigger Dock Button */}
       {!isOpen && (
         <button
@@ -346,6 +347,6 @@ export const FaqChatbot: React.FC = () => {
           </form>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };

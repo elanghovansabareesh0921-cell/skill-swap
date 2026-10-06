@@ -235,7 +235,7 @@ export default function Landing() {
               Architecture & Mechanics • How this product functions
             </span>
             <h2 className="mt-2 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-ink">
-              How a skill swap works.
+              How skill swap works.
             </h2>
             <p className="mt-3 text-sm text-ink/70 leading-relaxed">
               Designed around complete financial integrity, mutual scheduling convenience, and verifiable escrow protection.
@@ -283,10 +283,6 @@ export default function Landing() {
           <div className="flex flex-wrap items-center justify-center md:justify-end gap-6">
             <Link href="/privacy" className="hover:text-ink transition-colors font-medium">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-ink transition-colors font-medium">Terms of Service</Link>
-            <span className="w-px h-3 bg-ink/10"></span>
-            <Link href="/login" className="hover:text-ink transition-colors">Login</Link>
-            <Link href="/signup" className="hover:text-ink transition-colors">Sign up</Link>
-            <Link href="/onboarding" className="hover:text-ink transition-colors">Onboarding</Link>
           </div>
         </div>
       </footer>
