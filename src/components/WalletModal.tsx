@@ -147,10 +147,10 @@ export const WalletModal: React.FC<WalletModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-xl p-4 overflow-y-auto">
-      <div className="relative w-full max-w-xl glass-panel-elevated rounded-3xl p-7 sm:p-9 shadow-2xl border border-white/40 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 overflow-y-auto">
+      <div className="relative w-full max-w-xl bg-[var(--color-surface)]/70 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-[var(--color-border)]/50 rounded-[24px] p-7 sm:p-9 overflow-hidden">
         {/* Specular Edge */}
-        <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/80 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-ink/10 dark:via-white/20 to-transparent pointer-events-none" />
 
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-ink/8 pb-4">

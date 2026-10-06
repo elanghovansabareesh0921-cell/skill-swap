@@ -225,10 +225,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
           
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="hidden sm:block border border-[var(--color-border)] px-2 py-1 rounded text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
-              DEMO WORKSPACE
-            </div>
-            
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2 rounded-full hover:bg-[var(--color-surface-2)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors cursor-pointer"
