@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
+import { Space_Grotesk, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { FaqChatbot } from "@/components/FaqChatbot";
 
-const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage" });
+const space = Space_Grotesk({ subsets: ["latin"], variable: "--font-space" });
 const sans = DM_Sans({ subsets: ["latin"], variable: "--font-dm" });
 
 export const metadata: Metadata = {
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${space.variable} ${sans.variable}`} suppressHydrationWarning>
       <body className="antialiased min-h-screen">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
