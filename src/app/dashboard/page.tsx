@@ -519,68 +519,21 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="relative min-h-screen bg-mist text-ink flex flex-col font-sans selection:bg-lagoon selection:text-white overflow-x-hidden">
-      {/* Ambient Spatial Lighting Orbs */}
-      <div className="pointer-events-none absolute -top-32 left-1/4 h-[500px] w-[700px] ambient-glow-lagoon opacity-50 blur-3xl" />
-      <div className="pointer-events-none absolute top-[380px] -right-32 h-[550px] w-[550px] ambient-glow-saffron opacity-40 blur-3xl" />
-
-      {/* Top Floating Spatial Dock Navbar */}
-      <Navbar
-        currentUser={currentUser}
-        wallet={wallet}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onOpenWallet={() => setIsWalletOpen(true)}
-        onOpenOnboarding={() => router.push('/profile')}
-        onOpenProfile={() => router.push('/profile')}
-        onOpenEditSkills={() => setIsEditSkillsOpen(true)}
-        onSignOut={handleSignOut}
-        pendingOffersCount={offers.filter(o => o.status === 'PENDING').length}
-      />
-
-      {/* Onboarding Spatial Context Pill */}
-      <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 pt-6 pb-2 relative z-10">
-        <div className="glass-panel rounded-2xl p-4 md:px-5 md:py-3 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 text-xs shadow-xs border border-ink/[0.06]">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 w-full xl:w-auto">
-            <span className="text-ink/65 whitespace-nowrap">
-              Trading as <strong className="text-ink font-semibold">{currentUser.fullName}</strong>
-            </span>
-            <span className="hidden sm:inline text-ink/20">•</span>
-            <div className="flex items-center gap-2 text-xs flex-wrap">
-              <span className="text-lagoon font-bold font-mono text-[10px] uppercase tracking-wider shrink-0">You Teach</span>
-              <span className="text-ink font-medium bg-mist px-2.5 py-1 rounded-full border border-ink/8 truncate max-w-[200px] sm:max-w-xs">
-                {authProfile.noTeach ? 'None (Learn-only mode)' : authProfile.teach.join(', ')}
-              </span>
-            </div>
-            <span className="hidden sm:inline text-ink/20">•</span>
-            <div className="flex items-center gap-2 text-xs flex-wrap mt-2 sm:mt-0">
-              <span className="text-amber-700 dark:text-saffron font-bold font-mono text-[10px] uppercase tracking-wider shrink-0">You Learn</span>
-              <span className="text-ink font-medium bg-mist px-2.5 py-1 rounded-full border border-ink/8 truncate max-w-[200px] sm:max-w-xs">
-                {authProfile.learn.join(', ')}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 w-full xl:w-auto pt-3 xl:pt-0 border-t border-ink/5 xl:border-t-0">
-            <button
-              onClick={() => setIsEditSkillsOpen(true)}
-              className="text-xs font-semibold text-ink/60 hover:text-ink transition-colors cursor-pointer"
-            >
-              Quick Skills
-            </button>
-            <Link
-              href="/profile"
-              className="text-xs font-semibold text-lagoon hover:text-lagoon-dark transition-colors flex items-center gap-1 cursor-pointer"
-            >
-              <span>Edit Profile</span>
-              <span aria-hidden="true">→</span>
-            </Link>
-          </div>
-        </div>
-      </div>
+    <Navbar
+      currentUser={currentUser}
+      wallet={wallet}
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+      onOpenWallet={() => setIsWalletOpen(true)}
+      onOpenOnboarding={() => router.push('/profile')}
+      onOpenProfile={() => router.push('/profile')}
+      onOpenEditSkills={() => setIsEditSkillsOpen(true)}
+      onSignOut={handleSignOut}
+      pendingOffersCount={offers.filter(o => o.status === 'PENDING').length}
+    >
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
 
       {/* Main Tab Views */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 sm:px-6">
         {activeTab === 'radar' && (
           <AiRadarView
             matches={radarMatches}
@@ -613,7 +566,6 @@ export default function Dashboard() {
         {activeTab === 'admin' && currentUser.email === 'elanghovansabareesh0921@gmail.com' && (
           <AdminPanel sessions={sessions} onResolveDispute={handleResolveDispute} />
         )}
-      </main>
 
       {/* Interactive Swap Proposal Modal */}
       {selectedMatchForModal && (
@@ -662,6 +614,7 @@ export default function Dashboard() {
           }}
         />
       )}
-    </div>
+      </div>
+    </Navbar>
   );
 }
