@@ -11,7 +11,7 @@ const mockUsers = [
     role: 'Admin',
     status: 'Active',
     joinedDate: 'Oct 12, 2023',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80'
+    avatar: '/avatars/real_avatar_1.jpg'
   },
   {
     id: 'usr_2',
@@ -19,7 +19,7 @@ const mockUsers = [
     role: 'User',
     status: 'Active',
     joinedDate: 'Jan 05, 2024',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
+    avatar: '/avatars/real_avatar_2.jpg'
   },
   {
     id: 'usr_3',
@@ -27,7 +27,7 @@ const mockUsers = [
     role: 'User',
     status: 'Suspended',
     joinedDate: 'Mar 15, 2024',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80'
+    avatar: '/avatars/real_avatar_3.jpg'
   },
   {
     id: 'usr_4',
@@ -35,7 +35,7 @@ const mockUsers = [
     role: 'User',
     status: 'Active',
     joinedDate: 'Apr 22, 2024',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&auto=format&fit=crop&q=80'
+    avatar: '/avatars/real_avatar_4.jpg'
   },
 ];
 

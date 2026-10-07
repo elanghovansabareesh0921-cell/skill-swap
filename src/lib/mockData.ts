@@ -15,7 +15,7 @@ export const CURRENT_USER: Profile = {
   id: 'usr-asha',
   email: 'asha.sharma@example.com',
   fullName: 'Asha Sharma',
-  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  avatarUrl: '/avatars/real_avatar_1.jpg',
   bio: 'Product Designer with 4 years of experience. Passionate about turning complex systems into clean interfaces. Eager to master backend scripting in Python!',
   city: 'Bengaluru',
   country: 'IN',

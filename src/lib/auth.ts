@@ -81,7 +81,7 @@ const start = async (s: Session) => {
 
 export const DEFAULT_DEMO_PROFILE: Profile = {
   name: 'Alex Chen',
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  avatar: '/avatars/real_avatar_1.jpg',
   sex: 'other',
   dob: '1998-05-15',
   teach: ['Full-Stack Web Dev', 'UI/UX Design'],

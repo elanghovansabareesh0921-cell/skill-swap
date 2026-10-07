@@ -41,54 +41,14 @@ import { SKILLS } from '@/lib/skills';
 
 // Curated avatar presets with high resolution and diverse styles
 const AVATAR_PRESETS = [
-  {
-    name: 'Alex (Tech)',
-    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
-  },
-  {
-    name: 'Sarah (Design)',
-    url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&auto=format&fit=crop&q=80',
-  },
-  {
-    name: 'Marcus (Engineer)',
-    url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80',
-  },
-  {
-    name: 'Priya (Data Science)',
-    url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80',
-  },
-  {
-    name: 'David (Frontend)',
-    url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80',
-  },
-  {
-    name: 'Elena (Product)',
-    url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&auto=format&fit=crop&q=80',
-  },
-  {
-    name: 'Chen (Cloud/DevOps)',
-    url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&auto=format&fit=crop&q=80',
-  },
-  {
-    name: 'Maya (Mobile Dev)',
-    url: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=300&auto=format&fit=crop&q=80',
-  },
-  {
-    name: '3D Notion Avatar',
-    url: 'https://api.dicebear.com/7.x/notionists/svg?seed=SkillSwapPro&backgroundColor=e5f3ff',
-  },
-  {
-    name: '3D Bot Avatar',
-    url: 'https://api.dicebear.com/7.x/bottts/svg?seed=SkillTrader42&backgroundColor=ffe8d6',
-  },
-  {
-    name: 'Avataaars Modern',
-    url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ExpertBuilder&backgroundColor=f0fdf4',
-  },
-  {
-    name: 'Adventurer Studio',
-    url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=QuantumMentor&backgroundColor=fef3c7',
-  },
+  { name: 'Custom Avatar 1', url: '/avatars/real_avatar_1.jpg' },
+  { name: 'Custom Avatar 2', url: '/avatars/real_avatar_2.jpg' },
+  { name: 'Custom Avatar 3', url: '/avatars/real_avatar_3.jpg' },
+  { name: 'Custom Avatar 4', url: '/avatars/real_avatar_4.jpg' },
+  { name: 'Custom Avatar 5', url: '/avatars/real_avatar_5.jpg' },
+  { name: 'Custom Avatar 6', url: '/avatars/real_avatar_6.jpg' },
+  { name: 'Custom Avatar 7', url: '/avatars/real_avatar_7.jpg' },
+  { name: 'Custom Avatar 8', url: '/avatars/real_avatar_8.jpg' },
 ];
 
 const TIMEZONE_OPTIONS = [
@@ -287,11 +247,8 @@ export default function ProfilePage() {
   };
 
   const handleGenerateRandomAvatar = () => {
-    const seeds = ['CosmicVoyager', 'PixelPioneer', 'EchoPulse', 'NebulaDev', 'HyperTrader', 'CyberCrafter', 'ZenithCode'];
-    const randomSeed = seeds[Math.floor(Math.random() * seeds.length)] + Math.floor(Math.random() * 1000);
-    const styles = ['notionists', 'bottts', 'adventurer', 'avataaars'];
-    const randomStyle = styles[Math.floor(Math.random() * styles.length)];
-    const generated = `https://api.dicebear.com/7.x/${randomStyle}/svg?seed=${randomSeed}&backgroundColor=e2e8f0`;
+    const randomIndex = Math.floor(Math.random() * 8) + 1;
+    const generated = `/avatars/real_avatar_${randomIndex}.jpg`;
     updateField('avatar', generated);
     setAvatarError('');
   };

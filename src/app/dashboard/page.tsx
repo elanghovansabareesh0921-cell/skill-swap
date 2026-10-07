@@ -71,7 +71,7 @@ export default function Dashboard() {
           id: p.id,
           email: p.email,
           fullName: p.full_name || 'Anonymous User',
-          avatarUrl: p.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+          avatarUrl: p.avatar_url || '/avatars/real_avatar_3.jpg',
           bio: p.bio || 'SkillSwap member',
           city: p.city || '',
           country: p.country || 'IN',
@@ -236,7 +236,7 @@ export default function Dashboard() {
         id: 'usr-guest',
         email: 'guest@example.com',
         fullName: 'Guest User',
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        avatarUrl: '/avatars/real_avatar_4.jpg',
         bio: 'SkillSwap member',
         city: 'Bengaluru',
         country: 'IN',
@@ -289,7 +289,7 @@ export default function Dashboard() {
       fullName: authProfile.name,
       avatarUrl:
         authProfile.avatar ||
-        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        '/avatars/real_avatar_5.jpg',
       bio: authProfile.bio || (authProfile.headline ? `${authProfile.headline}. Trading: ${authProfile.teach.join(', ') || 'Learner'}` : `SkillSwap member trading skills: ${authProfile.teach.join(', ') || 'Learner'}`),
       city: authProfile.city || 'Bengaluru',
       country: authProfile.country || 'IN',
