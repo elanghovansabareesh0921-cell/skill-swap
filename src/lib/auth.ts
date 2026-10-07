@@ -131,11 +131,6 @@ export const signInWithProvider = async (p: "google" | "github", nextUrl?: strin
     provider: p,
     options: {
       redirectTo: redirectTarget,
-      scopes: p === 'google' ? 'https://www.googleapis.com/auth/calendar.events' : undefined,
-      queryParams: p === 'google' ? {
-        access_type: 'offline',
-        prompt: 'consent',
-      } : undefined,
     },
   });
 
