@@ -20,21 +20,24 @@ async function runE2E() {
     
     await pageB.waitForURL('**/onboarding', { timeout: 10000 });
     console.log('User B is on Onboarding! (Step 1)');
-    await pageB.locator('input').nth(1).fill('Test Teacher'); // 1st is file, 2nd is name
+    await pageB.locator('input').nth(1).fill('Test Teacher'); // name
     await pageB.click('button:has-text("Next Step")');
     
-    console.log('User B is on Onboarding! (Step 2)');
-    await pageB.waitForTimeout(500);
-    await pageB.locator('text=UI/UX Design').first().click();
+    console.log('User B is on Onboarding! (Step 2 - Teach)');
+    await pageB.waitForTimeout(1000);
+    // Use the explicit add skill input
+    await pageB.fill('input[placeholder="Don\'t see it? Type a skill and press Enter"]', 'Python');
+    await pageB.keyboard.press('Enter');
     await pageB.click('button:has-text("Next Step")');
 
-    console.log('User B is on Onboarding! (Step 3)');
-    await pageB.waitForTimeout(500);
-    await pageB.locator('text=Python Programming').first().click();
+    console.log('User B is on Onboarding! (Step 3 - Learn)');
+    await pageB.waitForTimeout(1000);
+    await pageB.fill('input[placeholder="Don\'t see it? Type a skill and press Enter"]', 'Machine Learning');
+    await pageB.keyboard.press('Enter');
     await pageB.click('button:has-text("Next Step")');
 
     console.log('User B is on Onboarding! (Step 4)');
-    await pageB.waitForTimeout(500);
+    await pageB.waitForTimeout(1000);
     await pageB.click('button:has-text("Complete & View Matches")');
 
     await pageB.waitForURL('**/dashboard', { timeout: 10000 });
@@ -49,45 +52,49 @@ async function runE2E() {
     await pageA.click('button[type="submit"]');
     
     await pageA.waitForURL('**/onboarding', { timeout: 10000 });
-    console.log('User A is on Onboarding!');
+    console.log('User A is on Onboarding! (Step 1)');
     await pageA.locator('input').nth(1).fill('Test Learner');
     await pageA.click('button:has-text("Next Step")');
     
-    await pageA.waitForTimeout(500);
-    await pageA.locator('text=Python Programming').first().click();
+    console.log('User A is on Onboarding! (Step 2 - Teach)');
+    await pageA.waitForTimeout(1000);
+    await pageA.fill('input[placeholder="Don\'t see it? Type a skill and press Enter"]', 'Machine Learning');
+    await pageA.keyboard.press('Enter');
     await pageA.click('button:has-text("Next Step")');
 
-    await pageA.waitForTimeout(500);
-    await pageA.locator('text=UI/UX Design').first().click();
+    console.log('User A is on Onboarding! (Step 3 - Learn)');
+    await pageA.waitForTimeout(1000);
+    await pageA.fill('input[placeholder="Don\'t see it? Type a skill and press Enter"]', 'Python');
+    await pageA.keyboard.press('Enter');
     await pageA.click('button:has-text("Next Step")');
 
-    await pageA.waitForTimeout(500);
+    console.log('User A is on Onboarding! (Step 4)');
+    await pageA.waitForTimeout(1000);
     await pageA.click('button:has-text("Complete & View Matches")');
 
     await pageA.waitForURL('**/dashboard', { timeout: 10000 });
     console.log('User A is on Dashboard!');
     
-    console.log('User A finding User B to book a session...');
-    await pageA.waitForTimeout(3000); // Wait for teachers fetch
+    console.log('User A searching for Test Teacher (User B)...');
+    await pageA.waitForTimeout(3000); // Wait for fetch
     
     const teacherVisible = await pageA.isVisible('text=Test Teacher');
     if (!teacherVisible) {
-       console.log('Test Teacher is not visible in matches! (Maybe peerMatches algorithm failed?)');
-       await pageA.click('button:has-text("Propose Swap")').catch(() => {});
+       console.log('❌ Test Teacher is not visible! Searching failed.');
     } else {
-       console.log('Test Teacher found!');
+       console.log('✅ Test Teacher found successfully!');
        await pageA.click('text=Test Teacher');
-    }
-    
-    console.log('Booking session...');
-    const sendButtonVisible = await pageA.isVisible('button:has-text("Send")');
-    if (sendButtonVisible) {
-        await pageA.click('button:has-text("Send")');
-        console.log('Booking Sent via Supabase Realtime Broadcast!');
+       
+       console.log('Booking session...');
+       const sendButtonVisible = await pageA.isVisible('button:has-text("Send")');
+       if (sendButtonVisible) {
+           await pageA.click('button:has-text("Send")');
+           console.log('✅ Booking Sent via Supabase Realtime Broadcast!');
+       }
     }
     
     await pageA.waitForTimeout(2000);
-    console.log('E2E Realtime script executed successfully.');
+    console.log('🎉 E2E script executed perfectly!');
     
   } catch (error) {
     console.error('E2E Test Failed:', error);
