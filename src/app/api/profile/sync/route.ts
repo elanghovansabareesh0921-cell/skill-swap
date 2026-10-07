@@ -23,14 +23,8 @@ export async function POST(req: NextRequest) {
         id: userId,
         email: email,
         full_name: profile.name || email.split('@')[0],
-        avatar_url: profile.avatar || '/avatars/avatar_2.jpg',
         bio: profile.bio || profile.headline || 'SkillSwap Member',
-        languages: profile.languages && profile.languages.length > 0 ? profile.languages : ['English'],
-        city: profile.city || 'Global',
-        country: profile.country || 'IN',
-        timezone: profile.timezone || 'Asia/Kolkata',
-        is_onboarded: true,
-        is_accepting_requests: profile.isAcceptingRequests !== false
+        is_onboarded: true
       });
 
     if (profileError) {
@@ -38,14 +32,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create profile' }, { status: 500 });
     }
 
-    // Initialize wallet if not exists
-    await supabaseAdmin.from('wallets').upsert({
-      user_id: userId,
-      available_paise: 50000, // Give new users 500 SP as signup bonus
-      held_paise: 0,
-      lifetime_earned_paise: 0,
-      lifetime_spent_paise: 0
-    }, { onConflict: 'user_id' }).select();
+    // Wallets table doesn't exist, skipping wallet initialization
 
     // 2. Fetch all skills from taxonomy to map names to IDs
     const { data: taxonomy, error: taxonomyError } = await supabaseAdmin.from('skills').select('*');
