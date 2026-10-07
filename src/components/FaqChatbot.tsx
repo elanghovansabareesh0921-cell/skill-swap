@@ -177,8 +177,8 @@ export const FaqChatbot: React.FC = () => {
       {/* Floating Trigger Dock Button */}
       {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
-          className="group flex items-center gap-2.5 rounded-full spatial-dock px-4 py-3 shadow-xl hover:shadow-2xl transition-all cursor-pointer hover:scale-105 border border-ink/10 bg-mist-pure/95"
+          onDoubleClick={() => setIsOpen(true)}
+          className="group flex items-center gap-2.5 rounded-full bg-[var(--color-surface)] px-4 py-3 shadow-xl hover:shadow-2xl transition-all cursor-pointer hover:scale-105 border border-[var(--color-border)]"
           aria-label="Open SkillSwap FAQ Chatbot"
         >
           <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-ink text-white dark:bg-saffron dark:text-black group-hover:bg-lagoon dark:group-hover:bg-saffron-light dark:group-hover:text-black transition-colors shadow-xs">
@@ -199,12 +199,12 @@ export const FaqChatbot: React.FC = () => {
 
       {/* Spatial Chat Modal Window */}
       {isOpen && (
-        <div className="flex h-[560px] w-[380px] sm:w-[420px] flex-col rounded-3xl glass-panel-elevated shadow-2xl border border-white/50 overflow-hidden relative">
+        <div className="flex h-[560px] w-[380px] sm:w-[420px] flex-col rounded-3xl bg-[var(--color-surface)] shadow-2xl border border-[var(--color-border)] overflow-hidden relative">
           {/* Specular Edge */}
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-ink/8 bg-mist-pure/80 backdrop-blur-md px-5 py-3.5">
+          <div className="flex items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3.5">
             <div className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded-2xl bg-lagoon text-white shadow-xs">
                 <Sparkles className="h-4 w-4 text-saffron" />
@@ -237,8 +237,8 @@ export const FaqChatbot: React.FC = () => {
                 <div
                   className={`max-w-[85%] rounded-2xl p-3 leading-relaxed shadow-xs ${
                     msg.sender === 'user'
-                      ? 'bg-ink text-white dark:bg-saffron dark:text-black rounded-br-none'
-                      : 'glass-panel text-ink border border-ink/8 rounded-bl-none'
+                      ? 'bg-[var(--color-text)] text-[var(--color-bg)] rounded-br-none'
+                      : 'bg-[var(--color-surface-2)] text-[var(--color-text)] border border-[var(--color-border)] rounded-bl-none'
                   }`}
                 >
                   <div className={`prose prose-sm ${msg.sender === 'user' ? 'prose-invert dark:prose-neutral dark:text-black' : 'dark:prose-invert'} max-w-none`}>
@@ -289,28 +289,28 @@ export const FaqChatbot: React.FC = () => {
           </div>
 
           {/* Quick Question Suggestion Pills */}
-          <div className="border-t border-ink/6 bg-mist-pure/50 p-2.5 overflow-x-auto flex gap-1.5 no-scrollbar">
+          <div className="border-t border-[var(--color-border)] bg-[var(--color-surface-2)] p-2.5 overflow-x-auto flex gap-1.5 no-scrollbar">
             <button
               onClick={() => handleSend('How does the 70% swap discount work?')}
-              className="whitespace-nowrap rounded-full border border-ink/10 bg-mist-pure/90 px-2.5 py-1 text-[10px] font-medium text-ink/70 hover:border-lagoon hover:text-ink cursor-pointer"
+              className="whitespace-nowrap rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[10px] font-medium text-[var(--color-text-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-text)] cursor-pointer"
             >
               70% Swap Discount
             </button>
             <button
               onClick={() => handleSend('How does escrow protect my money?')}
-              className="whitespace-nowrap rounded-full border border-ink/10 bg-mist-pure/90 px-2.5 py-1 text-[10px] font-medium text-ink/70 hover:border-lagoon hover:text-ink cursor-pointer"
+              className="whitespace-nowrap rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[10px] font-medium text-[var(--color-text-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-text)] cursor-pointer"
             >
               Escrow Protection
             </button>
             <button
               onClick={() => handleSend('How do Google Meet links get generated?')}
-              className="whitespace-nowrap rounded-full border border-ink/10 bg-mist-pure/90 px-2.5 py-1 text-[10px] font-medium text-ink/70 hover:border-lagoon hover:text-ink cursor-pointer"
+              className="whitespace-nowrap rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[10px] font-medium text-[var(--color-text-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-text)] cursor-pointer"
             >
               Google Meet Links
             </button>
             <button
               onClick={() => handleSend('What happens on a no show or cancellation?')}
-              className="whitespace-nowrap rounded-full border border-ink/10 bg-mist-pure/90 px-2.5 py-1 text-[10px] font-medium text-ink/70 hover:border-lagoon hover:text-ink cursor-pointer"
+              className="whitespace-nowrap rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[10px] font-medium text-[var(--color-text-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-text)] cursor-pointer"
             >
               No-show & Strikes
             </button>
@@ -322,7 +322,7 @@ export const FaqChatbot: React.FC = () => {
               e.preventDefault();
               handleSend(input);
             }}
-            className="border-t border-ink/8 bg-mist-pure/90 p-3"
+            className="border-t border-[var(--color-border)] bg-[var(--color-surface)] p-3"
           >
             <div className="flex items-center gap-2">
               <input
@@ -330,15 +330,15 @@ export const FaqChatbot: React.FC = () => {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 placeholder="Ask about skill points, swaps, escrow..."
-                className="flex-1 rounded-full border border-ink/15 bg-mist-pure px-3.5 py-2 text-xs text-ink placeholder:text-ink-muted/50 focus:border-lagoon focus:outline-none shadow-xs dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40"
+                className="flex-1 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)] px-3.5 py-2 text-xs text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] focus:outline-none shadow-xs"
               />
               <button
                 type="submit"
                 disabled={!input.trim()}
                 className={`flex h-8 w-8 items-center justify-center rounded-full transition-all cursor-pointer ${
                   input.trim()
-                    ? 'bg-lagoon text-white hover:bg-lagoon-dark shadow-xs'
-                    : 'bg-ink/10 text-ink/30 cursor-not-allowed'
+                    ? 'bg-[var(--color-accent)] text-white hover:opacity-90 shadow-xs'
+                    : 'bg-[var(--color-border)] text-[var(--color-text-muted)] cursor-not-allowed'
                 }`}
               >
                 <Send className="h-3.5 w-3.5" />
