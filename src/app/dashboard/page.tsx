@@ -113,6 +113,36 @@ export default function Dashboard() {
 
     fetchTeachers();
   }, []);
+
+  // Supabase Realtime Broadcast for E2E Testing
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase.channel('skillswap-events');
+
+    channel
+      .on('broadcast', { event: 'new_offer' }, (payload) => {
+        setOffers((prev) => {
+          if (prev.some(o => o.id === payload.payload.offer.id)) return prev;
+          return [payload.payload.offer, ...prev];
+        });
+        setSessions((prev) => {
+          const incomingSessions = payload.payload.sessions;
+          const newSessions = incomingSessions.filter((s: SessionLeg) => !prev.some(ps => ps.id === s.id));
+          return [...newSessions, ...prev];
+        });
+      })
+      .on('broadcast', { event: 'new_message' }, (payload) => {
+        setChatMessages((prev) => {
+          if (prev.some(m => m.id === payload.payload.message.id)) return prev;
+          return [...prev, payload.payload.message];
+        });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
   const [wallet, setWallet] = useState<Wallet>(INITIAL_WALLET);
   const [offers, setOffers] = useState<Offer[]>(INITIAL_OFFERS);
   const [sessions, setSessions] = useState<SessionLeg[]>(INITIAL_SESSIONS);
@@ -434,6 +464,15 @@ export default function Dashboard() {
 
     setOffers(prev => [newOffer, ...prev]);
     setSessions(prev => [...newSessions, ...prev]);
+    
+    // Broadcast the new offer to other users
+    const supabase = createClient();
+    supabase.channel('skillswap-events').send({
+      type: 'broadcast',
+      event: 'new_offer',
+      payload: { offer: newOffer, sessions: newSessions },
+    });
+
     setSelectedMatchForModal(null);
     setActiveTab('sessions');
   };
@@ -559,6 +598,13 @@ export default function Dashboard() {
       metadata,
     };
     setChatMessages(prev => [...prev, newMsg]);
+
+    const supabase = createClient();
+    supabase.channel('skillswap-events').send({
+      type: 'broadcast',
+      event: 'new_message',
+      payload: { message: newMsg },
+    });
   };
 
   const handleAcceptProposedTime = (messageId: string, meetLink: string) => {
@@ -573,6 +619,13 @@ export default function Dashboard() {
       metadata: { meetLink },
     };
     setChatMessages(prev => [...prev, confirmMsg]);
+
+    const supabase = createClient();
+    supabase.channel('skillswap-events').send({
+      type: 'broadcast',
+      event: 'new_message',
+      payload: { message: confirmMsg },
+    });
   };
 
   if (!isReady || !authProfile) {
