@@ -49,8 +49,9 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
     
-    // Check if user has admin role in their user_metadata
-    if (user.user_metadata?.role !== 'admin') {
+    // Check if user has admin role or matches primary admin email
+    const isAdmin = user.user_metadata?.role === 'admin' || user.email === 'elanghovansabareesh0921@gmail.com';
+    if (!isAdmin) {
       const url = request.nextUrl.clone();
       url.pathname = '/';
       return NextResponse.redirect(url);

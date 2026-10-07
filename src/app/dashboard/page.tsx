@@ -147,18 +147,79 @@ export default function Dashboard() {
 
   // Authenticate and fetch onboarding profile
   useEffect(() => {
-    const session = getSession();
-    if (!session) {
-      router.replace('/login');
-      return;
-    }
-    const profile = getProfile();
-    if (!profile) {
-      router.replace('/onboarding');
-      return;
-    }
-    setAuthProfile(profile);
-    setIsReady(true);
+    const initAuth = async () => {
+      let session = getSession();
+      const supabase = createClient();
+
+      if (!session) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            session = { email: user.email || '', provider: 'google' };
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('ss_session', JSON.stringify(session));
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      if (!session) {
+        router.replace('/login');
+        return;
+      }
+
+      let profile = getProfile();
+      if (!profile) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: dbProfile } = await supabase
+              .from('profiles')
+              .select('*, user_skills (*, skills (*))')
+              .eq('id', user.id)
+              .single();
+
+            if (dbProfile && dbProfile.is_onboarded) {
+              const teachSkills = (dbProfile.user_skills || [])
+                .filter((s: any) => s.skill_type === 'TEACH')
+                .map((s: any) => s.skills?.name || 'Skill');
+              const learnSkills = (dbProfile.user_skills || [])
+                .filter((s: any) => s.skill_type === 'LEARN')
+                .map((s: any) => s.skills?.name || 'Skill');
+
+              profile = {
+                name: dbProfile.full_name || 'Member',
+                avatar: dbProfile.avatar_url || '',
+                sex: 'other',
+                dob: '1998-01-01',
+                teach: teachSkills,
+                noTeach: teachSkills.length === 0,
+                learn: learnSkills,
+                bio: dbProfile.bio || '',
+                city: dbProfile.city || '',
+                country: dbProfile.country || '',
+                timezone: dbProfile.timezone || 'Asia/Kolkata',
+                languages: dbProfile.languages || ['English'],
+              };
+              saveProfile(profile);
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      if (!profile) {
+        router.replace('/onboarding');
+        return;
+      }
+      setAuthProfile(profile);
+      setIsReady(true);
+    };
+
+    initAuth();
   }, [router]);
 
   // Bridge AuthProfile into the platform Profile type

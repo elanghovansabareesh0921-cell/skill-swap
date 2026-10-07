@@ -5,7 +5,13 @@ export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerM
   const matches: PeerMatch[] = [];
 
   for (const teacher of teachers) {
-    if (teacher.id === learner.id || !teacher.isAcceptingRequests) {
+    if (
+      teacher.id === learner.id ||
+      (teacher.email && learner.email && teacher.email.toLowerCase() === learner.email.toLowerCase()) ||
+      !teacher.isAcceptingRequests ||
+      !teacher.teachSkills ||
+      teacher.teachSkills.length === 0
+    ) {
       continue;
     }
 
@@ -36,6 +42,10 @@ export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerM
     if (!matchedTeachSkill) {
       // If no direct skill match, pick their top primary skill for exploratory discovery
       matchedTeachSkill = teacher.teachSkills[0];
+    }
+
+    if (!matchedTeachSkill) {
+      continue;
     }
 
     // 3. Reverse fit: Does teacher want to learn something learner can teach? (SWAP POTENTIAL)
@@ -92,8 +102,8 @@ export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerM
     score = Math.min(99, score);
 
     // 6. Pricing comparison
-    const defaultDuration = matchedTeachSkill.allowedDurations[0] || 60;
-    const directPrice = Math.round((matchedTeachSkill.hourlyRate * defaultDuration) / 60);
+    const defaultDuration = matchedTeachSkill.allowedDurations?.[0] || 60;
+    const directPrice = Math.round(((matchedTeachSkill.hourlyRate || 50) * defaultDuration) / 60);
 
     let swapPriceTokens: number | undefined = undefined;
     let swapSavingsPct: number | undefined = undefined;

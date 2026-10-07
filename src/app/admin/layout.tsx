@@ -74,13 +74,14 @@ export default async function AdminLayout({
           <div className="flex items-center md:hidden">
             <span className="font-display font-extrabold text-lg text-ink">AdminPanel</span>
           </div>
-          
           <div className="ml-auto flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 mr-4 border-r border-ink/10 pr-4">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-xs font-mono font-bold text-ink/60 uppercase tracking-wider">System Operational</span>
-            </div>
-            
+            <Link
+              href="/dashboard"
+              className="text-xs font-semibold text-ink/70 hover:text-ink px-3 py-1.5 rounded-full border border-ink/15 hover:bg-ink/5 transition-colors mr-2"
+            >
+              ← Return to Dashboard
+            </Link>
+
             <form action={handleLogout}>
               <button 
                 type="submit" 

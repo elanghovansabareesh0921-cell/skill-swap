@@ -62,7 +62,16 @@ export const saveProfile = async (p: Profile) => {
   }
 };
 export const signOut = () => {
-  if (typeof window !== "undefined") localStorage.removeItem("ss_session");
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("ss_session");
+    localStorage.removeItem("ss_profile");
+  }
+  try {
+    const supabase = createClient();
+    supabase.auth.signOut();
+  } catch (err) {
+    console.error('Sign out error', err);
+  }
 };
 
 const start = async (s: Session) => {

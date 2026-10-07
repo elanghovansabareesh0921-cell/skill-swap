@@ -36,6 +36,7 @@ import {
   DEFAULT_DEMO_PROFILE,
   Profile as AuthProfile
 } from '@/lib/auth';
+import { createClient } from '@/lib/supabase/client';
 import { SKILLS } from '@/lib/skills';
 
 // Curated avatar presets with high resolution and diverse styles
@@ -149,25 +150,85 @@ export default function ProfilePage() {
 
   // Load profile on mount
   useEffect(() => {
-    const session = getSession();
-    if (!session) {
-      router.replace('/login');
-      return;
-    }
+    const initProfile = async () => {
+      let session = getSession();
+      const supabase = createClient();
 
-    const saved = getProfile();
-    if (saved) {
-      setProfile({
-        ...DEFAULT_DEMO_PROFILE,
-        ...saved,
-      });
-      if (saved.avatar) {
-        setCustomAvatarUrl(saved.avatar);
+      if (!session) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            session = { email: user.email || '', provider: 'google' };
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('ss_session', JSON.stringify(session));
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
       }
-    } else {
-      setProfile(DEFAULT_DEMO_PROFILE);
-    }
-    setLoading(false);
+
+      if (!session) {
+        router.replace('/login');
+        return;
+      }
+
+      let saved = getProfile();
+      if (!saved) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: dbProfile } = await supabase
+              .from('profiles')
+              .select('*, user_skills (*, skills (*))')
+              .eq('id', user.id)
+              .single();
+
+            if (dbProfile) {
+              const teachSkills = (dbProfile.user_skills || [])
+                .filter((s: any) => s.skill_type === 'TEACH')
+                .map((s: any) => s.skills?.name || 'Skill');
+              const learnSkills = (dbProfile.user_skills || [])
+                .filter((s: any) => s.skill_type === 'LEARN')
+                .map((s: any) => s.skills?.name || 'Skill');
+
+              saved = {
+                name: dbProfile.full_name || 'Member',
+                avatar: dbProfile.avatar_url || '',
+                sex: 'other',
+                dob: '1998-01-01',
+                teach: teachSkills,
+                noTeach: teachSkills.length === 0,
+                learn: learnSkills,
+                bio: dbProfile.bio || '',
+                city: dbProfile.city || '',
+                country: dbProfile.country || '',
+                timezone: dbProfile.timezone || 'Asia/Kolkata',
+                languages: dbProfile.languages || ['English'],
+              };
+              saveProfile(saved);
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      if (saved) {
+        setProfile({
+          ...DEFAULT_DEMO_PROFILE,
+          ...saved,
+        });
+        if (saved.avatar) {
+          setCustomAvatarUrl(saved.avatar);
+        }
+      } else {
+        setProfile(DEFAULT_DEMO_PROFILE);
+      }
+      setLoading(false);
+    };
+
+    initProfile();
   }, [router]);
 
   // Update field helper

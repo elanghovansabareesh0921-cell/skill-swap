@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SkillPicker from '@/components/SkillPicker';
 import { getSession, saveProfile, type Profile } from '@/lib/auth';
+import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, ArrowRight, ArrowRightLeft, Sparkles, Upload, User } from 'lucide-react';
 
 const fieldClass =
@@ -60,8 +61,28 @@ export default function Onboarding() {
   });
 
   useEffect(() => {
-    if (!getSession()) router.replace('/login');
-    else setReady(true);
+    const checkSession = async () => {
+      let session = getSession();
+      if (!session) {
+        try {
+          const supabase = createClient();
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            session = { email: user.email || '', provider: 'google' };
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('ss_session', JSON.stringify(session));
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      if (!session) router.replace('/login');
+      else setReady(true);
+    };
+
+    checkSession();
   }, [router]);
 
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) =>
@@ -100,7 +121,7 @@ export default function Onboarding() {
     return '';
   }
 
-  function next() {
+  async function next() {
     const e = validate();
     setErr(e);
     if (e) return;
@@ -117,7 +138,7 @@ export default function Onboarding() {
     }
     
     // Final save
-    saveProfile({ ...f, name: f.name.trim() });
+    await saveProfile({ ...f, name: f.name.trim() });
     router.push('/dashboard');
   }
 
