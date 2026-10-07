@@ -11,7 +11,7 @@ const mockUsers = [
     role: 'Admin',
     status: 'Active',
     joinedDate: 'Oct 12, 2023',
-    avatar: '/avatars/real_avatar_1.jpg'
+    avatar: '/avatars/avatar_1.jpg'
   },
   {
     id: 'usr_2',
@@ -19,7 +19,7 @@ const mockUsers = [
     role: 'User',
     status: 'Active',
     joinedDate: 'Jan 05, 2024',
-    avatar: '/avatars/real_avatar_2.jpg'
+    avatar: '/avatars/avatar_2.jpg'
   },
   {
     id: 'usr_3',
@@ -27,7 +27,7 @@ const mockUsers = [
     role: 'User',
     status: 'Suspended',
     joinedDate: 'Mar 15, 2024',
-    avatar: '/avatars/real_avatar_3.jpg'
+    avatar: '/avatars/avatar_3.jpg'
   },
   {
     id: 'usr_4',
@@ -35,7 +35,7 @@ const mockUsers = [
     role: 'User',
     status: 'Active',
     joinedDate: 'Apr 22, 2024',
-    avatar: '/avatars/real_avatar_4.jpg'
+    avatar: '/avatars/avatar_4.jpg'
   },
 ];
 

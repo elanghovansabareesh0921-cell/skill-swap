@@ -41,14 +41,24 @@ import { SKILLS } from '@/lib/skills';
 
 // Curated avatar presets with high resolution and diverse styles
 const AVATAR_PRESETS = [
-  { name: 'Custom Avatar 1', url: '/avatars/real_avatar_1.jpg' },
-  { name: 'Custom Avatar 2', url: '/avatars/real_avatar_2.jpg' },
-  { name: 'Custom Avatar 3', url: '/avatars/real_avatar_3.jpg' },
-  { name: 'Custom Avatar 4', url: '/avatars/real_avatar_4.jpg' },
-  { name: 'Custom Avatar 5', url: '/avatars/real_avatar_5.jpg' },
-  { name: 'Custom Avatar 6', url: '/avatars/real_avatar_6.jpg' },
-  { name: 'Custom Avatar 7', url: '/avatars/real_avatar_7.jpg' },
-  { name: 'Custom Avatar 8', url: '/avatars/real_avatar_8.jpg' },
+  { name: 'Custom Avatar 1', url: '/avatars/avatar_1.jpg' },
+  { name: 'Custom Avatar 2', url: '/avatars/avatar_2.jpg' },
+  { name: 'Custom Avatar 3', url: '/avatars/avatar_3.jpg' },
+  { name: 'Custom Avatar 4', url: '/avatars/avatar_4.jpg' },
+  { name: 'Custom Avatar 5', url: '/avatars/avatar_5.jpg' },
+  { name: 'Custom Avatar 6', url: '/avatars/avatar_6.jpg' },
+  { name: 'Custom Avatar 7', url: '/avatars/avatar_7.jpg' },
+  { name: 'Custom Avatar 8', url: '/avatars/avatar_8.jpg' },
+  { name: 'Custom Avatar 9', url: '/avatars/avatar_9.jpg' },
+  { name: 'Custom Avatar 10', url: '/avatars/avatar_10.jpg' },
+  { name: 'Custom Avatar 11', url: '/avatars/avatar_11.jpg' },
+  { name: 'Custom Avatar 12', url: '/avatars/avatar_12.jpg' },
+  { name: 'Custom Avatar 13', url: '/avatars/avatar_13.jpg' },
+  { name: 'Custom Avatar 14', url: '/avatars/avatar_14.jpg' },
+  { name: 'Custom Avatar 15', url: '/avatars/avatar_15.jpg' },
+  { name: 'Custom Avatar 16', url: '/avatars/avatar_16.jpg' },
+  { name: 'Custom Avatar 17', url: '/avatars/avatar_17.jpg' },
+  { name: 'Custom Avatar 18', url: '/avatars/avatar_18.jpg' },
 ];
 
 const TIMEZONE_OPTIONS = [
@@ -247,8 +257,8 @@ export default function ProfilePage() {
   };
 
   const handleGenerateRandomAvatar = () => {
-    const randomIndex = Math.floor(Math.random() * 8) + 1;
-    const generated = `/avatars/real_avatar_${randomIndex}.jpg`;
+    const randomIndex = Math.floor(Math.random() * 18) + 1;
+    const generated = `/avatars/avatar_${randomIndex}.jpg`;
     updateField('avatar', generated);
     setAvatarError('');
   };

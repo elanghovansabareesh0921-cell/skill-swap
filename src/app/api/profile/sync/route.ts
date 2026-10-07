@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
         id: userId,
         email: email,
         full_name: profile.name || email.split('@')[0],
-        avatar_url: profile.avatar || '/avatars/real_avatar_2.jpg',
+        avatar_url: profile.avatar || '/avatars/avatar_2.jpg',
         bio: profile.bio || profile.headline || 'SkillSwap Member',
         languages: profile.languages && profile.languages.length > 0 ? profile.languages : ['English'],
         city: profile.city || 'Global',

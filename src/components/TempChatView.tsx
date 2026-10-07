@@ -91,7 +91,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
         <div className="flex items-center gap-3.5">
           <div className="relative">
             <img
-              src="/avatars/real_avatar_8.jpg"
+              src="/avatars/avatar_8.jpg"
               alt="Ravi Kumar"
               className="h-10 w-10 rounded-2xl object-cover border border-ink/10 shadow-xs"
             />

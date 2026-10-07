@@ -81,7 +81,7 @@ const start = async (s: Session) => {
 
 export const DEFAULT_DEMO_PROFILE: Profile = {
   name: 'Alex Chen',
-  avatar: '/avatars/real_avatar_1.jpg',
+  avatar: '/avatars/avatar_1.jpg',
   sex: 'other',
   dob: '1998-05-15',
   teach: ['Full-Stack Web Dev', 'UI/UX Design'],

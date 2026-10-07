@@ -184,7 +184,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-3 text-left hover:opacity-80 transition-opacity cursor-pointer overflow-hidden"
             >
               <img
-                src={currentUser.avatarUrl || '/avatars/real_avatar_6.jpg'}
+                src={currentUser.avatarUrl || '/avatars/avatar_6.jpg'}
                 alt={currentUser.fullName}
                 className="h-8 w-8 rounded-full object-cover shrink-0 border border-[var(--color-border)]"
               />
@@ -238,7 +238,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="h-8 w-8 rounded-full overflow-hidden border border-[var(--color-border)] cursor-pointer hover:ring-2 ring-[var(--color-accent)] transition-all"
             >
               <img
-                src={currentUser.avatarUrl || '/avatars/real_avatar_7.jpg'}
+                src={currentUser.avatarUrl || '/avatars/avatar_7.jpg'}
                 alt={currentUser.fullName}
                 className="h-full w-full object-cover"
               />
