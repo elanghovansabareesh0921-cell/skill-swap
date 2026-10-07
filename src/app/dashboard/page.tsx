@@ -324,7 +324,7 @@ export default function Dashboard() {
       city: authProfile.city || 'Bengaluru',
       country: authProfile.country || 'IN',
       timezone: authProfile.timezone || 'Asia/Kolkata',
-      languages: authProfile.languages || ['English', 'Hindi'],
+      languages: authProfile.languages && authProfile.languages.length > 0 ? authProfile.languages : ['English'],
       phoneVerified: true,
       isOnboarded: true,
       isAcceptingRequests: authProfile.isAcceptingRequests !== undefined ? authProfile.isAcceptingRequests : true,

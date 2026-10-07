@@ -16,8 +16,10 @@ export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerM
     }
 
     // 1. Language intersection check (Hard filter: >= 1 common language)
-    const commonLanguages = learner.languages.filter(lang =>
-      teacher.languages.includes(lang)
+    const learnerLangs = learner.languages && learner.languages.length > 0 ? learner.languages : ['English'];
+    const teacherLangs = teacher.languages && teacher.languages.length > 0 ? teacher.languages : ['English'];
+    const commonLanguages = learnerLangs.filter(lang =>
+      teacherLangs.includes(lang)
     );
     if (commonLanguages.length === 0) {
       continue;
