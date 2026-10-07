@@ -140,7 +140,21 @@ export const signInWithProvider = async (p: "google" | "github", nextUrl?: strin
   return { isOAuth: true };
 };
 
-export const signInWithEmail = async (email: string, _password: string) => {
+export const signInWithEmail = async (email: string, password: string) => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (supabaseUrl) {
+    const supabase = createClient();
+    let res = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (res.error && (res.error.message.includes('Invalid login credentials') || res.error.status === 400)) {
+      res = await supabase.auth.signUp({ email, password });
+    }
+    
+    if (res.error) {
+      console.warn('Supabase Email Auth failed, falling back to mock:', res.error);
+    }
+  }
+  
   await start({ email, provider: "email" });
   return { isOAuth: false };
 };
