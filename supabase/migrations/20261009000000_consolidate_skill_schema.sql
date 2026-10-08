@@ -27,6 +27,9 @@ BEGIN
     SELECT 1 FROM information_schema.columns
     WHERE table_schema = 'public' AND table_name = 'sessions' AND column_name = 'requester_id'
   ) THEN
+    IF EXISTS (SELECT 1 FROM public.sessions) THEN
+      RAISE EXCEPTION 'Legacy sessions contain rows and require an explicit value-preserving conversion';
+    END IF;
     ALTER TABLE public.sessions RENAME TO legacy_sessions;
   END IF;
 
@@ -34,6 +37,9 @@ BEGIN
     SELECT 1 FROM information_schema.columns
     WHERE table_schema = 'public' AND table_name = 'reviews' AND column_name = 'comment'
   ) THEN
+    IF EXISTS (SELECT 1 FROM public.reviews) THEN
+      RAISE EXCEPTION 'Legacy reviews contain rows and require an explicit value-preserving conversion';
+    END IF;
     ALTER TABLE public.reviews RENAME TO legacy_reviews;
   END IF;
 END;
@@ -177,6 +183,36 @@ WHERE NULLIF(trim(skill_name), '') IS NOT NULL
     SELECT 1 FROM public.user_skills_learn AS existing
     WHERE existing.user_id = profile.id AND existing.skill_id = taxonomy.id
   );
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM public.user_skills AS legacy
+    JOIN public.skills AS source_skill ON source_skill.id = legacy.skill_id
+    LEFT JOIN public.skill_taxonomy AS taxonomy ON lower(taxonomy.name) = lower(source_skill.name)
+    WHERE taxonomy.id IS NULL
+  ) THEN
+    RAISE EXCEPTION 'Some legacy user skills could not be mapped to the canonical taxonomy';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM public.profiles AS profile
+    CROSS JOIN LATERAL unnest(COALESCE(profile.skills_teach, ARRAY[]::TEXT[])) AS skill_name
+    LEFT JOIN public.skill_taxonomy AS taxonomy ON lower(taxonomy.name) = lower(trim(skill_name))
+    WHERE NULLIF(trim(skill_name), '') IS NOT NULL AND taxonomy.id IS NULL
+  ) OR EXISTS (
+    SELECT 1
+    FROM public.profiles AS profile
+    CROSS JOIN LATERAL unnest(COALESCE(profile.skills_learn, ARRAY[]::TEXT[])) AS skill_name
+    LEFT JOIN public.skill_taxonomy AS taxonomy ON lower(taxonomy.name) = lower(trim(skill_name))
+    WHERE NULLIF(trim(skill_name), '') IS NOT NULL AND taxonomy.id IS NULL
+  ) THEN
+    RAISE EXCEPTION 'Some legacy profile skill names could not be mapped to the canonical taxonomy';
+  END IF;
+END;
+$$;
 
 DROP TABLE public.user_skills;
 DROP TABLE public.skills;
