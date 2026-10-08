@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     // Wallets table doesn't exist, skipping wallet initialization
 
     // 2. Fetch all skills from taxonomy to map names to IDs
-    const { data: taxonomy, error: taxonomyError } = await supabaseAdmin.from('skills').select('*');
+    const { data: taxonomy, error: taxonomyError } = await supabaseAdmin.from('skill_taxonomy').select('*');
     if (taxonomyError || !taxonomy) {
       console.error('Taxonomy fetch error:', taxonomyError);
       return NextResponse.json({ error: 'Failed to fetch skills' }, { status: 500 });
@@ -44,7 +44,8 @@ export async function POST(req: NextRequest) {
     const nameToSkillMap = new Map(taxonomy.map(t => [t.name.toLowerCase().trim(), t]));
 
     // 3. Clear existing skills
-    await supabaseAdmin.from('user_skills').delete().eq('user_id', userId);
+    await supabaseAdmin.from('user_skills_teach').delete().eq('user_id', userId);
+    await supabaseAdmin.from('user_skills_learn').delete().eq('user_id', userId);
 
     // 4. Insert Teach Skills
     if (profile.teach && profile.teach.length > 0 && !profile.noTeach) {
@@ -55,9 +56,9 @@ export async function POST(req: NextRequest) {
         
         // If skill doesn't exist, create it dynamically
         if (!skill) {
-          const { data: newSkill, error: insertError } = await supabaseAdmin
-            .from('skills')
-            .insert({ name: cleanName, category: 'Other' })
+          const { data: newSkill } = await supabaseAdmin
+            .from('skill_taxonomy')
+            .insert({ name: cleanName, category: 'Other', min_hourly_rate: 20, max_hourly_rate: 1000 })
             .select()
             .single();
             
@@ -71,15 +72,15 @@ export async function POST(req: NextRequest) {
           teachInserts.push({
             user_id: userId,
             skill_id: skill.id,
-            skill_type: 'TEACH',
-            level: 'Advanced',
-            goal: ''
+            level: 'advanced',
+            hourly_rate: 50,
+            years_experience: 2
           });
         }
       }
       
       if (teachInserts.length > 0) {
-        await supabaseAdmin.from('user_skills').insert(teachInserts);
+        await supabaseAdmin.from('user_skills_teach').insert(teachInserts);
       }
     }
 
@@ -92,8 +93,8 @@ export async function POST(req: NextRequest) {
         
         if (!skill) {
           const { data: newSkill } = await supabaseAdmin
-            .from('skills')
-            .insert({ name: cleanName, category: 'Other' })
+            .from('skill_taxonomy')
+            .insert({ name: cleanName, category: 'Other', min_hourly_rate: 20, max_hourly_rate: 1000 })
             .select()
             .single();
             
@@ -107,15 +108,14 @@ export async function POST(req: NextRequest) {
           learnInserts.push({
             user_id: userId,
             skill_id: skill.id,
-            skill_type: 'LEARN',
-            level: 'Beginner',
+            target_level: 'beginner',
             goal: 'Looking to learn ' + skill.name
           });
         }
       }
       
       if (learnInserts.length > 0) {
-        await supabaseAdmin.from('user_skills').insert(learnInserts);
+        await supabaseAdmin.from('user_skills_learn').insert(learnInserts);
       }
     }
 

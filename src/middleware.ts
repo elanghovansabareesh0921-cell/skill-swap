@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { isUserAdmin } from '@/lib/admin/roles';
+
 export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -40,20 +42,39 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const pathname = request.nextUrl.pathname;
+
   // Protect /admin routes
-  if (request.nextUrl.pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/admin')) {
+    const isAdmin = isUserAdmin(user);
+
+    // If accessing the admin login page
+    if (pathname === '/admin/login') {
+      // If user is already logged in AND is an admin, redirect them straight to admin swaps
+      if (isAdmin) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/admin/swaps';
+        url.search = '';
+        return NextResponse.redirect(url);
+      }
+      // Otherwise allow them to view the admin login page
+      return supabaseResponse;
+    }
+
+    // For all protected /admin routes:
     if (!user) {
-      // Redirect to home if not logged in
+      // Unauthenticated -> redirect to admin login
       const url = request.nextUrl.clone();
-      url.pathname = '/';
+      url.pathname = '/admin/login';
+      url.searchParams.set('returnTo', pathname);
       return NextResponse.redirect(url);
     }
-    
-    // Check if user has admin role or matches primary admin email
-    const isAdmin = user.user_metadata?.role === 'admin' || user.email === 'elanghovansabareesh0921@gmail.com';
+
     if (!isAdmin) {
+      // Authenticated but not an admin -> redirect to admin login with error notice
       const url = request.nextUrl.clone();
-      url.pathname = '/';
+      url.pathname = '/admin/login';
+      url.searchParams.set('error', 'unauthorized');
       return NextResponse.redirect(url);
     }
   }

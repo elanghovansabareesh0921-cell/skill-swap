@@ -150,17 +150,15 @@ export default function ProfilePage() {
           if (user) {
             const { data: dbProfile } = await supabase
               .from('profiles')
-              .select('*, user_skills (*, skills (*))')
+              .select('*, user_skills_teach (*, skill_taxonomy (*)), user_skills_learn (*, skill_taxonomy (*))')
               .eq('id', user.id)
               .single();
 
             if (dbProfile) {
-              const teachSkills = (dbProfile.user_skills || [])
-                .filter((s: any) => s.skill_type === 'TEACH')
-                .map((s: any) => s.skills?.name || 'Skill');
-              const learnSkills = (dbProfile.user_skills || [])
-                .filter((s: any) => s.skill_type === 'LEARN')
-                .map((s: any) => s.skills?.name || 'Skill');
+              const teachSkills = (dbProfile.user_skills_teach || [])
+                .map((s: any) => s.skill_taxonomy?.name || 'Skill');
+              const learnSkills = (dbProfile.user_skills_learn || [])
+                .map((s: any) => s.skill_taxonomy?.name || 'Skill');
 
               saved = {
                 name: dbProfile.full_name || 'Member',

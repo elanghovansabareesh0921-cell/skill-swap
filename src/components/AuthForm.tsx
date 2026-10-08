@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FcGoogle } from 'react-icons/fc';
 import { ArrowRightLeft, ShieldCheck, Lock, Sparkles, CheckCircle } from 'lucide-react';
-import { getProfile, saveProfile, signInWithEmail, signInWithProvider, DEFAULT_DEMO_PROFILE } from '@/lib/auth';
+import { getProfile, saveProfile, signInWithEmail, signUpWithEmail, signInWithProvider, DEFAULT_DEMO_PROFILE } from '@/lib/auth';
 
 const fieldClass =
   'mt-1.5 w-full rounded-2xl border border-ink/15 bg-mist-pure px-4 py-3 text-sm text-ink outline-none transition-all placeholder:text-ink-muted/50 focus:border-lagoon focus:ring-4 focus:ring-lagoon/10 shadow-sm dark:bg-mist-subtle dark:border-white/15 dark:placeholder:text-ink-muted/40';
@@ -52,7 +52,11 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
     if (signup && typeof window !== 'undefined') {
       localStorage.removeItem('ss_profile');
     }
-    run(() => signInWithEmail(String(f.get('email')), password));
+    if (signup) {
+      run(() => signUpWithEmail(String(f.get('email')), password));
+    } else {
+      run(() => signInWithEmail(String(f.get('email')), password));
+    }
   }
 
   return (

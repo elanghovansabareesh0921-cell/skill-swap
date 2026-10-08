@@ -54,7 +54,8 @@ export default function Dashboard() {
         .from('profiles')
         .select(`
           *,
-          user_skills (*, skills (*))
+          user_skills_teach (*, skill_taxonomy (*)),
+          user_skills_learn (*, skill_taxonomy (*))
         `);
 
       if (error || !data) {
@@ -64,8 +65,8 @@ export default function Dashboard() {
       }
 
       const realTeachers: Profile[] = data.map((p: any) => {
-        const teachSkills = (p.user_skills || []).filter((s: any) => s.skill_type === 'TEACH');
-        const learnSkills = (p.user_skills || []).filter((s: any) => s.skill_type === 'LEARN');
+        const teachSkills = p.user_skills_teach || [];
+        const learnSkills = p.user_skills_learn || [];
 
         return {
           id: p.id,
@@ -88,19 +89,19 @@ export default function Dashboard() {
           },
           teachSkills: teachSkills.map((t: any) => ({
             skillId: t.skill_id,
-            skillName: t.skills?.name || 'Unknown Skill',
-            category: t.skills?.category || 'Software & Tech',
+            skillName: t.skill_taxonomy?.name || 'Unknown Skill',
+            category: t.skill_taxonomy?.category || 'Software & Tech',
             level: t.level || 'expert',
-            yearsExperience: 2,
-            hourlyRate: 50,
-            allowedDurations: [30, 60],
-            isVerified: true
+            yearsExperience: Number(t.years_experience) || 2,
+            hourlyRate: Number(t.hourly_rate) || 50,
+            allowedDurations: t.allowed_durations || [30, 60],
+            isVerified: !!t.is_verified
           })),
           learnSkills: learnSkills.map((l: any) => ({
             skillId: l.skill_id,
-            skillName: l.skills?.name || 'Unknown Skill',
-            category: l.skills?.category || 'Software & Tech',
-            targetLevel: l.level || 'intermediate',
+            skillName: l.skill_taxonomy?.name || 'Unknown Skill',
+            category: l.skill_taxonomy?.category || 'Software & Tech',
+            targetLevel: l.target_level || 'intermediate',
             goal: l.goal || ''
           }))
         };
@@ -207,17 +208,15 @@ export default function Dashboard() {
           if (user) {
             const { data: dbProfile } = await supabase
               .from('profiles')
-              .select('*, user_skills (*, skills (*))')
+              .select('*, user_skills_teach (*, skill_taxonomy (*)), user_skills_learn (*, skill_taxonomy (*))')
               .eq('id', user.id)
               .single();
 
             if (dbProfile && dbProfile.is_onboarded) {
-              const teachSkills = (dbProfile.user_skills || [])
-                .filter((s: any) => s.skill_type === 'TEACH')
-                .map((s: any) => s.skills?.name || 'Skill');
-              const learnSkills = (dbProfile.user_skills || [])
-                .filter((s: any) => s.skill_type === 'LEARN')
-                .map((s: any) => s.skills?.name || 'Skill');
+              const teachSkills = (dbProfile.user_skills_teach || [])
+                .map((s: any) => s.skill_taxonomy?.name || 'Skill');
+              const learnSkills = (dbProfile.user_skills_learn || [])
+                .map((s: any) => s.skill_taxonomy?.name || 'Skill');
 
               profile = {
                 name: dbProfile.full_name || 'Member',
