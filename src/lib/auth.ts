@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/client';
 
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+
 export type Profile = {
   name: string;
   avatar: string;
@@ -44,46 +46,23 @@ const read = <T>(k: string): T | null => {
   }
 };
 
-export const getSession = () => read<Session>("ss_session");
-export const getProfile = () => read<Profile>("ss_profile");
+export const getSession = () => DEMO_MODE ? read<Session>("ss_session") : null;
+export const getProfile = () => DEMO_MODE ? read<Profile>("ss_profile") : null;
 export const saveProfile = async (p: Profile) => {
-  if (typeof window !== "undefined") localStorage.setItem("ss_profile", JSON.stringify(p));
+  if (DEMO_MODE && typeof window !== "undefined") localStorage.setItem("ss_profile", JSON.stringify(p));
 
-  // Sync to Supabase in the background
-  try {
-    const supabase = createClient();
-    let userId: string | null = null;
-    let email: string | null = null;
+  const supabase = createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('Sign in before saving your profile.');
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        userId = user.id;
-        email = user.email || null;
-      }
-    } catch {
-      // ignore
-    }
-
-    if (!userId || !email) {
-      const sess = getSession();
-      if (sess) {
-        userId = sess.userId || (sess as unknown as { user?: { id?: string } })?.user?.id || null;
-        email = sess.email || (sess as unknown as { user?: { email?: string } })?.user?.email || null;
-      }
-    }
-    
-    if (userId && email) {
-      await fetch('/api/profile/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          profile: p
-        })
-      });
-    }
-  } catch (err) {
-    console.error('Failed to sync profile to Supabase', err);
+  const response = await fetch('/api/profile/sync', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ profile: p }),
+  });
+  if (!response.ok) {
+    const result = await response.json().catch(() => null) as { error?: string } | null;
+    throw new Error(result?.error || 'Failed to save profile.');
   }
 };
 export const signOut = () => {
@@ -99,51 +78,12 @@ export const signOut = () => {
   }
 };
 
-const start = async (s: Session) => {
-  await new Promise((r) => setTimeout(r, 400));
-  if (typeof window !== "undefined") localStorage.setItem("ss_session", JSON.stringify(s));
-};
-
-export const DEFAULT_DEMO_PROFILE: Profile = {
-  name: 'Alex Chen',
-  avatar: '/avatars/avatar_1.jpg',
-  sex: 'other',
-  dob: '1998-05-15',
-  teach: ['Full-Stack Web Dev', 'UI/UX Design'],
-  noTeach: false,
-  learn: ['Python for Data Science', 'Machine Learning'],
-  headline: 'Full-Stack Engineer & Interaction Designer',
-  bio: 'Passionate about building intuitive software, teaching web architecture, and learning machine learning. 5+ years of production experience in React, Node, and TypeScript.',
-  city: 'Bengaluru',
-  country: 'IN',
-  timezone: 'Asia/Kolkata',
-  languages: ['English', 'Hindi'],
-  hourlyRate: 50,
-  experienceYears: 4,
-  isAcceptingRequests: true,
-  githubUrl: 'https://github.com/alexchen',
-  linkedinUrl: 'https://linkedin.com/in/alexchen',
-  websiteUrl: 'https://alexchen.dev',
-};
-
 // Uses Supabase Auth to handle Google/GitHub Login and GMeet scopes
 export const signInWithProvider = async (p: "google" | "github", nextUrl?: string) => {
-  // Maintain mock compatibility before redirect
-  if (typeof window !== "undefined") {
-    localStorage.setItem("ss_session", JSON.stringify({ email: `${p}-user@example.com`, provider: p }));
-    if (nextUrl === '/dashboard' && !getProfile()) {
-      saveProfile(DEFAULT_DEMO_PROFILE);
-    } else if (nextUrl === '/onboarding') {
-      localStorage.removeItem("ss_profile");
-    }
-  }
-
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!supabaseUrl || !supabaseAnonKey) {
-    // Graceful fallback for mock/demo mode when Supabase is not configured
-    await new Promise((r) => setTimeout(r, 400));
-    return { isOAuth: false };
+    throw new Error('Authentication service is not configured.');
   }
 
   const supabase = createClient();
@@ -167,26 +107,18 @@ export const signInWithProvider = async (p: "google" | "github", nextUrl?: strin
 
 export const signUpWithEmail = async (email: string, password: string) => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (supabaseUrl) {
-    const supabase = createClient();
-    const { error } = await supabase.auth.signUp({ email, password });
-    if (error) {
-      throw error;
-    }
-  }
-  await start({ email, provider: "email" });
-  return { isOAuth: false };
+  if (!supabaseUrl) throw new Error('Authentication service is not configured.');
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) throw error;
+  return { isOAuth: false, needsEmailConfirmation: !data.session };
 };
 
 export const signInWithEmail = async (email: string, password: string) => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (supabaseUrl) {
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      throw error;
-    }
-  }
-  await start({ email, provider: "email" });
+  if (!supabaseUrl) throw new Error('Authentication service is not configured.');
+  const supabase = createClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
   return { isOAuth: false };
 };

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import SkillPicker from '@/components/SkillPicker';
-import { getSession, saveProfile, type Profile } from '@/lib/auth';
+import { saveProfile, type Profile } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, ArrowRight, ArrowRightLeft, Sparkles, Upload, User } from 'lucide-react';
 
@@ -67,28 +67,21 @@ export default function Onboarding() {
   });
 
   useEffect(() => {
+    let cancelled = false;
     const checkSession = async () => {
-      let session = getSession();
-      if (!session) {
-        try {
-          const supabase = createClient();
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            session = { email: user.email || '', provider: 'google' };
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('ss_session', JSON.stringify(session));
-            }
-          }
-        } catch {
-          // ignore
-        }
+      try {
+        const supabase = createClient();
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (cancelled) return;
+        if (error || !user) router.replace('/login');
+        else setReady(true);
+      } catch {
+        if (!cancelled) router.replace('/login');
       }
-
-      if (!session) router.replace('/login');
-      else setReady(true);
     };
 
     checkSession();
+    return () => { cancelled = true; };
   }, [router]);
 
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) =>
@@ -165,8 +158,12 @@ export default function Onboarding() {
     }
     
     // Final save
-    await saveProfile({ ...f, name: f.name.trim() });
-    router.push('/dashboard');
+    try {
+      await saveProfile({ ...f, name: f.name.trim() });
+      router.replace('/dashboard');
+    } catch (error: unknown) {
+      setErr(error instanceof Error ? error.message : 'Unable to save your profile.');
+    }
   }
 
   if (!ready) return null;

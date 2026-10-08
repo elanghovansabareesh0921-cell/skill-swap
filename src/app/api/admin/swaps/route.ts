@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
-import { type SkillSwap, type SwapStatus, SWAP_STATUSES } from '@/lib/admin/mockSwaps';
+import { type SkillSwap, type SwapStatus, SWAP_STATUSES } from '@/lib/admin/swapTypes';
 
 /**
  * In-memory swap store (resets on server restart).
@@ -69,13 +69,13 @@ export async function GET(request: NextRequest) {
             id: s.id,
             requester: {
               name: s.learner?.full_name || 'Learner',
-              email: s.learner?.email || 'learner@example.com',
+              email: s.learner?.email || '',
               avatar: s.learner?.avatar_url || '/avatars/avatar_1.jpg',
             },
             skillOffered: 'Skill Points (Escrow)',
             provider: {
               name: s.teacher?.full_name || 'Teacher',
-              email: s.teacher?.email || 'teacher@example.com',
+              email: s.teacher?.email || '',
               avatar: s.teacher?.avatar_url || '/avatars/avatar_2.jpg',
             },
             skillRequested: s.skill_name || 'Skill Session',

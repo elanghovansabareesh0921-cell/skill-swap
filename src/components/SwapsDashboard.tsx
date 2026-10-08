@@ -15,7 +15,7 @@ import {
   Zap,
   Shield,
 } from 'lucide-react';
-import type { SkillSwap, SwapStatus } from '@/lib/admin/mockSwaps';
+import type { SkillSwap, SwapStatus } from '@/lib/admin/swapTypes';
 
 const STATUS_CONFIG: Record<
   SwapStatus,

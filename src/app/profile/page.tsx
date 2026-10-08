@@ -28,10 +28,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
-  getSession,
-  getProfile,
   saveProfile,
-  DEFAULT_DEMO_PROFILE,
   Profile as AuthProfile
 } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/client';
@@ -92,6 +89,18 @@ const TIME_SLOTS = [
   { key: 'evening', label: 'Evening (18:00 - 21:00)' },
 ];
 
+const EMPTY_PROFILE: AuthProfile = {
+  name: '',
+  avatar: '/avatars/avatar_1.jpg',
+  sex: '',
+  dob: '',
+  teach: [],
+  noTeach: true,
+  learn: [],
+  languages: [],
+  availability: {},
+};
+
 export default function ProfilePage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -102,9 +111,7 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<'profile' | 'skills' | 'availability' | 'social'>('profile');
 
   // Form State
-  const [profile, setProfile] = useState<AuthProfile>({
-    ...DEFAULT_DEMO_PROFILE,
-  });
+  const [profile, setProfile] = useState<AuthProfile>(EMPTY_PROFILE);
 
   // Avatar Editor State
   const [avatarMode, setAvatarMode] = useState<'presets' | 'upload' | 'url'>('presets');
@@ -117,102 +124,79 @@ export default function ProfilePage() {
   const [newLanguage, setNewLanguage] = useState('');
   const [skillSuggestions, setSkillSuggestions] = useState<string[]>([]);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch('/api/skills')
-      .then(async (response) => {
-        if (!response.ok) throw new Error('Skill taxonomy lookup failed');
-        return response.json() as Promise<{ skills: SkillItem[] }>;
-      })
-      .then(({ skills }) => {
-        if (!cancelled) setSkillSuggestions(skills.map((skill) => skill.name).slice(0, 8));
-      })
-      .catch((error: unknown) => console.error('Error fetching skill suggestions:', error));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   // Load profile on mount
   useEffect(() => {
     const initProfile = async () => {
-      let session = getSession();
       const supabase = createClient();
-
-      if (!session) {
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            session = { email: user.email || '', provider: 'google' };
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('ss_session', JSON.stringify(session));
-            }
-          }
-        } catch {
-          // ignore
-        }
-      }
-
-      if (!session) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
         router.replace('/login');
         return;
       }
 
-      let saved = getProfile();
-      if (!saved) {
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            const { data: dbProfile } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', user.id)
-              .single();
-
-            if (dbProfile) {
-              const [teachRes, learnRes] = await Promise.all([
-                supabase.from('user_skills_teach').select('skill_taxonomy(name)').eq('user_id', user.id),
-                supabase.from('user_skills_learn').select('skill_taxonomy(name)').eq('user_id', user.id),
-              ]);
-              const teachSkills = ((teachRes.data || []) as unknown as Array<{ skill_taxonomy: { name?: string } | null }>)
-                .map((skill) => skill.skill_taxonomy?.name || 'Skill');
-              const learnSkills = ((learnRes.data || []) as unknown as Array<{ skill_taxonomy: { name?: string } | null }>)
-                .map((skill) => skill.skill_taxonomy?.name || 'Skill');
-
-              saved = {
-                name: dbProfile.full_name || 'Member',
-                avatar: dbProfile.avatar_url || '',
-                sex: 'other',
-                dob: '1998-01-01',
-                teach: teachSkills,
-                noTeach: teachSkills.length === 0,
-                learn: learnSkills,
-                bio: dbProfile.bio || '',
-                city: dbProfile.city || '',
-                country: dbProfile.country || '',
-                timezone: dbProfile.timezone || 'Asia/Kolkata',
-                languages: dbProfile.languages || ['English'],
-                availability: dbProfile.availability || {},
-              };
-              saveProfile(saved);
-            }
-          }
-        } catch {
-          // ignore
-        }
+      const skillsResponse = await fetch('/api/skills');
+      if (skillsResponse.ok) {
+        const { skills } = await skillsResponse.json() as { skills: SkillItem[] };
+        setSkillSuggestions(skills.map((skill) => skill.name).slice(0, 8));
       }
 
-      if (saved) {
-        setProfile({
-          ...DEFAULT_DEMO_PROFILE,
-          ...saved,
-        });
-        if (saved.avatar) {
-          setCustomAvatarUrl(saved.avatar);
-        }
-      } else {
-        setProfile(DEFAULT_DEMO_PROFILE);
+      const { data: dbProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        setLoading(false);
+        return;
       }
+
+      if (!dbProfile || !dbProfile.is_onboarded) {
+        router.replace('/onboarding');
+        return;
+      }
+
+      const [teachRes, learnRes] = await Promise.all([
+        supabase.from('user_skills_teach').select('hourly_rate, years_experience, allowed_durations, level, skill_taxonomy(name)').eq('user_id', user.id),
+        supabase.from('user_skills_learn').select('target_level, skill_taxonomy(name)').eq('user_id', user.id),
+      ]);
+      const teachRows = (teachRes.data || []) as unknown as Array<{
+        hourly_rate: number;
+        years_experience: number | null;
+        allowed_durations: number[] | null;
+        level: AuthProfile['teachLevel'] | null;
+        skill_taxonomy: { name?: string } | null;
+      }>;
+      const learnRows = (learnRes.data || []) as unknown as Array<{
+        target_level: AuthProfile['learnLevel'] | null;
+        skill_taxonomy: { name?: string } | null;
+      }>;
+      const teachSkills = teachRows.map((skill) => skill.skill_taxonomy?.name || '').filter(Boolean);
+      const learnSkills = learnRows.map((skill) => skill.skill_taxonomy?.name || '').filter(Boolean);
+      const saved: AuthProfile = {
+        name: dbProfile.full_name || '',
+        avatar: dbProfile.avatar_url || '/avatars/avatar_1.jpg',
+        sex: '',
+        dob: '',
+        teach: teachSkills,
+        noTeach: teachSkills.length === 0,
+        learn: learnSkills,
+        bio: dbProfile.bio || '',
+        city: dbProfile.city || '',
+        country: dbProfile.country || '',
+        timezone: dbProfile.timezone || 'UTC',
+        languages: dbProfile.languages || [],
+        availability: dbProfile.availability || {},
+        hourlyRate: teachRows[0]?.hourly_rate,
+        experienceYears: teachRows[0]?.years_experience ?? undefined,
+        allowedDurations: teachRows[0]?.allowed_durations || undefined,
+        teachLevel: teachRows[0]?.level || undefined,
+        learnLevel: learnRows[0]?.target_level || undefined,
+        isAcceptingRequests: dbProfile.is_accepting_requests !== false,
+      };
+      setProfile(saved);
+      setCustomAvatarUrl(saved.avatar);
+      saveProfile(saved);
       setLoading(false);
     };
 
@@ -282,7 +266,7 @@ export default function ProfilePage() {
   };
 
   const handleResetAvatar = () => {
-    updateField('avatar', DEFAULT_DEMO_PROFILE.avatar);
+    updateField('avatar', '/avatars/avatar_1.jpg');
     setAvatarError('');
   };
 
@@ -354,7 +338,7 @@ export default function ProfilePage() {
     try {
       const updatedProfile = {
         ...profile,
-        name: profile.name.trim() || 'Alex Chen',
+        name: profile.name.trim(),
       };
       await saveProfile(updatedProfile);
       confetti({
@@ -453,7 +437,7 @@ export default function ProfilePage() {
             <div className="relative group">
               <div className="relative h-28 w-28 sm:h-32 sm:w-32 rounded-full overflow-hidden border-4 border-mist-pure shadow-xl ring-4 ring-lagoon/20 bg-mist">
                 <Image
-                  src={profile.avatar || DEFAULT_DEMO_PROFILE.avatar}
+                  src={profile.avatar || '/avatars/avatar_1.jpg'}
                   alt={profile.name}
                   width={128}
                   height={128}
@@ -576,7 +560,7 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-4 mb-6">
                   <div className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-ink/10 shadow-md flex-shrink-0 bg-mist">
                     <Image
-                      src={profile.avatar || DEFAULT_DEMO_PROFILE.avatar}
+                      src={profile.avatar || '/avatars/avatar_1.jpg'}
                       alt="Avatar Preview"
                       width={80}
                       height={80}
@@ -751,7 +735,7 @@ export default function ProfilePage() {
                       type="text"
                       value={profile.name}
                       onChange={e => updateField('name', e.target.value)}
-                      placeholder="e.g. Alex Chen"
+                      placeholder="Your name"
                       className="mt-1.5 w-full rounded-xl border border-ink/15 bg-mist-pure px-3.5 py-2.5 text-xs text-ink outline-none focus:border-lagoon focus:ring-2 focus:ring-lagoon/10 dark:bg-mist-subtle"
                     />
                   </div>
@@ -1249,8 +1233,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
-                const saved = getProfile();
-                if (saved) setProfile({ ...DEFAULT_DEMO_PROFILE, ...saved });
+                window.location.reload();
               }}
               className="rounded-xl border border-ink/15 px-4 py-2 text-xs font-bold text-ink/70 hover:bg-ink/5 transition-colors cursor-pointer"
             >

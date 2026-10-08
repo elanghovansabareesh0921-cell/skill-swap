@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getSession, signOut } from '@/lib/auth';
+import { createClient } from '@/lib/supabase/client';
 import { ArrowRight, Sparkles, ShieldCheck, Zap, ArrowRightLeft, Lock } from 'lucide-react';
 
 const steps = [
@@ -27,10 +28,15 @@ export default function Landing() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    const session = getSession();
-    if (session) {
-      queueMicrotask(() => setIsLoggedIn(true));
-    }
+    let cancelled = false;
+    const demoSession = getSession();
+    if (demoSession) queueMicrotask(() => { if (!cancelled) setIsLoggedIn(true); });
+    createClient().auth.getUser().then(({ data, error }) => {
+      if (!cancelled && !error && data.user) setIsLoggedIn(true);
+    }).catch(() => {
+      if (!cancelled) setIsLoggedIn(false);
+    });
+    return () => { cancelled = true; };
   }, []);
 
   return (

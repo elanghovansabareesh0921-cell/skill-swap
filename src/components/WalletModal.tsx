@@ -10,9 +10,10 @@ import {
   Receipt,
   Download
 } from 'lucide-react';
-import { Wallet, LedgerTransaction } from '@/types';
+import { Profile, Wallet, LedgerTransaction } from '@/types';
 
 interface WalletModalProps {
+  currentUser: Profile;
   wallet: Wallet;
   transactions: LedgerTransaction[];
   isOpen: boolean;
@@ -21,6 +22,7 @@ interface WalletModalProps {
 }
 
 export const WalletModal: React.FC<WalletModalProps> = ({
+  currentUser,
   wallet,
   transactions,
   isOpen,
@@ -118,8 +120,8 @@ export const WalletModal: React.FC<WalletModalProps> = ({
           },
         },
         prefill: {
-          name: "SkillSwap User",
-          email: "user@example.com",
+          name: currentUser.fullName,
+          email: currentUser.email,
         },
         theme: {
           color: "#0f766e",

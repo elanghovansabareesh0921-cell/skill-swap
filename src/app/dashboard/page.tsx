@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { getProfile, getSession, saveProfile, signOut, Profile as AuthProfile } from '@/lib/auth';
+import { getProfile, getSession, signOut, Profile as AuthProfile } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/client';
 import { Navbar } from '@/components/Navbar';
 import { EditSkillsModal } from '@/components/EditSkillsModal';
@@ -53,7 +53,8 @@ export default function Dashboard() {
   const router = useRouter();
   const [authProfile, setAuthProfile] = useState<AuthProfile | null>(null);
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
-  const [userId, setUserId] = useState<string>('usr-current');
+  const [userId, setUserId] = useState('');
+  const [authEmail, setAuthEmail] = useState('');
   const [isReady, setIsReady] = useState(false);
 
   // Global Platform State
@@ -109,7 +110,7 @@ export default function Dashboard() {
 
   // Synchronize live wallet balance and transactions from Supabase
   useEffect(() => {
-    if (!userId || userId === 'usr-current') return;
+    if (!userId) return;
 
     fetch('/api/wallet/balance')
       .then((res) => res.json())
@@ -144,6 +145,7 @@ export default function Dashboard() {
 
   // Fetch real peer profiles and canonical skill records from the server.
   useEffect(() => {
+    if (!isReady || !userId) return;
     let cancelled = false;
     fetch('/api/peers')
       .then(async (response) => {
@@ -157,7 +159,7 @@ export default function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isReady, userId]);
 
   // Supabase Realtime Broadcast for E2E Testing
   useEffect(() => {
@@ -192,32 +194,35 @@ export default function Dashboard() {
   // Authenticate and fetch onboarding profile
   useEffect(() => {
     const initAuth = async () => {
-      let session = getSession();
+      const session = DEMO_MODE ? getSession() : null;
       const supabase = createClient();
+      let authenticatedUserId: string | null = null;
 
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          authenticatedUserId = user.id;
           setUserId(user.id);
+          setAuthEmail(user.email || '');
           const adminResponse = await fetch('/api/admin/access');
           setHasAdminAccess(adminResponse.ok);
-          if (!session) {
-            session = { email: user.email || '', provider: 'google' };
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('ss_session', JSON.stringify(session));
-            }
-          }
         }
       } catch {
         // ignore
       }
 
-      if (!session) {
+      if (!authenticatedUserId && !DEMO_MODE) {
+        signOut();
         router.replace('/login');
         return;
       }
 
-      let profile = getProfile();
+      if (!authenticatedUserId && !session) {
+        router.replace('/login');
+        return;
+      }
+
+      let profile = DEMO_MODE ? getProfile() : null;
       if (!profile) {
         try {
           const { data: { user } } = await supabase.auth.getUser();
@@ -269,7 +274,6 @@ export default function Dashboard() {
                 teachLevel: teachRows[0]?.level || undefined,
                 learnLevel: learnRows[0]?.target_level || undefined,
               };
-              saveProfile(profile);
             }
           }
         } catch {
@@ -283,15 +287,16 @@ export default function Dashboard() {
       }
 
       try {
+        if (authenticatedUserId) {
         const { data: persistedProfile } = await supabase
           .from('profiles')
           .select('timezone, languages, availability')
-          .eq('id', userId)
+          .eq('id', authenticatedUserId)
           .maybeSingle();
         const { data: persistedTeachSkills } = await supabase
           .from('user_skills_teach')
           .select('level, hourly_rate, years_experience, allowed_durations')
-          .eq('user_id', userId)
+          .eq('user_id', authenticatedUserId)
           .order('created_at', { ascending: true })
           .limit(1);
         const persistedTeachSkill = persistedTeachSkills?.[0];
@@ -305,6 +310,7 @@ export default function Dashboard() {
           allowedDurations: persistedTeachSkill?.allowed_durations || profile.allowedDurations,
           teachLevel: persistedTeachSkill?.level || profile.teachLevel,
         };
+        }
       } catch {
         // Use the locally saved profile when persisted profile data is unavailable.
       }
@@ -320,10 +326,10 @@ export default function Dashboard() {
   const currentUser: Profile = useMemo(() => {
     if (!authProfile) {
       return {
-        id: 'usr-guest',
-        email: 'guest@example.com',
-        fullName: 'Guest User',
-        avatarUrl: '/avatars/avatar_4.jpg',
+        id: userId,
+        email: authEmail,
+        fullName: 'Member',
+        avatarUrl: '/avatars/avatar_1.jpg',
         bio: 'SkillSwap member',
         city: 'Bengaluru',
         country: 'IN',
@@ -340,8 +346,6 @@ export default function Dashboard() {
         availability: {},
       };
     }
-
-    const session = getSession();
 
     // Map teaching skills from onboarding/profile
     const hourlyRate = authProfile.hourlyRate ?? 0;
@@ -372,7 +376,7 @@ export default function Dashboard() {
 
     return {
       id: userId,
-      email: session?.email || 'user@example.com',
+      email: authEmail,
       fullName: authProfile.name,
       avatarUrl:
         authProfile.avatar ||
@@ -393,7 +397,7 @@ export default function Dashboard() {
       availability: authProfile.availability || {},
       app_metadata: hasAdminAccess ? { role: 'admin' } : null,
     };
-  }, [authProfile, userId, hasAdminAccess]);
+  }, [authProfile, userId, authEmail, hasAdminAccess]);
 
   // Compute live peer matches dynamically based on the onboarded skills
   const peerMatches = useMemo(() => {
@@ -972,6 +976,7 @@ export default function Dashboard() {
 
       {/* Wallet Checkout Modal */}
       <WalletModal
+        currentUser={currentUser}
         wallet={wallet}
         transactions={transactions}
         isOpen={isWalletOpen}
