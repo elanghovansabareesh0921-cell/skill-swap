@@ -51,8 +51,13 @@ export default function Onboarding() {
     teach: [],
     noTeach: false,
     experienceYears: undefined,
-    hourlyRate: 10,
+    hourlyRate: undefined,
+    teachLevel: 'intermediate',
     learn: [],
+    learnLevel: 'beginner',
+    allowedDurations: [30, 45, 60],
+    availability: {},
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
     headline: '',
     bio: '',
     githubUrl: '',
@@ -88,6 +93,27 @@ export default function Onboarding() {
 
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) =>
     setF(p => ({ ...p, [k]: v }));
+
+  const updateAvailability = (day: string, enabled: boolean) => {
+    const availability = { ...(f.availability || {}) };
+    if (enabled) {
+      availability[day] = [];
+    } else {
+      delete availability[day];
+    }
+    set('availability', availability);
+  };
+
+  const updateAvailabilityTime = (day: string, index: 0 | 1, value: string) => {
+    const existing = f.availability?.[day]?.[0]?.split('-') || ['', ''];
+    const times: [string, string] = [existing[0] || '', existing[1] || ''];
+    times[index] = value;
+    const availability = { ...(f.availability || {}) };
+    availability[day] = times[0] && times[1] && times[1] > times[0]
+      ? [`${times[0]}-${times[1]}`]
+      : [];
+    set('availability', availability);
+  };
 
   function pickAvatar(file?: File) {
     if (!file) return;
@@ -337,6 +363,21 @@ export default function Onboarding() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-mist-pure/60 border border-ink/8">
                   <div>
                     <label className="text-xs font-semibold text-ink block">
+                      Teaching Level
+                      <select
+                        value={f.teachLevel}
+                        onChange={e => set('teachLevel', e.target.value as Profile['teachLevel'])}
+                        className={fieldClass}
+                      >
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                        <option value="expert">Expert</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-ink block">
                       Years of Experience
                       <input
                         type="number"
@@ -376,12 +417,63 @@ export default function Onboarding() {
 
           {step === 3 && (
             <div className="space-y-4">
+              <label className="text-xs font-semibold text-ink block">
+                Target learning level
+                <select
+                  value={f.learnLevel}
+                  onChange={e => set('learnLevel', e.target.value as Profile['learnLevel'])}
+                  className={fieldClass}
+                >
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                  <option value="expert">Expert</option>
+                </select>
+              </label>
               <SkillPicker value={f.learn} onChange={v => set('learn', v)} max={5} />
             </div>
           )}
 
           {step === 4 && (
             <div className="space-y-4">
+              <fieldset className="space-y-3">
+                <legend className="text-xs font-semibold text-ink">Weekly availability</legend>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => {
+                    const selected = Object.hasOwn(f.availability || {}, day);
+                    const [start = '', end = ''] = f.availability?.[day]?.[0]?.split('-') || [];
+                    return (
+                      <div key={day} className="flex items-center gap-2 rounded-xl border border-ink/10 p-3">
+                        <input
+                          id={`availability-${day}`}
+                          type="checkbox"
+                          checked={selected}
+                          onChange={(event) => updateAvailability(day, event.target.checked)}
+                          className="size-4 accent-lagoon"
+                        />
+                        <label htmlFor={`availability-${day}`} className="w-24 text-xs font-medium text-ink">{day}</label>
+                        <input
+                          aria-label={`${day} start time`}
+                          type="time"
+                          value={start}
+                          disabled={!selected}
+                          onChange={(event) => updateAvailabilityTime(day, 0, event.target.value)}
+                          className="min-w-0 flex-1 rounded-lg border border-ink/15 bg-mist-pure px-2 py-1 text-xs text-ink disabled:opacity-40"
+                        />
+                        <span className="text-xs text-ink/50">to</span>
+                        <input
+                          aria-label={`${day} end time`}
+                          type="time"
+                          value={end}
+                          disabled={!selected}
+                          onChange={(event) => updateAvailabilityTime(day, 1, event.target.value)}
+                          className="min-w-0 flex-1 rounded-lg border border-ink/15 bg-mist-pure px-2 py-1 text-xs text-ink disabled:opacity-40"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </fieldset>
               <div>
                 <label className="text-xs font-semibold text-ink block">
                   Professional Headline

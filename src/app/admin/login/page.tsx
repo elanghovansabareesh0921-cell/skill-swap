@@ -15,10 +15,8 @@ import {
   CheckCircle2,
   ArrowLeft,
   KeyRound,
-  Info,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { isUserAdmin, PRIMARY_ADMIN_EMAIL } from '@/lib/admin/roles';
 
 function AdminLoginForm() {
   const router = useRouter();
@@ -38,7 +36,6 @@ function AdminLoginForm() {
   );
   const [successMsg, setSuccessMsg] = useState('');
   const [checkingExistingSession, setCheckingExistingSession] = useState(true);
-  const [showDevHint, setShowDevHint] = useState(false);
 
   // Check if already authenticated as admin
   useEffect(() => {
@@ -49,10 +46,12 @@ function AdminLoginForm() {
           data: { user },
         } = await supabase.auth.getUser();
 
-        if (user && isUserAdmin(user)) {
-          // Already authenticated as admin -> forward immediately
-          router.replace(returnTo);
-          return;
+        if (user) {
+          const response = await fetch('/api/admin/access');
+          if (response.ok) {
+            router.replace(returnTo);
+            return;
+          }
         }
       } catch {
         // Ignore session inspection error
@@ -96,19 +95,22 @@ function AdminLoginForm() {
 
       const user = data.user;
 
-      // 2. Strict Admin Role Verification Gate
-      if (!user || !isUserAdmin(user)) {
-        // Immediately revoke session so an unauthorized user cannot retain auth
-        await supabase.auth.signOut();
-
+      if (!user) {
         setErrorMsg(
-          `Access Denied: Account "${user?.email || email}" is not an authorized administrator. Only designated platform admins are allowed.`
+          'Unable to verify the signed-in account.'
         );
         setLoading(false);
         return;
       }
 
-      // 3. User is authorized administrator!
+      const accessResponse = await fetch('/api/admin/access');
+      if (!accessResponse.ok) {
+        await supabase.auth.signOut();
+        setErrorMsg('This account does not have administrator access.');
+        setLoading(false);
+        return;
+      }
+
       setSuccessMsg('Administrator credentials verified. Access granted.');
       setTimeout(() => {
         router.push(returnTo);
@@ -119,11 +121,6 @@ function AdminLoginForm() {
       setErrorMsg(message);
       setLoading(false);
     }
-  };
-
-  const quickFillAdmin = () => {
-    setEmail(PRIMARY_ADMIN_EMAIL);
-    setErrorMsg('');
   };
 
   return (
@@ -271,38 +268,6 @@ function AdminLoginForm() {
               </button>
             </form>
 
-            {/* Quick Fill / Dev Helper */}
-            <div className="mt-6 pt-5 border-t border-white/5">
-              <button
-                type="button"
-                onClick={() => setShowDevHint(!showDevHint)}
-                className="text-[11px] text-slate-500 hover:text-slate-400 flex items-center gap-1.5 transition-colors cursor-pointer w-full justify-center"
-              >
-                <Info className="h-3.5 w-3.5" />
-                <span>{showDevHint ? 'Hide' : 'Show'} Authorized Admin Information</span>
-              </button>
-
-              {showDevHint && (
-                <div className="mt-3 p-3.5 rounded-2xl bg-white/5 border border-white/5 text-[11px] text-slate-400 space-y-2 animate-in fade-in duration-150">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-300 font-medium">Primary Admin Email:</span>
-                    <button
-                      type="button"
-                      onClick={quickFillAdmin}
-                      className="text-[10px] text-rose-400 hover:text-rose-300 underline font-semibold cursor-pointer"
-                    >
-                      Fill this email
-                    </button>
-                  </div>
-                  <div className="font-mono text-[10px] text-slate-300 bg-black/40 p-1.5 rounded-lg break-all">
-                    {PRIMARY_ADMIN_EMAIL}
-                  </div>
-                  <p className="text-[10px] text-slate-500 leading-normal">
-                    Users with <code className="text-slate-400">role: &quot;admin&quot;</code> in Supabase user metadata are also granted full access.
-                  </p>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Security Notice Footer */}

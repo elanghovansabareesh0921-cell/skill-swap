@@ -1,12 +1,30 @@
 "use client";
-import { useState } from "react";
-import { SKILLS } from "@/lib/skills";
+import { useEffect, useState } from "react";
+import type { SkillItem } from "@/types";
 
 type Props = { value: string[]; onChange: (v: string[]) => void; max: number; disabled?: boolean };
 
 export default function SkillPicker({ value, onChange, max, disabled }: Props) {
   const [q, setQ] = useState("");
-  const options = [...new Set([...SKILLS, ...value])];
+  const [skills, setSkills] = useState<SkillItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/skills')
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Skill taxonomy lookup failed');
+        return response.json() as Promise<{ skills: SkillItem[] }>;
+      })
+      .then(({ skills: availableSkills }) => {
+        if (!cancelled) setSkills(availableSkills);
+      })
+      .catch((error: unknown) => console.error('Error fetching skills:', error));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const options = [...new Set([...skills.map((skill) => skill.name), ...value])];
 
   const toggle = (s: string) =>
     onChange(value.includes(s) ? value.filter((x) => x !== s) : value.length < max ? [...value, s] : value);

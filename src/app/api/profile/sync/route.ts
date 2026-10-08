@@ -1,44 +1,94 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
-import { createClient } from '@/lib/supabase/server';
+import { requireUser } from '@/lib/auth/server';
+
+interface ProfileSyncFields extends Record<string, unknown> {
+  teach?: unknown;
+  learn?: unknown;
+  availability?: unknown;
+}
+
+interface TaxonomyRow {
+  id: string;
+  name: string;
+  category: string;
+  min_hourly_rate: number;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function stringValue(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    : [];
+}
+
+function availabilityValue(value: unknown): Record<string, string[]> {
+  if (!isRecord(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([day, slots]) => {
+      if (!Array.isArray(slots) || !slots.every((slot) => typeof slot === 'string')) return [];
+      return [[day, slots as string[]]];
+    })
+  );
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, email, profile } = await req.json();
+    const user = await requireUser(req);
+    if (user instanceof NextResponse) return user;
 
-    if (!userId || !email || !profile) {
+    const body: unknown = await req.json();
+    const profile = isRecord(body) && isRecord(body.profile)
+      ? body.profile as ProfileSyncFields
+      : null;
+
+    if (!profile || !user.email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-
-    const authClient = await createClient();
-    const { data: { user } } = await authClient.auth.getUser();
-    if (user && user.id !== userId) {
-      return NextResponse.json({ error: 'Cannot update another user profile' }, { status: 403 });
-    }
-    if (!user && process.env.NEXT_PUBLIC_SUPABASE_URL) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
+    const teachNames = stringArray(profile.teach);
+    const learnNames = stringArray(profile.learn);
+    const availability = availabilityValue(profile.availability);
+    const hourlyRate = typeof profile.hourlyRate === 'number' && Number.isFinite(profile.hourlyRate) && profile.hourlyRate > 0
+      ? Math.round(profile.hourlyRate)
+      : null;
+    const experienceYears = typeof profile.experienceYears === 'number' && Number.isFinite(profile.experienceYears) && profile.experienceYears >= 0
+      ? profile.experienceYears
+      : null;
+    const allowedDurations = Array.isArray(profile.allowedDurations)
+      ? profile.allowedDurations.filter((duration): duration is number => Number.isInteger(duration) && duration > 0)
+      : null;
+    const validLevels = ['beginner', 'intermediate', 'advanced', 'expert'] as const;
+    const teachLevel = validLevels.find((level) => level === profile.teachLevel) || 'intermediate';
+    const learnLevel = validLevels.find((level) => level === profile.learnLevel) || 'beginner';
+    const profileName = stringValue(profile.name);
+    const profileAvatar = stringValue(profile.avatar);
+    const profileBio = stringValue(profile.bio) || stringValue(profile.headline);
 
     const supabaseAdmin = getSupabaseAdmin();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ success: true, message: 'Supabase credentials not configured' });
-    }
 
     // 1. Upsert Profile
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .upsert({
-        id: userId,
-        email: email,
-        full_name: profile.name || email.split('@')[0],
-        avatar_url: profile.avatar || '/avatars/avatar_2.jpg',
-        bio: profile.bio || profile.headline || 'SkillSwap Member',
-        languages: profile.languages && profile.languages.length > 0 ? profile.languages : ['English'],
-        city: profile.city || 'Global',
-        country: profile.country || 'IN',
-        timezone: profile.timezone || 'Asia/Kolkata',
+        id: user.id,
+        email: user.email,
+        full_name: profileName || user.email.split('@')[0],
+        avatar_url: profileAvatar || '/avatars/avatar_2.jpg',
+        bio: profileBio || 'SkillSwap Member',
+        languages: stringArray(profile.languages).length > 0 ? stringArray(profile.languages) : ['English'],
+        city: stringValue(profile.city) || 'Global',
+        country: stringValue(profile.country) || 'IN',
+        timezone: stringValue(profile.timezone) || 'Asia/Kolkata',
+        availability,
         is_onboarded: true,
-        is_accepting_requests: profile.isAcceptingRequests !== false
+        is_accepting_requests: profile.isAcceptingRequests !== false,
       });
 
     if (profileError) {
@@ -49,7 +99,7 @@ export async function POST(req: NextRequest) {
     // Initialize wallet if not exists
     try {
       await supabaseAdmin.from('wallets').upsert({
-        user_id: userId,
+        user_id: user.id,
         available_paise: 50000, // 500 SP welcome credits
         held_paise: 0,
         lifetime_earned_paise: 0,
@@ -60,24 +110,26 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Fetch taxonomy to map names to IDs
-    const { data: taxonomy } = await supabaseAdmin.from('skill_taxonomy').select('*');
-    const nameToSkillMap = new Map((taxonomy || []).map((t) => [t.name.toLowerCase().trim(), t]));
+    const { data: taxonomy } = await supabaseAdmin
+      .from('skill_taxonomy')
+      .select('id, name, category, min_hourly_rate');
+    const nameToSkillMap = new Map(((taxonomy || []) as TaxonomyRow[]).map((item) => [item.name.toLowerCase().trim(), item]));
 
     // 3. Clear existing skills
-    await supabaseAdmin.from('user_skills_teach').delete().eq('user_id', userId);
-    await supabaseAdmin.from('user_skills_learn').delete().eq('user_id', userId);
+    await supabaseAdmin.from('user_skills_teach').delete().eq('user_id', user.id);
+    await supabaseAdmin.from('user_skills_learn').delete().eq('user_id', user.id);
 
     // 4. Insert Teach Skills
-    if (profile.teach && profile.teach.length > 0 && !profile.noTeach) {
-      for (const skillName of profile.teach) {
-        const cleanName = (skillName as string).trim();
+    if (teachNames.length > 0 && profile.noTeach !== true) {
+      for (const skillName of teachNames) {
+        const cleanName = skillName.trim();
         let skill = nameToSkillMap.get(cleanName.toLowerCase());
         
         if (!skill) {
           const { data: newSkill } = await supabaseAdmin
             .from('skill_taxonomy')
             .insert({ name: cleanName, category: 'Other', min_hourly_rate: 20, max_hourly_rate: 1000 })
-            .select()
+            .select('id, name, category, min_hourly_rate')
             .single();
             
           if (newSkill) {
@@ -87,28 +139,30 @@ export async function POST(req: NextRequest) {
         }
 
         if (skill) {
-          await supabaseAdmin.from('user_skills_teach').insert({
-            user_id: userId,
+          const { error: teachInsertError } = await supabaseAdmin.from('user_skills_teach').insert({
+            user_id: user.id,
             skill_id: skill.id,
-            level: 'advanced',
-            hourly_rate: 50,
-            years_experience: 2
+            level: teachLevel,
+            hourly_rate: hourlyRate ?? skill.min_hourly_rate,
+            ...(experienceYears !== null ? { years_experience: experienceYears } : {}),
+            ...(allowedDurations && allowedDurations.length > 0 ? { allowed_durations: allowedDurations } : {}),
           });
+          if (teachInsertError) throw teachInsertError;
         }
       }
     }
 
     // 5. Insert Learn Skills
-    if (profile.learn && profile.learn.length > 0) {
-      for (const skillName of profile.learn) {
-        const cleanName = (skillName as string).trim();
+    if (learnNames.length > 0) {
+      for (const skillName of learnNames) {
+        const cleanName = skillName.trim();
         let skill = nameToSkillMap.get(cleanName.toLowerCase());
         
         if (!skill) {
           const { data: newSkill } = await supabaseAdmin
             .from('skill_taxonomy')
             .insert({ name: cleanName, category: 'Other', min_hourly_rate: 20, max_hourly_rate: 1000 })
-            .select()
+            .select('id, name, category, min_hourly_rate')
             .single();
             
           if (newSkill) {
@@ -118,76 +172,15 @@ export async function POST(req: NextRequest) {
         }
 
         if (skill) {
-          await supabaseAdmin.from('user_skills_learn').insert({
-            user_id: userId,
+          const { error: learnInsertError } = await supabaseAdmin.from('user_skills_learn').insert({
+            user_id: user.id,
             skill_id: skill.id,
-            target_level: 'beginner',
+            target_level: learnLevel,
             goal: 'Looking to learn ' + skill.name
           });
+          if (learnInsertError) throw learnInsertError;
         }
       }
-    }
-
-    // 6. Also sync to unified public.skills and public.user_skills if present in DB
-    try {
-      await supabaseAdmin.from('user_skills').delete().eq('user_id', userId);
-      const { data: legacySkills } = await supabaseAdmin.from('skills').select('id, name');
-      const legacySkillMap = new Map((legacySkills || []).map((s) => [s.name.toLowerCase().trim(), s.id]));
-
-      if (profile.teach && profile.teach.length > 0 && !profile.noTeach) {
-        for (const skillName of profile.teach) {
-          const cleanName = (skillName as string).trim();
-          let skillId = legacySkillMap.get(cleanName.toLowerCase());
-          if (!skillId) {
-            const { data: newSk } = await supabaseAdmin
-              .from('skills')
-              .insert({ name: cleanName, category: 'Other' })
-              .select('id')
-              .single();
-            if (newSk) {
-              skillId = newSk.id;
-              legacySkillMap.set(cleanName.toLowerCase(), skillId);
-            }
-          }
-          if (skillId) {
-            await supabaseAdmin.from('user_skills').insert({
-              user_id: userId,
-              skill_id: skillId,
-              skill_type: 'TEACH',
-              level: 'advanced',
-            });
-          }
-        }
-      }
-
-      if (profile.learn && profile.learn.length > 0) {
-        for (const skillName of profile.learn) {
-          const cleanName = (skillName as string).trim();
-          let skillId = legacySkillMap.get(cleanName.toLowerCase());
-          if (!skillId) {
-            const { data: newSk } = await supabaseAdmin
-              .from('skills')
-              .insert({ name: cleanName, category: 'Other' })
-              .select('id')
-              .single();
-            if (newSk) {
-              skillId = newSk.id;
-              legacySkillMap.set(cleanName.toLowerCase(), skillId);
-            }
-          }
-          if (skillId) {
-            await supabaseAdmin.from('user_skills').insert({
-              user_id: userId,
-              skill_id: skillId,
-              skill_type: 'LEARN',
-              level: 'beginner',
-              goal: 'Looking to learn ' + cleanName,
-            });
-          }
-        }
-      }
-    } catch {
-      // Ignore if user_skills table is not present
     }
 
     return NextResponse.json({ success: true });

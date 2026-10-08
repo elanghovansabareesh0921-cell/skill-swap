@@ -35,7 +35,7 @@ import {
   Profile as AuthProfile
 } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/client';
-import { SKILLS } from '@/lib/skills';
+import type { SkillItem } from '@/types';
 
 // Curated avatar presets with high resolution and diverse styles
 const AVATAR_PRESETS = [
@@ -115,6 +115,23 @@ export default function ProfilePage() {
   const [newTeachSkill, setNewTeachSkill] = useState('');
   const [newLearnSkill, setNewLearnSkill] = useState('');
   const [newLanguage, setNewLanguage] = useState('');
+  const [skillSuggestions, setSkillSuggestions] = useState<string[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/skills')
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Skill taxonomy lookup failed');
+        return response.json() as Promise<{ skills: SkillItem[] }>;
+      })
+      .then(({ skills }) => {
+        if (!cancelled) setSkillSuggestions(skills.map((skill) => skill.name).slice(0, 8));
+      })
+      .catch((error: unknown) => console.error('Error fetching skill suggestions:', error));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Load profile on mount
   useEffect(() => {
@@ -148,49 +165,19 @@ export default function ProfilePage() {
           if (user) {
             const { data: dbProfile } = await supabase
               .from('profiles')
-              .select('*, user_skills (*, skills (*))')
+              .select('*')
               .eq('id', user.id)
               .single();
 
             if (dbProfile) {
-              interface SkillJoin {
-                skill_type?: string;
-                skills?: { name?: string };
-              }
-              let teachSkills: string[] = [];
-              let learnSkills: string[] = [];
-
-              if (dbProfile.user_skills && Array.isArray(dbProfile.user_skills) && dbProfile.user_skills.length > 0) {
-                const userSkills = (dbProfile.user_skills || []) as SkillJoin[];
-                teachSkills = userSkills
-                  .filter((s) => s.skill_type === 'TEACH')
-                  .map((s) => s.skills?.name || 'Skill');
-                learnSkills = userSkills
-                  .filter((s) => s.skill_type === 'LEARN')
-                  .map((s) => s.skills?.name || 'Skill');
-              }
-
-              if (teachSkills.length === 0 && learnSkills.length === 0) {
-                try {
-                  const [teachRes, learnRes] = await Promise.all([
-                    supabase.from('user_skills_teach').select('*, skill_taxonomy(*)').eq('user_id', user.id),
-                    supabase.from('user_skills_learn').select('*, skill_taxonomy(*)').eq('user_id', user.id),
-                  ]);
-
-                  if (teachRes.data && teachRes.data.length > 0) {
-                    teachSkills = teachRes.data.map(
-                      (t: { skill_taxonomy?: { name?: string } }) => t.skill_taxonomy?.name || 'Skill'
-                    );
-                  }
-                  if (learnRes.data && learnRes.data.length > 0) {
-                    learnSkills = learnRes.data.map(
-                      (l: { skill_taxonomy?: { name?: string } }) => l.skill_taxonomy?.name || 'Skill'
-                    );
-                  }
-                } catch {
-                  // ignore
-                }
-              }
+              const [teachRes, learnRes] = await Promise.all([
+                supabase.from('user_skills_teach').select('skill_taxonomy(name)').eq('user_id', user.id),
+                supabase.from('user_skills_learn').select('skill_taxonomy(name)').eq('user_id', user.id),
+              ]);
+              const teachSkills = ((teachRes.data || []) as unknown as Array<{ skill_taxonomy: { name?: string } | null }>)
+                .map((skill) => skill.skill_taxonomy?.name || 'Skill');
+              const learnSkills = ((learnRes.data || []) as unknown as Array<{ skill_taxonomy: { name?: string } | null }>)
+                .map((skill) => skill.skill_taxonomy?.name || 'Skill');
 
               saved = {
                 name: dbProfile.full_name || 'Member',
@@ -205,6 +192,7 @@ export default function ProfilePage() {
                 country: dbProfile.country || '',
                 timezone: dbProfile.timezone || 'Asia/Kolkata',
                 languages: dbProfile.languages || ['English'],
+                availability: dbProfile.availability || {},
               };
               saveProfile(saved);
             }
@@ -347,12 +335,7 @@ export default function ProfilePage() {
   };
 
   // Availability matrix
-  const currentAvailability = profile.availability || {
-    Mon: ['18:00-21:00'],
-    Tue: ['19:00-21:00'],
-    Thu: ['18:00-21:00'],
-    Sat: ['10:00-14:00'],
-  };
+  const currentAvailability = profile.availability || {};
 
   const handleToggleAvailabilitySlot = (day: string, slotLabel: string) => {
     const daySlots = currentAvailability[day] ? [...currentAvailability[day]] : [];
@@ -1062,7 +1045,7 @@ export default function ProfilePage() {
                     {/* Quick Suggestions */}
                     <div className="flex flex-wrap items-center gap-1.5 mt-3">
                       <span className="text-[11px] text-ink-muted">Suggested:</span>
-                      {SKILLS.slice(0, 8).map(s => (
+                      {skillSuggestions.map(s => (
                         <button
                           key={s}
                           type="button"

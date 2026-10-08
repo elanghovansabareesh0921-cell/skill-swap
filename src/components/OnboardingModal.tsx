@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Sparkles, Check, ArrowRight, ArrowLeft, ArrowRightLeft, BookOpen, Clock, Globe } from 'lucide-react';
-import { Profile, SkillLevel, UserTeachSkill, UserLearnSkill } from '@/types';
-import { SKILL_TAXONOMY } from '@/lib/mockData';
+import { Profile, SkillItem, SkillLevel, UserTeachSkill, UserLearnSkill } from '@/types';
 
 interface OnboardingModalProps {
   currentUser: Profile;
@@ -20,17 +19,34 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 }) => {
   const [step, setStep] = useState(1);
   const totalSteps = 4;
+  const [skillTaxonomy, setSkillTaxonomy] = useState<SkillItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/skills')
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Skill taxonomy lookup failed');
+        return response.json() as Promise<{ skills: SkillItem[] }>;
+      })
+      .then(({ skills }) => {
+        if (!cancelled) setSkillTaxonomy(skills);
+      })
+      .catch((error: unknown) => console.error('Error fetching skills:', error));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Form State
   const [selectedLearnSkillId, setSelectedLearnSkillId] = useState<string>(
-    currentUser.learnSkills[0]?.skillId || 'sk-py'
+    currentUser.learnSkills[0]?.skillId || ''
   );
   const [learnGoal, setLearnGoal] = useState<string>(currentUser.learnSkills[0]?.goal || '');
   const [learnLevel, setLearnLevel] = useState<SkillLevel>(currentUser.learnSkills[0]?.targetLevel || 'intermediate');
 
   const [hasTeachSkill, setHasTeachSkill] = useState<boolean>(currentUser.teachSkills.length > 0);
   const [selectedTeachSkillId, setSelectedTeachSkillId] = useState<string>(
-    currentUser.teachSkills[0]?.skillId || 'sk-ui'
+    currentUser.teachSkills[0]?.skillId || ''
   );
   const [teachRate, setTeachRate] = useState<number>(currentUser.teachSkills[0]?.hourlyRate || 60);
   const [teachExperience, setTeachExperience] = useState<number>(currentUser.teachSkills[0]?.yearsExperience || 4);
@@ -54,14 +70,15 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   };
 
   const handleFinish = () => {
-    const learnTaxonomy = SKILL_TAXONOMY.find(s => s.id === selectedLearnSkillId);
-    const teachTaxonomy = SKILL_TAXONOMY.find(s => s.id === selectedTeachSkillId);
+    const learnTaxonomy = skillTaxonomy.find(s => s.id === selectedLearnSkillId);
+    const teachTaxonomy = skillTaxonomy.find(s => s.id === selectedTeachSkillId);
+    if (!learnTaxonomy || (hasTeachSkill && !teachTaxonomy)) return;
 
     const updatedLearnSkills: UserLearnSkill[] = [
       {
         skillId: selectedLearnSkillId,
-        skillName: learnTaxonomy?.name || 'Python Programming',
-        category: learnTaxonomy?.category || 'Software & Tech',
+        skillName: learnTaxonomy.name,
+        category: learnTaxonomy.category,
         targetLevel: learnLevel,
         goal: learnGoal,
       },
@@ -149,7 +166,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 onChange={e => setSelectedLearnSkillId(e.target.value)}
                 className="w-full rounded-xl bg-zinc-950 border border-zinc-700 p-2.5 text-xs text-white focus:border-yellow-400 focus:outline-none"
               >
-                {SKILL_TAXONOMY.map(s => (
+                {skillTaxonomy.map(s => (
                   <option key={s.id} value={s.id}>
                     {s.name} ({s.category})
                   </option>
@@ -225,7 +242,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     onChange={e => setSelectedTeachSkillId(e.target.value)}
                     className="w-full rounded-xl bg-zinc-900 border border-zinc-700 p-2 text-xs text-white focus:border-yellow-400 focus:outline-none"
                   >
-                    {SKILL_TAXONOMY.map(s => (
+                    {skillTaxonomy.map(s => (
                       <option key={s.id} value={s.id}>
                         {s.name} ({s.category})
                       </option>

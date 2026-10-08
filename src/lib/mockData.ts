@@ -1,15 +1,4 @@
-import { Profile, SkillItem, Wallet, Offer, SessionLeg, ChatMessage } from '@/types';
-
-export const SKILL_TAXONOMY: SkillItem[] = [
-  { id: 'sk-py', name: 'Python Programming', category: 'Software & Tech', minHourlyRate: 30, maxHourlyRate: 150 },
-  { id: 'sk-rust', name: 'Rust & Systems Design', category: 'Software & Tech', minHourlyRate: 50, maxHourlyRate: 200 },
-  { id: 'sk-ui', name: 'UI/UX Design (Figma)', category: 'Design & Creative', minHourlyRate: 25, maxHourlyRate: 120 },
-  { id: 'sk-excel', name: 'Advanced Excel & VBA', category: 'Business & Finance', minHourlyRate: 20, maxHourlyRate: 90 },
-  { id: 'sk-guitar', name: 'Acoustic Guitar', category: 'Music & Arts', minHourlyRate: 20, maxHourlyRate: 80 },
-  { id: 'sk-spanish', name: 'Conversational Spanish', category: 'Languages', minHourlyRate: 25, maxHourlyRate: 100 },
-  { id: 'sk-speak', name: 'Public Speaking & Pitching', category: 'Personal Growth', minHourlyRate: 35, maxHourlyRate: 140 },
-  { id: 'sk-finance', name: 'Financial Modeling', category: 'Business & Finance', minHourlyRate: 40, maxHourlyRate: 180 },
-];
+import { Profile, Wallet, Offer, SessionLeg, ChatMessage } from '@/types';
 
 export const CURRENT_USER: Profile = {
   id: 'usr-asha',

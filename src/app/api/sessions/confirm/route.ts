@@ -1,23 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { requireUser } from '@/lib/auth/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { sessionId, userId } = await req.json();
+    const user = await requireUser(req);
+    if (user instanceof NextResponse) return user;
 
-    if (!sessionId || !userId) {
-      return NextResponse.json({ error: 'Missing sessionId or userId' }, { status: 400 });
+    const { sessionId } = await req.json();
+
+    if (!sessionId) {
+      return NextResponse.json({ error: 'Missing sessionId' }, { status: 400 });
     }
 
     const admin = getSupabaseAdmin();
-    if (!admin) {
-      // Offline/fallback simulated response
-      return NextResponse.json({
-        success: true,
-        settled: true,
-        message: 'Dual sign-off confirmed in fallback mode',
-      });
-    }
 
     // 1. Fetch current session state
     const { data: session, error: sessionFetchError } = await admin
@@ -30,8 +26,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
-    const isTeacher = session.teacher_id === userId;
-    const isLearner = session.learner_id === userId;
+    const isTeacher = session.teacher_id === user.id;
+    const isLearner = session.learner_id === user.id;
 
     if (!isTeacher && !isLearner) {
       return NextResponse.json({ error: 'Unauthorized to confirm this session' }, { status: 403 });

@@ -1,17 +1,23 @@
-import { Profile, PeerMatch, UserTeachSkill, UserLearnSkill } from '@/types';
+import type { Profile, PeerMatch, UserTeachSkill, UserLearnSkill } from '../types';
 import { generateQuoteBreakdown } from './pricing';
+import { findOverlappingSlots } from './availability';
+
+function matchesSkill(skillId: string, skillName: string, candidate: { skillId: string; skillName: string }): boolean {
+  return skillId === candidate.skillId ||
+    skillName.trim().toLowerCase() === candidate.skillName.trim().toLowerCase();
+}
+
+function shortestAllowedDuration(skills: UserTeachSkill[]): number {
+  const durations = skills.flatMap((skill) => skill.allowedDurations)
+    .filter((duration) => Number.isInteger(duration) && duration > 0);
+  return durations.length > 0 ? Math.min(...durations) : Number.POSITIVE_INFINITY;
+}
 
 export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerMatch[] {
   const matches: PeerMatch[] = [];
 
   for (const teacher of teachers) {
-    if (
-      teacher.id === learner.id ||
-      (teacher.email && learner.email && teacher.email.toLowerCase() === learner.email.toLowerCase()) ||
-      !teacher.isAcceptingRequests ||
-      !teacher.teachSkills ||
-      teacher.teachSkills.length === 0
-    ) {
+    if (teacher.id === learner.id || !teacher.isAcceptingRequests || teacher.teachSkills.length === 0) {
       continue;
     }
 
@@ -28,10 +34,7 @@ export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerM
     let matchedLearnSkill: UserLearnSkill | null = null;
 
     for (const wantToLearn of learner.learnSkills) {
-      const offered = teacher.teachSkills.find(t => 
-        t.skillId === wantToLearn.skillId || 
-        t.skillName.toLowerCase().trim() === wantToLearn.skillName.toLowerCase().trim()
-      );
+      const offered = teacher.teachSkills.find((skill) => matchesSkill(wantToLearn.skillId, wantToLearn.skillName, skill));
       if (offered) {
         matchedTeachSkill = offered;
         matchedLearnSkill = wantToLearn;
@@ -39,35 +42,31 @@ export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerM
       }
     }
 
-    if (!matchedTeachSkill) {
-      // If no direct skill match, pick their top primary skill for exploratory discovery
-      matchedTeachSkill = teacher.teachSkills[0];
-    }
-
-    if (!matchedTeachSkill) {
-      continue;
-    }
-
-    // 3. Reverse fit: Does teacher want to learn something learner can teach? (SWAP POTENTIAL)
-    let isSwapMatch = false;
+    // Reverse fit allows a swap-only match when both users have complementary skills.
     let reverseLearnerCanTeach: UserTeachSkill | null = null;
 
     for (const teacherWants of teacher.learnSkills) {
-      const learnerCan = learner.teachSkills.find(l => 
-        l.skillId === teacherWants.skillId || 
-        l.skillName.toLowerCase().trim() === teacherWants.skillName.toLowerCase().trim()
-      );
+      const learnerCan = learner.teachSkills.find((skill) => matchesSkill(teacherWants.skillId, teacherWants.skillName, skill));
       if (learnerCan) {
-        isSwapMatch = true;
         reverseLearnerCanTeach = learnerCan;
         break;
       }
     }
 
-    // 4. Availability overlap
-    const learnerDays = Object.keys(learner.availability);
-    const teacherDays = Object.keys(teacher.availability);
-    const overlappingDays = learnerDays.filter(day => teacherDays.includes(day));
+    const isSwapMatch = reverseLearnerCanTeach !== null;
+    if (!matchedTeachSkill && !isSwapMatch) continue;
+    matchedTeachSkill ??= teacher.teachSkills[0];
+
+    const allowedDuration = shortestAllowedDuration(
+      reverseLearnerCanTeach ? [matchedTeachSkill, reverseLearnerCanTeach] : [matchedTeachSkill]
+    );
+    const overlappingSlots = findOverlappingSlots(
+      learner.availability,
+      learner.timezone,
+      teacher.availability,
+      teacher.timezone
+    ).filter((slot) => slot.durationMinutes >= allowedDuration);
+    if (overlappingSlots.length === 0) continue;
 
     // 5. Composite Score Calculation
     let score = 50; // base score
@@ -83,9 +82,9 @@ export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerM
       reasons.push(`Mutual Swap: Wants to learn your ${reverseLearnerCanTeach.skillName}`);
     }
 
-    if (overlappingDays.length > 0) {
+    if (overlappingSlots.length > 0) {
       score += 10;
-      reasons.push(`Availability overlap on ${overlappingDays.join(', ')}`);
+      reasons.push(`Availability overlap for ${overlappingSlots[0].durationMinutes} minutes`);
     }
 
     if (teacher.reputationScore >= 4.9) {
@@ -100,8 +99,8 @@ export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerM
     score = Math.min(99, score);
 
     // 6. Pricing comparison
-    const defaultDuration = matchedTeachSkill.allowedDurations?.[0] || 60;
-    const directPrice = Math.round(((matchedTeachSkill.hourlyRate || 50) * defaultDuration) / 60);
+    const defaultDuration = Math.min(...matchedTeachSkill.allowedDurations);
+    const directPrice = Math.round((matchedTeachSkill.hourlyRate * defaultDuration) / 60);
 
     let swapPriceTokens: number | undefined = undefined;
     let swapSavingsPct: number | undefined = undefined;
@@ -142,6 +141,7 @@ export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerM
       teacherOfferingSkill: matchedTeachSkill,
       matchingLearnSkill: matchedLearnSkill || undefined,
       teacherDesiresSkill: reverseLearnerCanTeach || undefined,
+      overlappingSlots,
     });
   }
 

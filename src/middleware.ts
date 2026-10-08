@@ -1,13 +1,15 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-
-import { isUserAdmin } from '@/lib/admin/roles';
+import { isAdminIdentity } from '@/lib/auth/admin-policy';
 
 export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
+    if (process.env.NODE_ENV === 'production') {
+      return new NextResponse('Authentication service unavailable', { status: 503 });
+    }
     return NextResponse.next();
   }
 
@@ -41,13 +43,17 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const { data: profile } = user
+    ? await supabase.from('profiles').select('is_admin').eq('id', user.id).maybeSingle()
+    : { data: null };
+  const isAdmin = user
+    ? isAdminIdentity(user, profile?.is_admin === true, process.env.ADMIN_EMAILS || '')
+    : false;
 
   const pathname = request.nextUrl.pathname;
 
   // Protect /admin routes
   if (pathname.startsWith('/admin')) {
-    const isAdmin = isUserAdmin(user);
-
     // If accessing the admin login page
     if (pathname === '/admin/login') {
       // If user is already logged in AND is an admin, redirect them straight to admin swaps

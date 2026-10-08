@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { requireUser } from '@/lib/auth/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { sessionId, userId, reason } = await req.json();
+    const user = await requireUser(req);
+    if (user instanceof NextResponse) return user;
 
-    if (!sessionId || !userId) {
+    const { sessionId, reason } = await req.json();
+
+    if (!sessionId) {
       return NextResponse.json({ error: 'Missing required cancellation parameters' }, { status: 400 });
     }
 
     const admin = getSupabaseAdmin();
-    if (!admin) {
-      return NextResponse.json({
-        success: true,
-        message: 'Session cancelled in fallback mode',
-      });
-    }
 
     const { data: session, error: sessionError } = await admin
       .from('sessions')
@@ -31,8 +29,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Cannot cancel session with status ${session.status}` }, { status: 400 });
     }
 
-    const isTeacher = session.teacher_id === userId;
-    const isLearner = session.learner_id === userId;
+    const isTeacher = session.teacher_id === user.id;
+    const isLearner = session.learner_id === user.id;
 
     if (!isTeacher && !isLearner) {
       return NextResponse.json({ error: 'Unauthorized to cancel this session' }, { status: 403 });

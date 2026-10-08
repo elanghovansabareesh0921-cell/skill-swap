@@ -1,25 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { requireUser } from '@/lib/auth/server';
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 });
-    }
+    const user = await requireUser(req);
+    if (user instanceof NextResponse) return user;
 
     const admin = getSupabaseAdmin();
-    if (!admin) {
-      return NextResponse.json({ offers: [], sessions: [] });
-    }
 
     // Fetch offers where user is proposer or recipient
     const { data: offersData, error: offersError } = await admin
       .from('offers')
       .select('*, proposer:profiles!offers_proposer_id_fkey(full_name), recipient:profiles!offers_recipient_id_fkey(full_name)')
-      .or(`proposer_id.eq.${userId},recipient_id.eq.${userId}`)
+      .or(`proposer_id.eq.${user.id},recipient_id.eq.${user.id}`)
       .order('created_at', { ascending: false });
 
     if (offersError) {
@@ -54,9 +48,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await requireUser(req);
+    if (user instanceof NextResponse) return user;
+
     const body = await req.json();
     const {
-      proposerId,
       proposerName,
       recipientId,
       recipientName,
@@ -69,83 +65,13 @@ export async function POST(req: NextRequest) {
       proposerSkillName,
     } = body;
 
-    if (!proposerId || !recipientId || !type || !quote) {
+    const proposerId = user.id;
+    if (!recipientId || recipientId === proposerId || !type || !quote) {
       return NextResponse.json({ error: 'Missing required proposal fields' }, { status: 400 });
     }
 
     const admin = getSupabaseAdmin();
     const holdPaise = Math.round((chargedTokens || 0) * 100);
-
-    // If Supabase credentials are not configured, return simulated payload
-    if (!admin) {
-      const fallbackOfferId = `off-${Date.now().toString().slice(-4)}`;
-      const fallbackOffer = {
-        id: fallbackOfferId,
-        type,
-        proposerId,
-        proposerName: proposerName || 'You',
-        recipientId,
-        recipientName: recipientName || 'Peer',
-        status: 'ACCEPTED',
-        message: message || '',
-        quote,
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 48 * 3600000).toISOString(),
-      };
-      const fallbackSessions = [
-        {
-          id: `ses-${Date.now().toString().slice(-4)}-1`,
-          offerId: fallbackOfferId,
-          legIndex: 1,
-          teacherId: recipientId,
-          teacherName: recipientName || 'Peer',
-          learnerId: proposerId,
-          learnerName: proposerName || 'You',
-          skillName: skillName || 'Skill',
-          durationMinutes: durationMinutes || 60,
-          chargedTokens: quote.proposerLeg.chargedTokens,
-          platformFeeTokens: quote.proposerLeg.platformFeeTokens,
-          teacherPayoutTokens: quote.proposerLeg.teacherPayoutTokens,
-          scheduledStart: new Date(Date.now() + 2 * 3600000).toISOString(),
-          scheduledEnd: new Date(Date.now() + 3 * 3600000).toISOString(),
-          meetLink: 'https://meet.google.com/new',
-          status: 'SCHEDULED',
-          teacherConfirmed: false,
-          learnerConfirmed: false,
-        },
-        ...(type === 'SWAP' && quote.recipientLeg
-          ? [
-              {
-                id: `ses-${Date.now().toString().slice(-4)}-2`,
-                offerId: fallbackOfferId,
-                legIndex: 2,
-                teacherId: proposerId,
-                teacherName: proposerName || 'You',
-                learnerId: recipientId,
-                learnerName: recipientName || 'Peer',
-                skillName: proposerSkillName || 'Skill',
-                durationMinutes: durationMinutes || 60,
-                chargedTokens: quote.recipientLeg.chargedTokens,
-                platformFeeTokens: quote.recipientLeg.platformFeeTokens,
-                teacherPayoutTokens: quote.recipientLeg.teacherPayoutTokens,
-                scheduledStart: new Date(Date.now() + 26 * 3600000).toISOString(),
-                scheduledEnd: new Date(Date.now() + 27 * 3600000).toISOString(),
-                meetLink: 'https://meet.google.com/new',
-                status: 'SCHEDULED',
-                teacherConfirmed: false,
-                learnerConfirmed: false,
-              },
-            ]
-          : []),
-      ];
-
-      return NextResponse.json({
-        success: true,
-        offer: fallbackOffer,
-        sessions: fallbackSessions,
-        message: 'Offer created in fallback mode',
-      });
-    }
 
     // 1. Check wallet and hold escrow tokens
     const { data: walletData } = await admin

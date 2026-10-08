@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { requireUser } from '@/lib/auth/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { offerId, userId, action, reason } = await req.json();
+    const user = await requireUser(req);
+    if (user instanceof NextResponse) return user;
 
-    if (!offerId || !userId || !action) {
+    const { offerId, action, reason } = await req.json();
+
+    if (!offerId || !action) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
     const admin = getSupabaseAdmin();
-    if (!admin) {
-      return NextResponse.json({
-        success: true,
-        message: `Offer ${action.toLowerCase()} processed in fallback mode`,
-      });
-    }
 
     const { data: offer, error: offerError } = await admin
       .from('offers')
@@ -27,8 +25,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Offer not found' }, { status: 404 });
     }
 
-    const isProposer = offer.proposer_id === userId;
-    const isRecipient = offer.recipient_id === userId;
+    const isProposer = offer.proposer_id === user.id;
+    const isRecipient = offer.recipient_id === user.id;
 
     if (!isProposer && !isRecipient) {
       return NextResponse.json({ error: 'Unauthorized to respond to this offer' }, { status: 403 });

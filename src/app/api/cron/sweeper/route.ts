@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const admin = getSupabaseAdmin();
     if (!admin) {
-      return NextResponse.json({ message: 'Sweeper ran in fallback mode (no Supabase connection)' });
+      return NextResponse.json({ error: 'Sweeper database is unavailable' }, { status: 503 });
     }
 
     const nowIso = new Date().toISOString();

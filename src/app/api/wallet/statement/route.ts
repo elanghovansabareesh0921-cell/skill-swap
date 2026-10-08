@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { checkAdminAccess } from '@/lib/admin/auth';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { requireUser } from '@/lib/auth/server';
 
 interface StatementTxRow {
   id: string;
@@ -11,27 +11,20 @@ interface StatementTxRow {
   idempotency_key?: string;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const csvHeaders = 'Transaction ID,Date,Type,Description,Amount (Tokens),Amount (Paise),Idempotency Key\n';
   let csvRows = '';
 
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    const { isAdmin } = await checkAdminAccess();
-    if (!user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
+    const user = await requireUser(request);
+    if (user instanceof NextResponse) return user;
 
-    let query = supabase
+    const { data } = await getSupabaseAdmin()
       .from('ledger_transactions')
       .select('*')
+      .or(`source_wallet_id.eq.${user.id},dest_wallet_id.eq.${user.id}`)
       .order('created_at', { ascending: false })
       .limit(200);
-    if (!isAdmin) {
-      query = query.or(`source_wallet_id.eq.${user.id},dest_wallet_id.eq.${user.id}`);
-    }
-    const { data } = await query;
 
     const rows = (data || []) as StatementTxRow[];
 
@@ -52,6 +45,9 @@ export async function GET() {
       csvRows = '"INFO-001","' + new Date().toISOString() + '","INFO","No transactions recorded yet in ledger",0,0,"INITIAL"';
     }
   } catch {
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: 'Ledger service unavailable' }, { status: 503 });
+    }
     csvRows = '"ERR-001","' + new Date().toISOString() + '","ERROR","Failed to fetch live ledger transactions",0,0,"FALLBACK"';
   }
 

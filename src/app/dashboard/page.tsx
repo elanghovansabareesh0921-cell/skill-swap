@@ -14,13 +14,6 @@ import { WalletModal } from '@/components/WalletModal';
 import { AdminPanel } from '@/components/AdminPanel';
 import { ReviewModal } from '@/components/ReviewModal';
 import { isUserAdmin } from '@/lib/roles';
-import {
-  INITIAL_TEACHERS,
-  INITIAL_WALLET,
-  INITIAL_OFFERS,
-  INITIAL_SESSIONS,
-  INITIAL_CHAT_MESSAGES,
-} from '@/lib/mockData';
 import { computePeerMatches } from '@/lib/matches';
 import { generateQuoteBreakdown } from '@/lib/pricing';
 import {
@@ -36,16 +29,7 @@ import {
   UserLearnSkill,
 } from '@/types';
 
-interface SupabaseSkillJoin {
-  skill_id: string;
-  skill_type: 'TEACH' | 'LEARN';
-  level?: 'beginner' | 'intermediate' | 'expert' | 'advanced';
-  goal?: string;
-  skills?: {
-    name?: string;
-    category?: string;
-  };
-}
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
 interface SupabaseProfileJoin {
   id: string;
@@ -62,22 +46,29 @@ interface SupabaseProfileJoin {
   is_accepting_requests?: boolean;
   strikes_count?: number;
   reputation_score?: number;
-  user_skills?: SupabaseSkillJoin[];
+  availability?: Record<string, string[]>;
 }
 
 export default function Dashboard() {
   const router = useRouter();
   const [authProfile, setAuthProfile] = useState<AuthProfile | null>(null);
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const [userId, setUserId] = useState<string>('usr-current');
   const [isReady, setIsReady] = useState(false);
 
   // Global Platform State
-  const [teachers, setTeachers] = useState<Profile[]>(INITIAL_TEACHERS);
-  const [wallet, setWallet] = useState<Wallet>(INITIAL_WALLET);
-  const [offers, setOffers] = useState<Offer[]>(INITIAL_OFFERS);
-  const [sessions, setSessions] = useState<SessionLeg[]>(INITIAL_SESSIONS);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(INITIAL_CHAT_MESSAGES);
-  const [transactions, setTransactions] = useState<LedgerTransaction[]>([
+  const [teachers, setTeachers] = useState<Profile[]>([]);
+  const [wallet, setWallet] = useState<Wallet>({
+    userId: '',
+    availablePaise: 0,
+    heldPaise: 0,
+    lifetimeEarnedPaise: 0,
+    lifetimeSpentPaise: 0,
+  });
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [sessions, setSessions] = useState<SessionLeg[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [transactions, setTransactions] = useState<LedgerTransaction[]>(DEMO_MODE ? [
     {
       id: 'tx-001',
       referenceId: 'off-101',
@@ -94,9 +85,20 @@ export default function Dashboard() {
       amountPaise: 20000,
       timestamp: 'Yesterday, 19:30',
       description: 'Razorpay UPI Skill Points Pack purchase (200 SP)',
-      idempotencyKey: 'idemp-rzp-200',
+        idempotencyKey: 'idemp-rzp-200',
     },
-  ]);
+  ] : []);
+
+  useEffect(() => {
+    if (!DEMO_MODE) return;
+    void import('@/lib/mockData').then((mockData) => {
+      setTeachers(mockData.INITIAL_TEACHERS);
+      setWallet(mockData.INITIAL_WALLET);
+      setOffers(mockData.INITIAL_OFFERS);
+      setSessions(mockData.INITIAL_SESSIONS);
+      setChatMessages(mockData.INITIAL_CHAT_MESSAGES);
+    });
+  }, [userId]);
 
   // UI Navigation State
   const [activeTab, setActiveTab] = useState<'matches' | 'sessions' | 'chat' | 'admin'>('matches');
@@ -109,7 +111,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!userId || userId === 'usr-current') return;
 
-    fetch(`/api/wallet/balance?userId=${encodeURIComponent(userId)}`)
+    fetch('/api/wallet/balance')
       .then((res) => res.json())
       .then((data) => {
         if (data.wallet) {
@@ -121,7 +123,7 @@ export default function Dashboard() {
       })
       .catch((err) => console.error('Error fetching live wallet:', err));
 
-    fetch(`/api/offers?userId=${encodeURIComponent(userId)}`)
+    fetch('/api/offers')
       .then((res) => res.json())
       .then((data) => {
         if (data.offers && data.offers.length > 0) {
@@ -140,139 +142,21 @@ export default function Dashboard() {
       .catch((err) => console.error('Error fetching live offers:', err));
   }, [userId]);
 
-  // Fetch Real Users from Supabase
+  // Fetch real peer profiles and canonical skill records from the server.
   useEffect(() => {
-    const fetchTeachers = async () => {
-      const supabase = createClient();
-      
-      let rows: SupabaseProfileJoin[] = [];
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          *,
-          user_skills (*, skills (*))
-        `);
-
-      if (!error && data) {
-        rows = data as unknown as SupabaseProfileJoin[];
-      } else {
-        const { data: rawProfiles } = await supabase.from('profiles').select('*');
-        if (rawProfiles) {
-          rows = rawProfiles as unknown as SupabaseProfileJoin[];
-        }
-      }
-
-      if (rows.length === 0) return;
-
-      // Also query user_skills_teach and user_skills_learn in case dual schema is used
-      const teachByUserId: Record<string, Array<{ skillId: string; skillName: string; category: string; level: string }>> = {};
-      const learnByUserId: Record<string, Array<{ skillId: string; skillName: string; category: string; targetLevel: string; goal: string }>> = {};
-
-      try {
-        const [teachRes, learnRes] = await Promise.all([
-          supabase.from('user_skills_teach').select('*, skill_taxonomy(*)'),
-          supabase.from('user_skills_learn').select('*, skill_taxonomy(*)'),
-        ]);
-
-        if (teachRes.data) {
-          teachRes.data.forEach((t: { user_id: string; skill_id: string; level?: string; skill_taxonomy?: { name?: string; category?: string } }) => {
-            if (!teachByUserId[t.user_id]) teachByUserId[t.user_id] = [];
-            teachByUserId[t.user_id].push({
-              skillId: t.skill_id,
-              skillName: t.skill_taxonomy?.name || 'Skill',
-              category: t.skill_taxonomy?.category || 'Software & Tech',
-              level: t.level || 'expert',
-            });
-          });
-        }
-
-        if (learnRes.data) {
-          learnRes.data.forEach((l: { user_id: string; skill_id: string; target_level?: string; goal?: string; skill_taxonomy?: { name?: string; category?: string } }) => {
-            if (!learnByUserId[l.user_id]) learnByUserId[l.user_id] = [];
-            learnByUserId[l.user_id].push({
-              skillId: l.skill_id,
-              skillName: l.skill_taxonomy?.name || 'Skill',
-              category: l.skill_taxonomy?.category || 'Software & Tech',
-              targetLevel: l.target_level || 'intermediate',
-              goal: l.goal || '',
-            });
-          });
-        }
-      } catch {
-        // ignore
-      }
-
-      const realTeachers: Profile[] = rows.map((p) => {
-        const legacyTeach = (p.user_skills || []).filter((s) => s.skill_type === 'TEACH');
-        const legacyLearn = (p.user_skills || []).filter((s) => s.skill_type === 'LEARN');
-
-        const teachSkills = legacyTeach.length > 0
-          ? legacyTeach.map((t) => ({
-              skillId: t.skill_id,
-              skillName: t.skills?.name || 'Unknown Skill',
-              category: t.skills?.category || 'Software & Tech',
-              level: t.level || 'expert',
-              yearsExperience: 2,
-              hourlyRate: 50,
-              allowedDurations: [30, 60],
-              isVerified: true,
-            }))
-          : (teachByUserId[p.id] || []).map((t) => ({
-              skillId: t.skillId,
-              skillName: t.skillName,
-              category: t.category,
-              level: (t.level as 'beginner' | 'intermediate' | 'advanced' | 'expert') || 'expert',
-              yearsExperience: 2,
-              hourlyRate: 50,
-              allowedDurations: [30, 60],
-              isVerified: true,
-            }));
-
-        const learnSkills = legacyLearn.length > 0
-          ? legacyLearn.map((l) => ({
-              skillId: l.skill_id,
-              skillName: l.skills?.name || 'Unknown Skill',
-              category: l.skills?.category || 'Software & Tech',
-              targetLevel: ((l.level === 'advanced' ? 'expert' : l.level) || 'intermediate') as 'beginner' | 'intermediate' | 'expert',
-              goal: l.goal || '',
-            }))
-          : (learnByUserId[p.id] || []).map((l) => ({
-              skillId: l.skillId,
-              skillName: l.skillName,
-              category: l.category,
-              targetLevel: ((l.targetLevel === 'advanced' ? 'expert' : l.targetLevel) || 'intermediate') as 'beginner' | 'intermediate' | 'expert',
-              goal: l.goal,
-            }));
-
-        return {
-          id: p.id,
-          email: p.email || 'user@example.com',
-          fullName: p.full_name || 'Anonymous User',
-          avatarUrl: p.avatar_url || '/avatars/avatar_3.jpg',
-          bio: p.bio || 'SkillSwap member',
-          city: p.city || '',
-          country: p.country || 'IN',
-          timezone: p.timezone || 'Asia/Kolkata',
-          languages: p.languages || ['English'],
-          phoneVerified: p.phone_verified || false,
-          isOnboarded: p.is_onboarded || false,
-          isAcceptingRequests: p.is_accepting_requests !== false,
-          strikesCount: p.strikes_count || 0,
-          reputationScore: Number(p.reputation_score) || 5.0,
-          completedSessionsCount: 0,
-          availability: {
-            Mon: ['18:00-21:00'], Tue: ['19:00-21:00'], Thu: ['18:00-21:00'], Sat: ['10:00-14:00']
-          },
-          teachSkills,
-          learnSkills,
-        };
-      });
-
-      const validRealTeachers = realTeachers.filter(t => t.teachSkills.length > 0 || t.learnSkills.length > 0);
-      setTeachers([...INITIAL_TEACHERS, ...validRealTeachers]);
+    let cancelled = false;
+    fetch('/api/peers')
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Peer lookup failed');
+        return response.json() as Promise<{ peers: Profile[] }>;
+      })
+      .then(({ peers }) => {
+        if (!cancelled) setTeachers(peers);
+      })
+      .catch((error: unknown) => console.error('Error fetching peers:', error));
+    return () => {
+      cancelled = true;
     };
-
-    fetchTeachers();
   }, []);
 
   // Supabase Realtime Broadcast for E2E Testing
@@ -315,6 +199,8 @@ export default function Dashboard() {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           setUserId(user.id);
+          const adminResponse = await fetch('/api/admin/access');
+          setHasAdminAccess(adminResponse.ok);
           if (!session) {
             session = { email: user.email || '', provider: 'google' };
             if (typeof window !== 'undefined') {
@@ -338,40 +224,30 @@ export default function Dashboard() {
           if (user) {
             const { data: dbProfileData } = await supabase
               .from('profiles')
-              .select('*, user_skills (*, skills (*))')
+              .select('*')
               .eq('id', user.id)
               .single();
 
             const dbProfile = dbProfileData as unknown as SupabaseProfileJoin;
 
             if (dbProfile && dbProfile.is_onboarded) {
-              let teachSkills = (dbProfile.user_skills || [])
-                .filter((s) => s.skill_type === 'TEACH')
-                .map((s) => s.skills?.name || 'Skill');
-              let learnSkills = (dbProfile.user_skills || [])
-                .filter((s) => s.skill_type === 'LEARN')
-                .map((s) => s.skills?.name || 'Skill');
-
-              if (teachSkills.length === 0 && learnSkills.length === 0) {
-                try {
-                  const [teachRes, learnRes] = await Promise.all([
-                    supabase.from('user_skills_teach').select('*, skill_taxonomy(*)').eq('user_id', user.id),
-                    supabase.from('user_skills_learn').select('*, skill_taxonomy(*)').eq('user_id', user.id),
-                  ]);
-                  if (teachRes.data && teachRes.data.length > 0) {
-                    teachSkills = teachRes.data.map(
-                      (t: { skill_taxonomy?: { name?: string } }) => t.skill_taxonomy?.name || 'Skill'
-                    );
-                  }
-                  if (learnRes.data && learnRes.data.length > 0) {
-                    learnSkills = learnRes.data.map(
-                      (l: { skill_taxonomy?: { name?: string } }) => l.skill_taxonomy?.name || 'Skill'
-                    );
-                  }
-                } catch {
-                  // ignore
-                }
-              }
+              const [teachRes, learnRes] = await Promise.all([
+                supabase.from('user_skills_teach').select('level, hourly_rate, years_experience, allowed_durations, skill_taxonomy(name)').eq('user_id', user.id),
+                supabase.from('user_skills_learn').select('target_level, goal, skill_taxonomy(name)').eq('user_id', user.id),
+              ]);
+              const teachRows = (teachRes.data || []) as unknown as Array<{
+                level: 'beginner' | 'intermediate' | 'advanced' | 'expert' | null;
+                hourly_rate: number;
+                years_experience: number | null;
+                allowed_durations: number[] | null;
+                skill_taxonomy: { name?: string } | null;
+              }>;
+              const learnRows = (learnRes.data || []) as unknown as Array<{
+                target_level: 'beginner' | 'intermediate' | 'advanced' | 'expert' | null;
+                skill_taxonomy: { name?: string } | null;
+              }>;
+              const teachSkills = teachRows.map((skill) => skill.skill_taxonomy?.name || 'Skill');
+              const learnSkills = learnRows.map((skill) => skill.skill_taxonomy?.name || 'Skill');
 
               profile = {
                 name: dbProfile.full_name || 'Member',
@@ -386,6 +262,12 @@ export default function Dashboard() {
                 country: dbProfile.country || '',
                 timezone: dbProfile.timezone || 'Asia/Kolkata',
                 languages: dbProfile.languages || ['English'],
+                availability: dbProfile.availability || {},
+                hourlyRate: teachRows[0]?.hourly_rate,
+                experienceYears: teachRows[0]?.years_experience ?? undefined,
+                allowedDurations: teachRows[0]?.allowed_durations || undefined,
+                teachLevel: teachRows[0]?.level || undefined,
+                learnLevel: learnRows[0]?.target_level || undefined,
               };
               saveProfile(profile);
             }
@@ -399,22 +281,43 @@ export default function Dashboard() {
         router.replace('/onboarding');
         return;
       }
+
+      try {
+        const { data: persistedProfile } = await supabase
+          .from('profiles')
+          .select('timezone, languages, availability')
+          .eq('id', userId)
+          .maybeSingle();
+        const { data: persistedTeachSkills } = await supabase
+          .from('user_skills_teach')
+          .select('level, hourly_rate, years_experience, allowed_durations')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: true })
+          .limit(1);
+        const persistedTeachSkill = persistedTeachSkills?.[0];
+        profile = {
+          ...profile,
+          timezone: persistedProfile?.timezone || profile.timezone,
+          languages: persistedProfile?.languages || profile.languages,
+          availability: persistedProfile?.availability || profile.availability || {},
+          hourlyRate: persistedTeachSkill?.hourly_rate ?? profile.hourlyRate,
+          experienceYears: persistedTeachSkill?.years_experience ?? profile.experienceYears,
+          allowedDurations: persistedTeachSkill?.allowed_durations || profile.allowedDurations,
+          teachLevel: persistedTeachSkill?.level || profile.teachLevel,
+        };
+      } catch {
+        // Use the locally saved profile when persisted profile data is unavailable.
+      }
+
       setAuthProfile(profile);
       setIsReady(true);
     };
 
     initAuth();
-  }, [router]);
+  }, [router, userId]);
 
   // Bridge AuthProfile into the platform Profile type
   const currentUser: Profile = useMemo(() => {
-    const defaultAvailability: Record<string, string[]> = {
-      Mon: ['18:00-21:00'],
-      Tue: ['19:00-21:00'],
-      Thu: ['18:00-21:00'],
-      Sat: ['10:00-14:00'],
-    };
-
     if (!authProfile) {
       return {
         id: 'usr-guest',
@@ -434,16 +337,16 @@ export default function Dashboard() {
         completedSessionsCount: 0,
         teachSkills: [],
         learnSkills: [],
-        availability: defaultAvailability,
+        availability: {},
       };
     }
 
     const session = getSession();
 
     // Map teaching skills from onboarding/profile
-    const hourlyRate = authProfile.hourlyRate || 50;
-    const experienceYears = authProfile.experienceYears || 3;
-    const allowedDurations = authProfile.allowedDurations || [30, 45, 60];
+    const hourlyRate = authProfile.hourlyRate ?? 0;
+    const experienceYears = authProfile.experienceYears ?? 0;
+    const allowedDurations = authProfile.allowedDurations || [];
 
     const teachSkills: UserTeachSkill[] = authProfile.noTeach
       ? []
@@ -451,7 +354,7 @@ export default function Dashboard() {
           skillId: `sk-teach-${index}`,
           skillName,
           category: 'Skill Exchange',
-          level: 'advanced',
+          level: authProfile.teachLevel || 'intermediate',
           yearsExperience: experienceYears,
           hourlyRate: hourlyRate,
           allowedDurations: allowedDurations,
@@ -463,7 +366,7 @@ export default function Dashboard() {
       skillId: `sk-learn-${index}`,
       skillName,
       category: 'Skill Exchange',
-      targetLevel: 'intermediate',
+      targetLevel: authProfile.learnLevel || 'beginner',
       goal: `Learn ${skillName} from vetted peers`,
     }));
 
@@ -487,9 +390,10 @@ export default function Dashboard() {
       completedSessionsCount: 0,
       teachSkills,
       learnSkills,
-      availability: authProfile.availability || defaultAvailability,
+      availability: authProfile.availability || {},
+      app_metadata: hasAdminAccess ? { role: 'admin' } : null,
     };
-  }, [authProfile, userId]);
+  }, [authProfile, userId, hasAdminAccess]);
 
   // Compute live peer matches dynamically based on the onboarded skills
   const peerMatches = useMemo(() => {
@@ -539,7 +443,6 @@ export default function Dashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          proposerId: currentUser.id,
           proposerName: currentUser.fullName,
           recipientId: data.match.teacher.id,
           recipientName: data.match.teacher.fullName,
@@ -590,6 +493,8 @@ export default function Dashboard() {
     } catch (err) {
       console.warn('API offer endpoint fallback to optimistic state:', err);
     }
+
+    if (!DEMO_MODE) return;
 
     // Fallback: local optimistic state
     const newOfferId = `off-${Date.now().toString().slice(-4)}`;
@@ -725,7 +630,6 @@ export default function Dashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId,
-          userId: currentUser.id,
         }),
       });
 
@@ -771,6 +675,8 @@ export default function Dashboard() {
     } catch (err) {
       console.warn('API session confirm failed, falling back to local state:', err);
     }
+
+    if (!DEMO_MODE) return;
 
     const updatedTeacherConfirmed = isTeacher ? true : (session.teacherConfirmed || false);
     const updatedLearnerConfirmed = isLearner ? true : (session.learnerConfirmed || false);
@@ -846,19 +752,22 @@ export default function Dashboard() {
 
   // Action: Dispute a session
   const handleDisputeSession = async (sessionId: string, reason: string) => {
+    let persisted = false;
     try {
-      await fetch('/api/sessions/dispute', {
+      const response = await fetch('/api/sessions/dispute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId,
-          userId: currentUser.id,
           reason,
         }),
       });
+      persisted = response.ok;
     } catch (err) {
       console.warn('API dispute failed, updating local state:', err);
     }
+
+    if (!persisted && !DEMO_MODE) return;
 
     setSessions(prev =>
       prev.map(s => (s.id === sessionId ? { ...s, status: 'DISPUTED', disputeReason: reason } : s))
@@ -870,19 +779,22 @@ export default function Dashboard() {
     const session = sessions.find(s => s.id === sessionId);
     if (!session) return;
 
+    let persisted = false;
     try {
-      await fetch('/api/admin/dispute/resolve', {
+      const response = await fetch('/api/admin/dispute/resolve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId,
           resolution,
-          adminEmail: currentUser.email,
         }),
       });
+      persisted = response.ok;
     } catch (err) {
       console.warn('Admin dispute API fallback:', err);
     }
+
+    if (!persisted && !DEMO_MODE) return;
 
     const chargedPaise = session.chargedTokens * 100;
 
@@ -921,20 +833,26 @@ export default function Dashboard() {
     };
     setChatMessages(prev => [...prev, newMsg]);
 
+    let persisted = false;
     try {
-      await fetch('/api/chat/messages', {
+      const response = await fetch('/api/chat/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           offerId: offers[0]?.id,
-          senderId: currentUser.id,
           content,
           messageType: type,
           metadata,
         }),
       });
+      persisted = response.ok;
     } catch (err) {
       console.warn('Chat persistence API error, relying on local/broadcast:', err);
+    }
+
+    if (!persisted && !DEMO_MODE) {
+      setChatMessages(prev => prev.filter(message => message.id !== newMsg.id));
+      return;
     }
 
     const supabase = createClient();
@@ -1074,7 +992,6 @@ export default function Dashboard() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   sessionId,
-                  reviewerId: currentUser.id,
                   rating,
                   feedback,
                   tags,

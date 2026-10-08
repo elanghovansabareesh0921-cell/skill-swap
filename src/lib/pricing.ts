@@ -1,4 +1,4 @@
-import { QuoteBreakdown, OfferType } from '@/types';
+import type { QuoteBreakdown, OfferType } from '../types';
 
 export const PLATFORM_FEE_PERCENT = 10; // 10%
 export const DEFAULT_SWAP_FACTOR = 0.30; // 30%

@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { requireUser } from '@/lib/auth/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { sessionId, reviewerId, rating, feedback, tags } = await req.json();
+    const user = await requireUser(req);
+    if (user instanceof NextResponse) return user;
 
-    if (!sessionId || !reviewerId || !rating) {
+    const { sessionId, rating, feedback, tags } = await req.json();
+
+    if (!sessionId || !rating) {
       return NextResponse.json({ error: 'Missing required review fields' }, { status: 400 });
     }
 
     const admin = getSupabaseAdmin();
-    if (!admin) {
-      return NextResponse.json({
-        success: true,
-        message: 'Review saved in fallback mode',
-      });
-    }
 
     // 1. Fetch Session to find reviewee (the other participant)
     const { data: session, error: sessionError } = await admin
@@ -28,14 +26,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
-    const revieweeId = session.teacher_id === reviewerId ? session.learner_id : session.teacher_id;
+    if (session.teacher_id !== user.id && session.learner_id !== user.id) {
+      return NextResponse.json({ error: 'You are not a participant in this session' }, { status: 403 });
+    }
+
+    const revieweeId = session.teacher_id === user.id ? session.learner_id : session.teacher_id;
 
     // 2. Insert Review Record
     const { data: reviewRecord, error: reviewError } = await admin
       .from('reviews')
       .insert({
         session_id: sessionId,
-        reviewer_id: reviewerId,
+        reviewer_id: user.id,
         reviewee_id: revieweeId,
         rating: Math.min(5, Math.max(1, Number(rating))),
         feedback: feedback || '',
@@ -82,15 +84,15 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
+    const user = await requireUser(req);
+    if (user instanceof NextResponse) return user;
+
     const { searchParams } = new URL(req.url);
     const sessionId = searchParams.get('sessionId');
-    const userId = searchParams.get('userId');
-    const limit = parseInt(searchParams.get('limit') || '50', 10);
+    const requestedLimit = Number.parseInt(searchParams.get('limit') || '50', 10);
+    const limit = Number.isFinite(requestedLimit) ? Math.min(100, Math.max(1, requestedLimit)) : 50;
 
     const admin = getSupabaseAdmin();
-    if (!admin) {
-      return NextResponse.json({ success: true, reviews: [] });
-    }
 
     let query = admin
       .from('reviews')
@@ -99,9 +101,18 @@ export async function GET(req: NextRequest) {
       .limit(limit);
 
     if (sessionId) {
+      const { data: session } = await admin
+        .from('sessions')
+        .select('teacher_id, learner_id')
+        .eq('id', sessionId)
+        .maybeSingle();
+      if (!session) return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+      if (session.teacher_id !== user.id && session.learner_id !== user.id) {
+        return NextResponse.json({ error: 'You are not a participant in this session' }, { status: 403 });
+      }
       query = query.eq('session_id', sessionId);
-    } else if (userId) {
-      query = query.or(`reviewee_id.eq.${userId},reviewer_id.eq.${userId}`);
+    } else {
+      query = query.or(`reviewee_id.eq.${user.id},reviewer_id.eq.${user.id}`);
     }
 
     const { data: reviews, error } = await query;

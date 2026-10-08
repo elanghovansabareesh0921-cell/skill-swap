@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import Razorpay from 'razorpay';
-import { createClient } from '@supabase/supabase-js';
-import { createClient as createServerClient } from '@/lib/supabase/server';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { requireUser } from '@/lib/auth/server';
 
 const cleanEnv = (val?: string) => val ? val.replace(/['"]/g, '').trim() : undefined;
 
 export async function POST(request: Request) {
   try {
+    const user = await requireUser(request);
+    if (user instanceof NextResponse) return user;
+
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amountTokens } = await request.json();
     const key_secret = cleanEnv(process.env.RAZORPAY_KEY_SECRET);
 
@@ -36,12 +39,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid payment signature' }, { status: 400 });
     }
 
-    const authClient = await createServerClient();
-    const { data: { user } } = await authClient.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
-
     const keyId = cleanEnv(process.env.RAZORPAY_KEY_ID) || cleanEnv(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID);
     if (!keyId) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
@@ -56,38 +53,37 @@ export async function POST(request: Request) {
     }
 
     // Signature is valid. Credit wallet in Supabase idempotently
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const idempotencyKey = `rzp-${razorpay_payment_id}`;
-
-    if (supabaseUrl && supabaseServiceKey && amountTokens) {
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
-      const amountPaise = Math.round(Number(amountTokens) * 100);
+    const supabase = getSupabaseAdmin();
+    const amountPaise = Math.round(Number(amountTokens) * 100);
 
       // Check if already credited by webhook or prior request
-      const { data: existingTx } = await supabase
+      const { data: existingTx, error: transactionLookupError } = await supabase
         .from('ledger_transactions')
         .select('id')
         .eq('idempotency_key', idempotencyKey)
         .maybeSingle();
+      if (transactionLookupError) throw transactionLookupError;
 
       if (!existingTx) {
-        const { data: wallet } = await supabase
+        const { data: wallet, error: walletLookupError } = await supabase
           .from('wallets')
           .select('*')
           .eq('user_id', user.id)
           .maybeSingle();
+        if (walletLookupError) throw walletLookupError;
 
         if (wallet) {
-          await supabase
+          const { error: walletUpdateError } = await supabase
             .from('wallets')
             .update({
               available_paise: wallet.available_paise + amountPaise,
               updated_at: new Date().toISOString(),
             })
             .eq('user_id', user.id);
+          if (walletUpdateError) throw walletUpdateError;
         } else {
-          await supabase
+          const { error: walletInsertError } = await supabase
             .from('wallets')
             .insert({
               user_id: user.id,
@@ -96,9 +92,10 @@ export async function POST(request: Request) {
               lifetime_earned_paise: 0,
               lifetime_spent_paise: 0,
             });
+          if (walletInsertError) throw walletInsertError;
         }
 
-        await supabase
+        const { error: ledgerInsertError } = await supabase
           .from('ledger_transactions')
           .insert({
             reference_id: razorpay_payment_id,
@@ -108,7 +105,7 @@ export async function POST(request: Request) {
             idempotency_key: idempotencyKey,
             metadata: { description: `Razorpay Verified Purchase (${amountTokens} SP)` },
           });
-      }
+        if (ledgerInsertError) throw ledgerInsertError;
     }
 
     return NextResponse.json({ success: true, message: 'Payment verified and wallet credited' }, { status: 200 });

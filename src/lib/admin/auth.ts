@@ -5,7 +5,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
-import { isUserAdmin } from './roles';
+import { isServerAdmin } from '@/lib/auth/server';
 
 export * from './roles';
 
@@ -30,7 +30,7 @@ export async function checkAdminAccess(): Promise<AdminCheckResult> {
       return { isAdmin: false, userId: null, email: null };
     }
 
-    const isAdmin = isUserAdmin(user);
+    const isAdmin = await isServerAdmin(user);
 
     return {
       isAdmin,

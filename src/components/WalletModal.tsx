@@ -62,7 +62,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
       const res = await fetch('/api/wallet/purchase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amountTokens: amount, userId: wallet.userId }),
+        body: JSON.stringify({ amountTokens: amount }),
       });
       const data = await res.json();
       
@@ -95,7 +95,6 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
                 amountTokens: amount,
-                userId: wallet.userId,
               }),
             });
             const verifyData = await verifyRes.json();

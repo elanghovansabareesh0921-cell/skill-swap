@@ -1,29 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
-import { isUserAdmin } from '@/lib/roles';
+import { requireAdmin } from '@/lib/auth/server';
 
 export async function POST(req: NextRequest) {
   try {
+    const adminUser = await requireAdmin(req);
+    if (adminUser instanceof NextResponse) return adminUser;
+
     const body = await req.json();
-    const { sessionId, resolution, adminEmail, reason } = body;
+    const { sessionId, resolution, reason } = body;
 
     if (!sessionId || !resolution) {
       return NextResponse.json({ error: 'Missing sessionId or resolution' }, { status: 400 });
     }
 
-    // Role check: Only authorized administrators can resolve disputes
-    if (!isUserAdmin({ email: adminEmail })) {
-      return NextResponse.json({ error: 'Unauthorized: Admin privileges required' }, { status: 403 });
-    }
-
     const admin = getSupabaseAdmin();
-    if (!admin) {
-      return NextResponse.json({
-        success: true,
-        message: 'Dispute resolved in fallback mode',
-        resolution,
-      });
-    }
 
     const { data: session, error: sessionError } = await admin
       .from('sessions')
@@ -73,7 +64,7 @@ export async function POST(req: NextRequest) {
         amount_paise: chargedPaise,
         idempotency_key: `idemp-disp-ref-${session.id}`,
         metadata: {
-          adjudicatedBy: adminEmail,
+          adjudicatedBy: adminUser.id,
           reason: reason || 'Admin dispute refund to learner',
         },
       });
@@ -109,7 +100,7 @@ export async function POST(req: NextRequest) {
         amount_paise: teacherPayoutPaise,
         idempotency_key: `idemp-disp-rel-${session.id}`,
         metadata: {
-          adjudicatedBy: adminEmail,
+          adjudicatedBy: adminUser.id,
           reason: reason || 'Admin dispute release to teacher',
         },
       });
@@ -121,7 +112,7 @@ export async function POST(req: NextRequest) {
         amount_paise: platformFeePaise,
         idempotency_key: `idemp-disp-fee-${session.id}`,
         metadata: {
-          adjudicatedBy: adminEmail,
+          adjudicatedBy: adminUser.id,
           feeTokens: session.platform_fee_tokens,
         },
       });
@@ -159,7 +150,7 @@ export async function POST(req: NextRequest) {
         amount_paise: halfPaise,
         idempotency_key: `idemp-disp-split-learn-${session.id}`,
         metadata: {
-          adjudicatedBy: adminEmail,
+          adjudicatedBy: adminUser.id,
           split: '50% to learner',
         },
       });
@@ -172,7 +163,7 @@ export async function POST(req: NextRequest) {
         amount_paise: halfTeacherPayout,
         idempotency_key: `idemp-disp-split-teach-${session.id}`,
         metadata: {
-          adjudicatedBy: adminEmail,
+          adjudicatedBy: adminUser.id,
           split: '50% to teacher',
         },
       });

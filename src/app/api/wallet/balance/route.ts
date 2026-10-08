@@ -1,34 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { requireUser } from '@/lib/auth/server';
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 });
-    }
+    const user = await requireUser(req);
+    if (user instanceof NextResponse) return user;
 
     const admin = getSupabaseAdmin();
-    if (!admin) {
-      // Return default initial wallet
-      return NextResponse.json({
-        wallet: {
-          userId,
-          availablePaise: 4500,
-          heldPaise: 1800,
-          lifetimeEarnedPaise: 24000,
-          lifetimeSpentPaise: 8200,
-        },
-        transactions: [],
-      });
-    }
 
     const { data: initialWallet, error: walletError } = await admin
       .from('wallets')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .single();
 
     let walletData = initialWallet;
@@ -38,7 +22,7 @@ export async function GET(req: NextRequest) {
       const { data: newWallet } = await admin
         .from('wallets')
         .upsert({
-          user_id: userId,
+          user_id: user.id,
           available_paise: 5000, // 50 SP welcome bonus
           held_paise: 0,
           lifetime_earned_paise: 0,
@@ -54,7 +38,7 @@ export async function GET(req: NextRequest) {
     const { data: txData } = await admin
       .from('ledger_transactions')
       .select('*')
-      .or(`source_wallet_id.eq.${userId},dest_wallet_id.eq.${userId}`)
+      .or(`source_wallet_id.eq.${user.id},dest_wallet_id.eq.${user.id}`)
       .order('created_at', { ascending: false })
       .limit(30);
 
@@ -70,7 +54,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       wallet: {
-        userId,
+        userId: user.id,
         availablePaise: Number(walletData?.available_paise || 0),
         heldPaise: Number(walletData?.held_paise || 0),
         lifetimeEarnedPaise: Number(walletData?.lifetime_earned_paise || 0),

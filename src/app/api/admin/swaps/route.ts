@@ -9,15 +9,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { checkAdminAccess } from '@/lib/admin/auth';
+import { requireAdmin } from '@/lib/auth/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
-import { mockSwaps, type SkillSwap, type SwapStatus, SWAP_STATUSES } from '@/lib/admin/mockSwaps';
+import { type SkillSwap, type SwapStatus, SWAP_STATUSES } from '@/lib/admin/mockSwaps';
 
 /**
  * In-memory swap store (resets on server restart).
  * In production this would be a database query.
  */
-const swapStore: SkillSwap[] = [...mockSwaps];
 
 interface DbSessionRow {
   id: string;
@@ -32,13 +31,8 @@ interface DbSessionRow {
 }
 
 export async function GET(request: NextRequest) {
-  const { isAdmin } = await checkAdminAccess();
-  if (!isAdmin) {
-    return NextResponse.json(
-      { error: 'Forbidden: Admin access required' },
-      { status: 403 }
-    );
-  }
+  const adminUser = await requireAdmin(request);
+  if (adminUser instanceof NextResponse) return adminUser;
 
   const { searchParams } = new URL(request.url);
   const statusFilter = searchParams.get('status') as SwapStatus | null;
@@ -94,10 +88,11 @@ export async function GET(request: NextRequest) {
       }
     } catch (err) {
       console.warn('Error querying DB sessions for admin:', err);
+      return NextResponse.json({ error: 'Admin swaps are temporarily unavailable' }, { status: 503 });
     }
   }
 
-  let filtered = [...dbSwaps, ...swapStore];
+  let filtered = [...dbSwaps];
 
   // Filter by status
   if (statusFilter && SWAP_STATUSES.includes(statusFilter)) {
@@ -120,18 +115,13 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     swaps: filtered,
     total: filtered.length,
-    allTotal: dbSwaps.length + swapStore.length,
+    allTotal: dbSwaps.length,
   });
 }
 
 export async function PATCH(request: NextRequest) {
-  const { isAdmin } = await checkAdminAccess();
-  if (!isAdmin) {
-    return NextResponse.json(
-      { error: 'Forbidden: Admin access required' },
-      { status: 403 }
-    );
-  }
+  const adminUser = await requireAdmin(request);
+  if (adminUser instanceof NextResponse) return adminUser;
 
   try {
     const body = await request.json();
@@ -161,11 +151,6 @@ export async function PATCH(request: NextRequest) {
         Disputed: 'DISPUTED',
       };
       await admin.from('sessions').update({ status: statusMap[status] }).eq('id', id);
-    }
-
-    const swapIndex = swapStore.findIndex((s) => s.id === id);
-    if (swapIndex !== -1) {
-      swapStore[swapIndex] = { ...swapStore[swapIndex], status };
     }
 
     return NextResponse.json({

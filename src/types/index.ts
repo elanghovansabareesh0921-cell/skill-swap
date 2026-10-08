@@ -49,6 +49,7 @@ export interface Profile {
   availability: Record<string, string[]>; // e.g. { "Mon": ["18:00-21:00"], "Wed": ["18:00-21:00"] }
   role?: 'admin' | 'user';
   isAdmin?: boolean;
+  app_metadata?: Record<string, unknown> | null;
 }
 
 export interface Wallet {
@@ -173,4 +174,5 @@ export interface PeerMatch {
   teacherOfferingSkill: UserTeachSkill;
   matchingLearnSkill?: UserLearnSkill;
   teacherDesiresSkill?: UserTeachSkill;
+  overlappingSlots: import('@/lib/availability').OverlappingSlot[];
 }

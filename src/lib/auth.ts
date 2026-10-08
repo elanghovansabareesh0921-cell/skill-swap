@@ -16,6 +16,8 @@ export type Profile = {
   languages?: string[];
   hourlyRate?: number;
   experienceYears?: number;
+  teachLevel?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  learnLevel?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   isAcceptingRequests?: boolean;
   githubUrl?: string;
   linkedinUrl?: string;
@@ -76,8 +78,6 @@ export const saveProfile = async (p: Profile) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId,
-          email,
           profile: p
         })
       });

@@ -2,7 +2,6 @@ import React from 'react';
 import Image from 'next/image';
 import { MoreVertical, ShieldAlert, Trash2, Search, Filter, ShieldCheck, UserX } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
-import { isUserAdmin } from '@/lib/roles';
 
 interface AdminUserItem {
   id: string;
@@ -24,6 +23,7 @@ interface ProfileRow {
   created_at?: string;
   strikes_count?: number;
   reputation_score?: number;
+  is_admin?: boolean;
 }
 
 /**
@@ -40,7 +40,7 @@ export default async function AdminUsersPage() {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, email, full_name, avatar_url, is_onboarded, created_at, strikes_count, reputation_score')
+      .select('id, email, full_name, avatar_url, is_onboarded, created_at, strikes_count, reputation_score, is_admin')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -51,7 +51,7 @@ export default async function AdminUsersPage() {
         id: p.id,
         email: p.email || 'N/A',
         fullName: p.full_name || 'Anonymous',
-        role: isUserAdmin({ email: p.email }) ? 'Admin' : 'User',
+        role: p.is_admin === true ? 'Admin' : 'User',
         status: (p.strikes_count || 0) >= 3 ? 'Suspended' : (p.is_onboarded ? 'Active' : 'Pending'),
         joinedDate: p.created_at ? new Date(p.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Unknown',
         avatar: p.avatar_url || '/avatars/avatar_3.jpg',
