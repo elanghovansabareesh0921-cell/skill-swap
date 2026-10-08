@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Star, ShieldCheck, X, EyeOff, CheckCircle2, MessageSquare } from 'lucide-react';
+import { Star, X, EyeOff, CheckCircle2 } from 'lucide-react';
 import { SessionLeg } from '@/types';
 
 interface ReviewModalProps {

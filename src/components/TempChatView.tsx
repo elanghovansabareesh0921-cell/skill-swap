@@ -1,17 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { 
   Send, 
   Calendar, 
   Clock, 
   Video, 
   AlertTriangle, 
-  ShieldCheck, 
   Check, 
-  Sparkles, 
   ExternalLink,
-  ArrowRightLeft,
   X
 } from 'lucide-react';
 import { ChatMessage, Profile } from '@/types';
@@ -19,7 +17,7 @@ import { ChatMessage, Profile } from '@/types';
 interface TempChatViewProps {
   currentUser: Profile;
   messages: ChatMessage[];
-  onSendMessage: (content: string, type?: 'TEXT' | 'PROPOSE_TIME', metadata?: any) => void;
+  onSendMessage: (content: string, type?: 'TEXT' | 'PROPOSE_TIME', metadata?: Record<string, unknown>) => void;
   onAcceptProposedTime: (messageId: string, meetLink: string) => void;
 }
 
@@ -69,8 +67,63 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
     setOffPlatformWarning(null);
   };
 
-  const handleProposeTimeSubmit = () => {
-    const meetLink = 'https://meet.google.com/new';
+  const [isProposing, setIsProposing] = useState(false);
+
+  const handleProposeTimeSubmit = async () => {
+    setIsProposing(true);
+    let meetLink = 'https://meet.google.com/new'; // fallback
+
+    try {
+      // Attempt to create a real Google Calendar event via /api/calendar
+      // This requires a valid Google OAuth access token from the current user's session
+      const now = new Date();
+      const [startHour] = (proposedTime.match(/(\d{1,2}):(\d{2})/) || ['', '18', '00']).slice(1);
+      const startDate = new Date(now);
+      startDate.setHours(parseInt(startHour || '18', 10), 0, 0, 0);
+      if (startDate <= now) {
+        startDate.setDate(startDate.getDate() + 1); // schedule for tomorrow if time has passed
+      }
+      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour session
+
+      const calendarPayload = {
+        summary: `SkillSwap Session — Leg ${proposedLegIndex}`,
+        description: `Peer-to-peer skill exchange session coordinated via SkillSwap platform.`,
+        startTime: startDate.toISOString(),
+        endTime: endDate.toISOString(),
+        attendees: [currentUser.email],
+        timeZone: currentUser.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+        accessToken: '', // Will be populated from session if available
+      };
+
+      // Try to get Google access token from Supabase session
+      try {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.provider_token) {
+          calendarPayload.accessToken = session.provider_token;
+        }
+      } catch {
+        // No Google session available — will use fallback link
+      }
+
+      if (calendarPayload.accessToken) {
+        const res = await fetch('/api/calendar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(calendarPayload),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.meetLink) {
+            meetLink = data.meetLink;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Calendar API call failed, using fallback Meet link:', err);
+    }
 
     onSendMessage(`Proposed time for Leg ${proposedLegIndex}: ${proposedDate} (${proposedTime})`, 'PROPOSE_TIME', {
       proposedDate,
@@ -79,6 +132,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
       meetLink,
     });
     setShowProposeModal(false);
+    setIsProposing(false);
   };
 
   return (
@@ -90,9 +144,12 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
       <div className="flex items-center justify-between border-b border-ink/8 bg-mist-pure/80 backdrop-blur-md px-6 py-4">
         <div className="flex items-center gap-3.5">
           <div className="relative">
-            <img
+            <Image
               src="/avatars/avatar_8.jpg"
               alt="Ravi Kumar"
+              width={40}
+              height={40}
+              unoptimized
               className="h-10 w-10 rounded-2xl object-cover border border-ink/10 shadow-xs"
             />
             <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white" />
@@ -187,7 +244,7 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
                         )}
                         {isMe && (
                           <span className="text-xs text-ink/50 font-mono">
-                            Awaiting partner's acceptance
+                            Awaiting partner&apos;s acceptance
                           </span>
                         )}
                       </div>
@@ -325,9 +382,12 @@ export const TempChatView: React.FC<TempChatViewProps> = ({
               <button
                 type="button"
                 onClick={handleProposeTimeSubmit}
-                className="rounded-full bg-lagoon px-5 py-2 text-xs font-semibold text-white hover:bg-lagoon-dark shadow-xs cursor-pointer"
+                disabled={isProposing}
+                className={`rounded-full px-5 py-2 text-xs font-semibold text-white shadow-xs cursor-pointer ${
+                  isProposing ? 'bg-lagoon/60 cursor-wait' : 'bg-lagoon hover:bg-lagoon-dark'
+                }`}
               >
-                Send Time Proposal
+                {isProposing ? 'Generating Meet Link...' : 'Send Time Proposal'}
               </button>
             </div>
           </div>

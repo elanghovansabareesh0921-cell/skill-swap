@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
   ArrowLeft,
   ArrowRightLeft,
@@ -11,7 +12,6 @@ import {
   Sparkles,
   Check,
   X,
-  Plus,
   RefreshCw,
   Globe,
   MapPin,
@@ -20,12 +20,10 @@ import {
   Star,
   ShieldCheck,
   Coins,
-  ExternalLink,
   Save,
   Trash2,
   Calendar,
   AlertCircle,
-  HelpCircle,
   CheckCircle2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -133,7 +131,7 @@ export default function ProfilePage() {
               localStorage.setItem('ss_session', JSON.stringify(session));
             }
           }
-        } catch (e) {
+        } catch {
           // ignore
         }
       }
@@ -150,15 +148,22 @@ export default function ProfilePage() {
           if (user) {
             const { data: dbProfile } = await supabase
               .from('profiles')
-              .select('*, user_skills_teach (*, skill_taxonomy (*)), user_skills_learn (*, skill_taxonomy (*))')
+              .select('*, user_skills (*, skills (*))')
               .eq('id', user.id)
               .single();
 
             if (dbProfile) {
-              const teachSkills = (dbProfile.user_skills_teach || [])
-                .map((s: any) => s.skill_taxonomy?.name || 'Skill');
-              const learnSkills = (dbProfile.user_skills_learn || [])
-                .map((s: any) => s.skill_taxonomy?.name || 'Skill');
+              interface SkillJoin {
+                skill_type?: string;
+                skills?: { name?: string };
+              }
+              const userSkills = (dbProfile.user_skills || []) as SkillJoin[];
+              const teachSkills = userSkills
+                .filter((s) => s.skill_type === 'TEACH')
+                .map((s) => s.skills?.name || 'Skill');
+              const learnSkills = userSkills
+                .filter((s) => s.skill_type === 'LEARN')
+                .map((s) => s.skills?.name || 'Skill');
 
               saved = {
                 name: dbProfile.full_name || 'Member',
@@ -177,7 +182,7 @@ export default function ProfilePage() {
               saveProfile(saved);
             }
           }
-        } catch (e) {
+        } catch {
           // ignore
         }
       }
@@ -434,13 +439,13 @@ export default function ProfilePage() {
             {/* Main Avatar with Quick Ring & Status */}
             <div className="relative group">
               <div className="relative h-28 w-28 sm:h-32 sm:w-32 rounded-full overflow-hidden border-4 border-mist-pure shadow-xl ring-4 ring-lagoon/20 bg-mist">
-                <img
+                <Image
                   src={profile.avatar || DEFAULT_DEMO_PROFILE.avatar}
                   alt={profile.name}
+                  width={128}
+                  height={128}
+                  unoptimized
                   className="h-full w-full object-cover"
-                  onError={() => {
-                    updateField('avatar', DEFAULT_DEMO_PROFILE.avatar);
-                  }}
                 />
               </div>
 
@@ -519,7 +524,7 @@ export default function ProfilePage() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as 'profile' | 'skills' | 'availability' | 'social')}
                 className={`flex items-center gap-2 whitespace-nowrap rounded-2xl px-4 py-2.5 text-xs font-bold transition-all cursor-pointer ${
                   active
                     ? 'bg-ink text-white shadow-md dark:bg-saffron dark:text-black'
@@ -557,9 +562,12 @@ export default function ProfilePage() {
                 {/* Avatar Preview & Actions */}
                 <div className="flex items-center gap-4 mb-6">
                   <div className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-ink/10 shadow-md flex-shrink-0 bg-mist">
-                    <img
+                    <Image
                       src={profile.avatar || DEFAULT_DEMO_PROFILE.avatar}
                       alt="Avatar Preview"
+                      width={80}
+                      height={80}
+                      unoptimized
                       className="h-full w-full object-cover"
                     />
                   </div>
@@ -642,9 +650,12 @@ export default function ProfilePage() {
                             }`}
                             title={preset.name}
                           >
-                            <img
+                            <Image
                               src={preset.url}
                               alt={preset.name}
+                              width={80}
+                              height={80}
+                              unoptimized
                               className="h-full w-full object-cover"
                             />
                             {isSelected && (

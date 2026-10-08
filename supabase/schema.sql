@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     is_accepting_requests BOOLEAN DEFAULT TRUE,
     strikes_count INT DEFAULT 0,
     reputation_score NUMERIC(3,2) DEFAULT 5.00,
+    is_admin BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -161,24 +162,37 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 8. Row Level Security (RLS) Setup
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.wallets ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.offers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+-- 7b. Unified Skills & User Skills (Application Model)
+CREATE TABLE IF NOT EXISTS public.skills (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL UNIQUE,
+    category TEXT NOT NULL DEFAULT 'Other',
+    min_hourly_rate INT DEFAULT 20,
+    max_hourly_rate INT DEFAULT 1000,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
--- Public can view active profiles
-CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles
-    FOR SELECT USING (true);
+CREATE TABLE IF NOT EXISTS public.user_skills (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    skill_id UUID NOT NULL REFERENCES public.skills(id) ON DELETE CASCADE,
+    skill_type TEXT NOT NULL CHECK (skill_type IN ('TEACH', 'LEARN')),
+    level TEXT DEFAULT 'intermediate',
+    goal TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
--- Users can update their own profile
-CREATE POLICY "Users can update own profile" ON public.profiles
-    FOR UPDATE USING (auth.uid() = id);
-
--- Users can view their own wallet
-CREATE POLICY "Users can view own wallet" ON public.wallets
-    FOR SELECT USING (auth.uid() = user_id);
+-- Seed initial skills
+INSERT INTO public.skills (name, category, min_hourly_rate, max_hourly_rate) VALUES
+('Python Programming', 'Software & Tech', 30, 150),
+('Rust & Systems Design', 'Software & Tech', 50, 200),
+('UI/UX Design (Figma)', 'Design & Creative', 25, 120),
+('Advanced Excel & VBA', 'Business & Finance', 20, 90),
+('Acoustic Guitar', 'Music & Arts', 20, 80),
+('Conversational Spanish', 'Languages', 25, 100),
+('Public Speaking & Pitching', 'Personal Growth', 35, 140),
+('Financial Modeling', 'Business & Finance', 40, 180)
+ON CONFLICT (name) DO NOTHING;
 
 -- Seed initial skill taxonomy
 INSERT INTO public.skill_taxonomy (name, category, min_hourly_rate, max_hourly_rate) VALUES
@@ -191,3 +205,81 @@ INSERT INTO public.skill_taxonomy (name, category, min_hourly_rate, max_hourly_r
 ('Public Speaking & Pitching', 'Personal Growth', 35, 140),
 ('Financial Modeling', 'Business & Finance', 40, 180)
 ON CONFLICT (name) DO NOTHING;
+
+-- 8. Row Level Security (RLS) Setup
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.skills ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_skills ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.wallets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ledger_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.offers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_threads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+
+-- Profiles: Public can view, users update own
+CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles
+    FOR SELECT USING (true);
+CREATE POLICY "Users can update own profile" ON public.profiles
+    FOR UPDATE USING (auth.uid() = id);
+
+-- Skills: Public viewable, authenticated can insert
+CREATE POLICY "Public skills viewable" ON public.skills
+    FOR SELECT USING (true);
+CREATE POLICY "Authenticated users can insert skills" ON public.skills
+    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+-- User Skills: Public viewable, users manage own
+CREATE POLICY "User skills viewable by everyone" ON public.user_skills
+    FOR SELECT USING (true);
+CREATE POLICY "Users can manage own skills" ON public.user_skills
+    FOR ALL USING (auth.uid() = user_id);
+
+-- Wallets: Users view own wallet
+CREATE POLICY "Users can view own wallet" ON public.wallets
+    FOR SELECT USING (auth.uid() = user_id);
+
+-- Ledger: Users view their own transactions
+CREATE POLICY "Users can view own ledger entries" ON public.ledger_transactions
+    FOR SELECT USING (auth.uid() = source_wallet_id OR auth.uid() = dest_wallet_id);
+
+-- Offers: Proposer and recipient can view and interact
+CREATE POLICY "Parties can view their offers" ON public.offers
+    FOR SELECT USING (auth.uid() = proposer_id OR auth.uid() = recipient_id);
+CREATE POLICY "Users can create offers" ON public.offers
+    FOR INSERT WITH CHECK (auth.uid() = proposer_id);
+CREATE POLICY "Parties can update offers" ON public.offers
+    FOR UPDATE USING (auth.uid() = proposer_id OR auth.uid() = recipient_id);
+
+-- Sessions: Participants can view and update
+CREATE POLICY "Participants can view sessions" ON public.sessions
+    FOR SELECT USING (auth.uid() = teacher_id OR auth.uid() = learner_id);
+CREATE POLICY "Participants can update sessions" ON public.sessions
+    FOR UPDATE USING (auth.uid() = teacher_id OR auth.uid() = learner_id);
+
+-- Chat Threads & Messages
+CREATE POLICY "Offer parties can view chat threads" ON public.chat_threads
+    FOR SELECT USING (true);
+CREATE POLICY "Thread participants can view messages" ON public.chat_messages
+    FOR SELECT USING (true);
+CREATE POLICY "Users can send messages" ON public.chat_messages
+    FOR INSERT WITH CHECK (auth.uid() = sender_id);
+
+-- 9. Reviews & Reputation System (PRD §7.10)
+CREATE TABLE IF NOT EXISTS public.reviews (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id UUID NOT NULL REFERENCES public.sessions(id) ON DELETE CASCADE,
+    reviewer_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    reviewee_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    feedback TEXT,
+    tags TEXT[],
+    is_revealed BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view revealed reviews" ON public.reviews
+    FOR SELECT USING (is_revealed = true);
+CREATE POLICY "Users can create reviews for their sessions" ON public.reviews
+    FOR INSERT WITH CHECK (auth.uid() = reviewer_id);

@@ -1,43 +1,95 @@
 import React from 'react';
-import Link from 'next/link';
-import { FileText, ShieldCheck, Download, ArrowLeft } from 'lucide-react';
+import { ShieldCheck, Download } from 'lucide-react';
+import { createClient } from '@/lib/supabase/server';
 
-const mockAuditLogs = [
-  {
-    id: 'AUDIT-8921',
-    timestamp: 'Today, 14:15:22 IST',
-    event: 'ESCROW_HOLD',
-    actor: 'System Automated Engine',
-    details: 'Locked 18 SP in escrow for Session #ses-402 (Python Async)',
-    status: 'VERIFIED',
-  },
-  {
-    id: 'AUDIT-8920',
-    timestamp: 'Yesterday, 19:30:10 IST',
-    event: 'TOKEN_PURCHASE',
-    actor: 'Razorpay Gateway Hook',
-    details: 'Credited 200 SP (₹200.00) via Razorpay UPI pay-rzp-001',
-    status: 'VERIFIED',
-  },
-  {
-    id: 'AUDIT-8919',
-    timestamp: '28 Sep 2026, 11:00:45 IST',
-    event: 'ESCROW_RELEASE',
-    actor: 'Dual Confirmation Engine',
-    details: 'Released 45 SP to teacher, 5 SP fee retained on #ses-398',
-    status: 'SETTLED',
-  },
-  {
-    id: 'AUDIT-8918',
-    timestamp: '27 Sep 2026, 16:20:00 IST',
-    event: 'ROLE_UPDATE',
-    actor: 'Admin Sabareesh',
-    details: 'Granted verified teacher badge to Priya Patel',
-    status: 'AUDITED',
-  },
-];
+interface AuditLogItem {
+  id: string;
+  timestamp: string;
+  event: string;
+  actor: string;
+  details: string;
+  status: string;
+  amountPaise: number;
+}
 
-export default function AdminAuditPage() {
+interface LedgerTxRow {
+  id: string;
+  created_at?: string;
+  transaction_type?: string;
+  reference_id?: string;
+  metadata?: { description?: string };
+  amount_paise?: number;
+}
+
+/**
+ * AdminAuditPage
+ * 
+ * Server Component that renders the Audit Ledger Logs dashboard.
+ * Fetches real ledger_transactions data from Supabase.
+ */
+export default async function AdminAuditPage() {
+  let auditLogs: AuditLogItem[] = [];
+  let fetchError: string | null = null;
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('ledger_transactions')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) {
+      fetchError = error.message;
+    } else {
+      const rows = (data || []) as LedgerTxRow[];
+      auditLogs = rows.map((tx) => ({
+        id: tx.id,
+        timestamp: tx.created_at
+          ? new Date(tx.created_at).toLocaleString('en-IN', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              timeZoneName: 'short',
+            })
+          : 'Unknown',
+        event: tx.transaction_type || 'UNKNOWN',
+        actor: tx.transaction_type === 'PURCHASE'
+          ? 'Razorpay Gateway Hook'
+          : tx.transaction_type === 'HOLD'
+          ? 'System Automated Engine'
+          : tx.transaction_type === 'RELEASE'
+          ? 'Dual Confirmation Engine'
+          : tx.transaction_type === 'FEE'
+          ? 'Platform Fee Engine'
+          : 'System',
+        details: tx.metadata?.description || `Transaction ${tx.reference_id || tx.id}`,
+        status: tx.transaction_type === 'PURCHASE' || tx.transaction_type === 'HOLD' ? 'VERIFIED' : 'SETTLED',
+        amountPaise: tx.amount_paise || 0,
+      }));
+    }
+  } catch (e: unknown) {
+    fetchError = e instanceof Error ? e.message : 'Failed to connect to database';
+  }
+
+  // Fallback to sample data if no records exist yet (fresh deployment)
+  if (auditLogs.length === 0 && !fetchError) {
+    auditLogs = [
+      {
+        id: 'AUDIT-SAMPLE-1',
+        timestamp: 'No live data yet',
+        event: 'INFO',
+        actor: 'System',
+        details: 'No ledger transactions recorded. They will appear here once users purchase tokens or complete sessions.',
+        status: 'INFO',
+        amountPaise: 0,
+      },
+    ];
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -55,6 +107,13 @@ export default function AdminAuditPage() {
         </a>
       </div>
 
+      {/* Error Banner */}
+      {fetchError && (
+        <div className="rounded-2xl bg-rose-500/10 border border-rose-500/20 px-6 py-4 text-xs text-rose-800 dark:text-rose-300">
+          <strong>Database Error:</strong> {fetchError}. Displaying empty table.
+        </div>
+      )}
+
       <div className="bg-mist-pure rounded-3xl border border-ink/10 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -69,9 +128,11 @@ export default function AdminAuditPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-ink/5 text-xs">
-              {mockAuditLogs.map((log) => (
+              {auditLogs.map((log) => (
                 <tr key={log.id} className="hover:bg-mist/50 transition-colors">
-                  <td className="px-6 py-4 font-mono font-bold text-ink">{log.id}</td>
+                  <td className="px-6 py-4 font-mono font-bold text-ink">
+                    {typeof log.id === 'string' && log.id.length > 12 ? log.id.substring(0, 12) + '…' : log.id}
+                  </td>
                   <td className="px-6 py-4 font-mono text-ink/60">{log.timestamp}</td>
                   <td className="px-6 py-4 font-mono">
                     <span className="rounded-md bg-lagoon/10 border border-lagoon/20 px-2 py-0.5 font-bold text-lagoon">
@@ -79,9 +140,13 @@ export default function AdminAuditPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-ink font-medium">{log.actor}</td>
-                  <td className="px-6 py-4 text-ink/80">{log.details}</td>
+                  <td className="px-6 py-4 text-ink/80 max-w-xs truncate">{log.details}</td>
                   <td className="px-6 py-4 text-right">
-                    <span className="inline-flex items-center gap-1 font-mono font-bold text-emerald-700 bg-emerald-500/10 px-2.5 py-1 rounded-full">
+                    <span className={`inline-flex items-center gap-1 font-mono font-bold px-2.5 py-1 rounded-full ${
+                      log.status === 'INFO' 
+                        ? 'text-blue-700 bg-blue-500/10' 
+                        : 'text-emerald-700 bg-emerald-500/10'
+                    }`}>
                       <ShieldCheck className="h-3 w-3" />
                       {log.status}
                     </span>

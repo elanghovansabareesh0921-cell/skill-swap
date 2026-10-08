@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Shield,
-  ShieldAlert,
   ShieldCheck,
   Lock,
   Mail,
@@ -27,24 +26,22 @@ function AdminLoginForm() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const returnTo = searchParams.get('returnTo') || '/admin/swaps';
+  const urlError = searchParams.get('error');
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState(
+    urlError === 'unauthorized'
+      ? 'Access Denied: Your account does not have administrator privileges. Please sign in with an authorized administrator account.'
+      : ''
+  );
   const [successMsg, setSuccessMsg] = useState('');
   const [checkingExistingSession, setCheckingExistingSession] = useState(true);
   const [showDevHint, setShowDevHint] = useState(false);
 
-  const returnTo = searchParams.get('returnTo') || '/admin/swaps';
-  const urlError = searchParams.get('error');
-
-  // Handle URL errors & check if already authenticated as admin
+  // Check if already authenticated as admin
   useEffect(() => {
-    if (urlError === 'unauthorized') {
-      setErrorMsg(
-        'Access Denied: Your account does not have administrator privileges. Please sign in with an authorized administrator account.'
-      );
-    }
-
     async function checkCurrentSession() {
       try {
         const supabase = createClient();
@@ -117,8 +114,9 @@ function AdminLoginForm() {
         router.push(returnTo);
         router.refresh();
       }, 700);
-    } catch (err: any) {
-      setErrorMsg(err.message || 'An unexpected error occurred during admin authentication.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred during admin authentication.';
+      setErrorMsg(message);
       setLoading(false);
     }
   };

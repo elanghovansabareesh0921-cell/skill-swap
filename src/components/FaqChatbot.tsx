@@ -7,14 +7,7 @@ import {
   Send, 
   Sparkles, 
   BookOpen, 
-  HelpCircle, 
-  ExternalLink, 
-  ShieldCheck, 
-  ArrowRightLeft, 
-  ChevronRight,
-  Headphones,
-  CheckCircle2,
-  Bot
+  Headphones 
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { motion } from 'framer-motion';

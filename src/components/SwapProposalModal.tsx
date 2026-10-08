@@ -5,12 +5,9 @@ import {
   X, 
   ArrowRightLeft, 
   ShieldCheck, 
-  Clock, 
   Zap, 
   Lock, 
-  AlertCircle, 
-  CheckCircle2, 
-  HelpCircle 
+  AlertCircle 
 } from 'lucide-react';
 import { Profile, PeerMatch, UserTeachSkill, OfferType, Wallet } from '@/types';
 import { generateQuoteBreakdown } from '@/lib/pricing';
@@ -49,7 +46,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
 
   useEffect(() => {
     if (!isOpen) return;
-    setQuoteTimer(600);
+    queueMicrotask(() => setQuoteTimer(600));
     const interval = setInterval(() => {
       setQuoteTimer(prev => (prev > 0 ? prev - 1 : 600));
     }, 1000);
@@ -189,7 +186,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
               {quote.proposerLeg.listPriceTokens} SP
             </div>
             <p className="text-[11px] text-ink/65 mt-1 leading-snug">
-              Standard 1:1 session. Pay the teacher's listed rate of {match.teacherOfferingSkill.hourlyRate} SP/hr.
+              Standard 1:1 session. Pay the teacher&apos;s listed rate of {match.teacherOfferingSkill.hourlyRate} SP/hr.
             </p>
           </button>
         </div>

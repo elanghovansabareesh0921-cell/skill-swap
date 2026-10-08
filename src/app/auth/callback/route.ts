@@ -24,7 +24,7 @@ export async function GET(request: Request) {
               cookiesToSet.forEach(({ name, value, options }) =>
                 cookieStore.set(name, value, options)
               );
-            } catch (error) {
+            } catch {
               // The `setAll` method was called from a Server Component.
               // This can be ignored if you have middleware refreshing
               // user sessions.
@@ -35,14 +35,7 @@ export async function GET(request: Request) {
     );
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      // Create a mock local session so the existing mocked app state works,
-      // while also establishing the real Supabase session.
-      // This bridges the existing mock state and the new Supabase integration.
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const response = NextResponse.redirect(`${origin}${next}`);
-      
-      return response;
+      return NextResponse.redirect(`${origin}${next}`);
     } else {
       console.error('OAuth exchangeCodeForSession error:', error);
     }

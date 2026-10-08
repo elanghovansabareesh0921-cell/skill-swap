@@ -107,7 +107,11 @@ export async function POST(request: Request) {
 
     // Extract the Meet link safely. 
     // Usually located at `hangoutLink`, but can also be found in `conferenceData.entryPoints`.
-    const meetLink = data.hangoutLink || data.conferenceData?.entryPoints?.find((ep: any) => ep.entryPointType === 'video')?.uri;
+    interface EntryPoint {
+      entryPointType?: string;
+      uri?: string;
+    }
+    const meetLink = data.hangoutLink || data.conferenceData?.entryPoints?.find((ep: EntryPoint) => ep.entryPointType === 'video')?.uri;
 
     // Return the clean JSON payload
     return NextResponse.json({
@@ -117,10 +121,11 @@ export async function POST(request: Request) {
       status: data.status, // e.g., 'confirmed'
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown calendar error';
     console.error('Calendar API Error:', error);
     return NextResponse.json(
-      { error: 'Internal Server Error', details: error.message },
+      { error: 'Internal Server Error', details: message },
       { status: 500 }
     );
   }

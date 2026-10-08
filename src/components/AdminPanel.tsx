@@ -3,14 +3,8 @@
 import React, { useState } from 'react';
 import { 
   ShieldAlert, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Lock, 
-  Check, 
   Scale, 
-  DollarSign, 
-  UserCheck, 
-  FileText 
+  UserCheck 
 } from 'lucide-react';
 import { SessionLeg } from '@/types';
 
@@ -22,7 +16,6 @@ interface AdminPanelProps {
 export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispute }) => {
   const [makerAmount, setMakerAmount] = useState<string>('50');
   const [makerReason, setMakerReason] = useState<string>('');
-  const [makerSubmitted, setMakerSubmitted] = useState<boolean>(false);
   const [pendingApproval, setPendingApproval] = useState<boolean>(false);
 
   const disputedSessions = sessions.filter(s => s.status === 'DISPUTED');
@@ -31,12 +24,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
     e.preventDefault();
     if (!makerReason.trim() || !makerAmount) return;
     setPendingApproval(true);
-    setMakerSubmitted(true);
   };
 
   const handleCheckerApprove = () => {
     setPendingApproval(false);
-    setMakerSubmitted(false);
     setMakerReason('');
     alert('Maker-Checker Approved: Wallet balance successfully updated with immutable audit log entry.');
   };

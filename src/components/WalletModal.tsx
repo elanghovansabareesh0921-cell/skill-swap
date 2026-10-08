@@ -6,13 +6,8 @@ import {
   Wallet as WalletIcon, 
   ShieldCheck, 
   CheckCircle2, 
-  Zap, 
   CreditCard, 
   Receipt,
-  ArrowUpRight,
-  ArrowDownLeft,
-  Lock,
-  Sparkles,
   Download
 } from 'lucide-react';
 import { Wallet, LedgerTransaction } from '@/types';
@@ -89,8 +84,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
         name: "SkillSwap",
         description: `Purchase of ${data.amountTokens} Skill Points (SP)`,
         order_id: data.orderId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        handler: async function (response: any) {
+        handler: async function (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) {
           // 4. Verify Signature
           try {
             const verifyRes = await fetch('/api/razorpay/verify', {
@@ -99,7 +93,9 @@ export const WalletModal: React.FC<WalletModalProps> = ({
               body: JSON.stringify({
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature
+                razorpay_signature: response.razorpay_signature,
+                amountTokens: amount,
+                userId: wallet.userId,
               }),
             });
             const verifyData = await verifyRes.json();
@@ -111,9 +107,10 @@ export const WalletModal: React.FC<WalletModalProps> = ({
             } else {
               throw new Error(verifyData.error || 'Verification failed');
             }
-          } catch (err: any) {
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Unknown error';
             console.error(err);
-            alert(`Payment verification failed: ${err.message}`);
+            alert(`Payment verification failed: ${message}`);
           }
         },
         modal: {
@@ -130,18 +127,23 @@ export const WalletModal: React.FC<WalletModalProps> = ({
         },
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const paymentObject = new (window as any).Razorpay(options);
+      interface RazorpayInstance {
+        open: () => void;
+        on: (event: string, handler: (res: { error: { description: string } }) => void) => void;
+      }
+      type RazorpayConstructor = new (opts: unknown) => RazorpayInstance;
+      const RazorpayClass = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
+      const paymentObject = new RazorpayClass(options);
       paymentObject.open();
       
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      paymentObject.on('payment.failed', function (response: any) {
-         alert(`Payment Failed: ${response.error.description}`);
+      paymentObject.on('payment.failed', function (res: { error: { description: string } }) {
+         alert(`Payment Failed: ${res.error.description}`);
          setIsProcessing(false);
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
       console.error(err);
-      alert(`Could not start checkout: ${err.message || 'Unknown error'}`);
+      alert(`Could not start checkout: ${message}`);
       setIsProcessing(false);
     }
   };

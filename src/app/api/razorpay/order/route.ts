@@ -46,10 +46,11 @@ export async function POST(request: Request) {
       keyId: key_id,
       message: 'Razorpay order created. Proceed with checkout.'
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Razorpay Order Error:', error);
     // Safely extract Razorpay's specific error description if available
-    const errorMessage = error?.error?.description || error?.message || 'Failed to create payment order.';
+    const errObj = error as { error?: { description?: string }; message?: string } | undefined;
+    const errorMessage = errObj?.error?.description || errObj?.message || 'Failed to create payment order.';
     return NextResponse.json(
       { error: errorMessage },
       { status: 500 }

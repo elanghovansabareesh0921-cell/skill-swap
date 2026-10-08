@@ -1,54 +1,66 @@
 import React from 'react';
+import Image from 'next/image';
 import { MoreVertical, ShieldAlert, Trash2, Search, Filter, ShieldCheck, UserX } from 'lucide-react';
+import { createClient } from '@/lib/supabase/server';
+import { isUserAdmin } from '@/lib/roles';
 
-/**
- * Mock data for the users table
- */
-const mockUsers = [
-  {
-    id: 'usr_1',
-    email: 'admin@skillswap.com',
-    role: 'Admin',
-    status: 'Active',
-    joinedDate: 'Oct 12, 2023',
-    avatar: '/avatars/avatar_1.jpg'
-  },
-  {
-    id: 'usr_2',
-    email: 'asha.sharma@example.com',
-    role: 'User',
-    status: 'Active',
-    joinedDate: 'Jan 05, 2024',
-    avatar: '/avatars/avatar_2.jpg'
-  },
-  {
-    id: 'usr_3',
-    email: 'ravi.kumar@example.com',
-    role: 'User',
-    status: 'Suspended',
-    joinedDate: 'Mar 15, 2024',
-    avatar: '/avatars/avatar_3.jpg'
-  },
-  {
-    id: 'usr_4',
-    email: 'priya.patel@example.com',
-    role: 'User',
-    status: 'Active',
-    joinedDate: 'Apr 22, 2024',
-    avatar: '/avatars/avatar_4.jpg'
-  },
-];
+interface AdminUserItem {
+  id: string;
+  email: string;
+  fullName: string;
+  role: 'Admin' | 'User';
+  status: 'Active' | 'Suspended' | 'Pending';
+  joinedDate: string;
+  avatar: string;
+  reputationScore: number;
+}
+
+interface ProfileRow {
+  id: string;
+  email?: string;
+  full_name?: string;
+  avatar_url?: string;
+  is_onboarded?: boolean;
+  created_at?: string;
+  strikes_count?: number;
+  reputation_score?: number;
+}
 
 /**
  * AdminUsersPage
  * 
  * Server Component that renders the User Management dashboard.
- * Displays a data table of users with mocked actions for suspension and deletion.
+ * Fetches real user data from Supabase profiles table.
  */
 export default async function AdminUsersPage() {
-  // In a real application, we would fetch users from Supabase here:
-  // const supabase = await createClient();
-  // const { data: users } = await supabase.from('profiles').select('*');
+  let users: AdminUserItem[] = [];
+  let fetchError: string | null = null;
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, avatar_url, is_onboarded, created_at, strikes_count, reputation_score')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      fetchError = error.message;
+    } else {
+      const rows = (data || []) as ProfileRow[];
+      users = rows.map((p) => ({
+        id: p.id,
+        email: p.email || 'N/A',
+        fullName: p.full_name || 'Anonymous',
+        role: isUserAdmin({ email: p.email }) ? 'Admin' : 'User',
+        status: (p.strikes_count || 0) >= 3 ? 'Suspended' : (p.is_onboarded ? 'Active' : 'Pending'),
+        joinedDate: p.created_at ? new Date(p.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Unknown',
+        avatar: p.avatar_url || '/avatars/avatar_3.jpg',
+        reputationScore: Number(p.reputation_score) || 5.0,
+      }));
+    }
+  } catch (e: unknown) {
+    fetchError = e instanceof Error ? e.message : 'Failed to connect to database';
+  }
 
   return (
     <div className="space-y-6">
@@ -75,6 +87,13 @@ export default async function AdminUsersPage() {
         </div>
       </div>
 
+      {/* Error Banner */}
+      {fetchError && (
+        <div className="rounded-2xl bg-rose-500/10 border border-rose-500/20 px-6 py-4 text-xs text-rose-800 dark:text-rose-300">
+          <strong>Database Error:</strong> {fetchError}. Showing empty table.
+        </div>
+      )}
+
       {/* Data Table */}
       <div className="bg-mist-pure rounded-3xl border border-ink/10 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
@@ -84,23 +103,34 @@ export default async function AdminUsersPage() {
                 <th className="px-6 py-4 font-mono">User</th>
                 <th className="px-6 py-4 font-mono">Role</th>
                 <th className="px-6 py-4 font-mono">Status</th>
+                <th className="px-6 py-4 font-mono">Reputation</th>
                 <th className="px-6 py-4 font-mono">Joined Date</th>
                 <th className="px-6 py-4 font-mono text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-ink/5">
-              {mockUsers.map((user) => (
+              {users.length === 0 && !fetchError && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-sm text-ink/50">
+                    No users found in the database.
+                  </td>
+                </tr>
+              )}
+              {users.map((user) => (
                 <tr key={user.id} className="hover:bg-mist/50 transition-colors group">
                   {/* User Info Column */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <img 
+                      <Image 
                         src={user.avatar} 
                         alt="" 
+                        width={40}
+                        height={40}
+                        unoptimized
                         className="h-10 w-10 rounded-full object-cover border border-ink/10"
                       />
                       <div>
-                        <div className="font-semibold text-ink text-sm">{user.email.split('@')[0]}</div>
+                        <div className="font-semibold text-ink text-sm">{user.fullName}</div>
                         <div className="text-xs text-ink/50">{user.email}</div>
                       </div>
                     </div>
@@ -123,11 +153,22 @@ export default async function AdminUsersPage() {
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${
                       user.status === 'Active'
                         ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
-                        : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/20'
+                        : user.status === 'Suspended'
+                        ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/20'
+                        : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20'
                     }`}>
-                      <span className={`h-1.5 w-1.5 rounded-full ${user.status === 'Active' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+                      <span className={`h-1.5 w-1.5 rounded-full ${
+                        user.status === 'Active' ? 'bg-emerald-500' 
+                        : user.status === 'Suspended' ? 'bg-rose-500' 
+                        : 'bg-amber-500'
+                      }`}></span>
                       {user.status}
                     </span>
+                  </td>
+
+                  {/* Reputation Column */}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-mono font-medium text-ink/70">
+                    {user.reputationScore.toFixed(1)} ★
                   </td>
 
                   {/* Joined Date Column */}
@@ -138,7 +179,7 @@ export default async function AdminUsersPage() {
                   {/* Actions Column */}
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {/* Suspend Action (Mocked) */}
+                      {/* Suspend Action */}
                       <button 
                         title="Suspend User"
                         className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors border border-transparent hover:border-amber-200 cursor-pointer"
@@ -146,7 +187,7 @@ export default async function AdminUsersPage() {
                         <ShieldAlert className="h-4 w-4" />
                       </button>
                       
-                      {/* Delete Action (Mocked) */}
+                      {/* Delete Action */}
                       <button 
                         title="Delete Account"
                         className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-200 cursor-pointer"
@@ -167,7 +208,7 @@ export default async function AdminUsersPage() {
         
         {/* Table Footer / Pagination */}
         <div className="px-6 py-4 border-t border-ink/10 bg-mist flex items-center justify-between">
-          <span className="text-xs text-ink/50 font-medium">Showing 4 of 4 users</span>
+          <span className="text-xs text-ink/50 font-medium">Showing {users.length} user{users.length !== 1 ? 's' : ''}</span>
           <div className="flex items-center gap-2">
             <button className="px-3 py-1.5 text-xs font-semibold text-ink/40 cursor-not-allowed border border-ink/10 rounded-lg bg-mist-pure">Previous</button>
             <button className="px-3 py-1.5 text-xs font-semibold text-ink/40 cursor-not-allowed border border-ink/10 rounded-lg bg-mist-pure">Next</button>

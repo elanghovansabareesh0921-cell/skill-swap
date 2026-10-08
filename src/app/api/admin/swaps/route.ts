@@ -16,7 +16,7 @@ import { mockSwaps, type SkillSwap, type SwapStatus, SWAP_STATUSES } from '@/lib
  * In-memory swap store (resets on server restart).
  * In production this would be a database query.
  */
-let swapStore: SkillSwap[] = [...mockSwaps];
+const swapStore: SkillSwap[] = [...mockSwaps];
 
 export async function GET(request: NextRequest) {
   const { isAdmin } = await checkAdminAccess();

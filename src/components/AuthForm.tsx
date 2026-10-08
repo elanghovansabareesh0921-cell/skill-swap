@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FcGoogle } from 'react-icons/fc';
-import { ArrowRightLeft, ShieldCheck, Lock, Sparkles, CheckCircle } from 'lucide-react';
+import { ArrowRightLeft, Sparkles, CheckCircle } from 'lucide-react';
 import { getProfile, saveProfile, signInWithEmail, signUpWithEmail, signInWithProvider, DEFAULT_DEMO_PROFILE } from '@/lib/auth';
 
 const fieldClass =

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
+import Image from 'next/image';
 import { 
   Compass, 
   ArrowRightLeft, 
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Profile, Wallet as WalletType } from '@/types';
+import { isUserAdmin } from '@/lib/roles';
 
 interface NavbarProps {
   currentUser: Profile;
@@ -81,14 +82,14 @@ export const Navbar: React.FC<NavbarProps> = ({
       `}>
         {/* Logo Tile */}
         <div className="h-16 flex items-center px-6 border-b border-[var(--color-border)] shrink-0">
-          <Link href="/" className="flex items-center gap-3">
+          <button onClick={() => { setActiveTab('matches'); setMobileMenuOpen(false); }} className="flex items-center gap-3 cursor-pointer">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-accent)] text-white shadow-sm">
               <ArrowRightLeft className="h-4 w-4" />
             </div>
             <div className="font-display font-semibold text-lg text-[var(--color-text)] tracking-tight">
               SkillSwap<span className="text-[var(--color-accent)]">.</span>
             </div>
-          </Link>
+          </button>
         </div>
 
         {/* Navigation */}
@@ -105,7 +106,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <button
                     key={item.id}
                     onClick={() => {
-                      setActiveTab(item.id as any);
+                      setActiveTab(item.id as 'matches' | 'sessions' | 'chat' | 'admin');
                       setMobileMenuOpen(false);
                     }}
                     className={`
@@ -140,26 +141,34 @@ export const Navbar: React.FC<NavbarProps> = ({
             </nav>
           </div>
 
-          {currentUser.email === 'elanghovansabareesh0921@gmail.com' && (
+          {isUserAdmin(currentUser) && (
             <div>
               <div className="px-2 text-[10px] font-bold tracking-widest text-[var(--color-text-muted)] uppercase mb-3">
                 System
               </div>
-              <button
-                onClick={() => {
-                  setActiveTab('admin');
-                  setMobileMenuOpen(false);
-                }}
-                className={`
-                  flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer
-                  ${activeTab === 'admin' 
-                    ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)]' 
-                    : 'text-[var(--color-text)] hover:bg-[var(--color-surface-2)]'}
-                `}
-              >
-                <ShieldAlert className="h-4 w-4" />
-                <span>Admin Panel</span>
-              </button>
+              <div className="flex flex-col gap-1">
+                <button
+                  onClick={() => {
+                    setActiveTab('admin');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`
+                    flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer
+                    ${activeTab === 'admin' 
+                      ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)]' 
+                      : 'text-[var(--color-text)] hover:bg-[var(--color-surface-2)]'}
+                  `}
+                >
+                  <ShieldAlert className="h-4 w-4" />
+                  <span>Arbitration Panel</span>
+                </button>
+                <a
+                  href="/admin/users"
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-surface-2)] transition-colors cursor-pointer"
+                >
+                  <span>↗ Full Admin Suite (Users & Audit)</span>
+                </a>
+              </div>
             </div>
           )}
         </div>
@@ -183,9 +192,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={onOpenProfile}
               className="flex items-center gap-3 text-left hover:opacity-80 transition-opacity cursor-pointer overflow-hidden"
             >
-              <img
+              <Image
                 src={currentUser.avatarUrl || '/avatars/avatar_6.jpg'}
                 alt={currentUser.fullName}
+                width={32}
+                height={32}
+                unoptimized
                 className="h-8 w-8 rounded-full object-cover shrink-0 border border-[var(--color-border)]"
               />
               <div className="truncate">
@@ -226,6 +238,15 @@ export const Navbar: React.FC<NavbarProps> = ({
           
           <div className="flex items-center gap-3 sm:gap-4">
             <button
+              onClick={onOpenWallet}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--color-accent-soft)] text-[var(--color-accent)] font-semibold text-xs hover:opacity-90 transition-opacity cursor-pointer border border-[var(--color-accent)]/20 shadow-xs"
+              title="Wallet Balance"
+            >
+              <Wallet className="h-3.5 w-3.5" />
+              <span>₹{Math.floor(wallet.availablePaise / 100)}</span>
+            </button>
+
+            <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2 rounded-full hover:bg-[var(--color-surface-2)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors cursor-pointer"
             >
@@ -237,9 +258,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={onOpenProfile}
               className="h-8 w-8 rounded-full overflow-hidden border border-[var(--color-border)] cursor-pointer hover:ring-2 ring-[var(--color-accent)] transition-all"
             >
-              <img
+              <Image
                 src={currentUser.avatarUrl || '/avatars/avatar_7.jpg'}
                 alt={currentUser.fullName}
+                width={32}
+                height={32}
+                unoptimized
                 className="h-full w-full object-cover"
               />
             </button>

@@ -21,10 +21,12 @@ export const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
   const [noTeach, setNoTeach] = useState(false);
 
   useEffect(() => {
-    if (profile) {
-      setTeach(profile.teach || []);
-      setLearn(profile.learn || []);
-      setNoTeach(profile.noTeach || false);
+    if (profile && isOpen) {
+      queueMicrotask(() => {
+        setTeach(profile.teach || []);
+        setLearn(profile.learn || []);
+        setNoTeach(profile.noTeach || false);
+      });
     }
   }, [profile, isOpen]);
 
@@ -78,7 +80,7 @@ export const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
                 onChange={e => setNoTeach(e.target.checked)}
                 className="size-4 rounded accent-lagoon cursor-pointer"
               />
-              <span>I don't have any skills to teach right now (Learn-only mode)</span>
+              <span>I don&apos;t have any skills to teach right now (Learn-only mode)</span>
             </label>
           </div>
 

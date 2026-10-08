@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Sparkles, Check, ArrowRight, ArrowLeft, ArrowRightLeft, BookOpen, Clock, Globe, ShieldCheck } from 'lucide-react';
+import { X, Sparkles, Check, ArrowRight, ArrowLeft, ArrowRightLeft, BookOpen, Clock, Globe } from 'lucide-react';
 import { Profile, SkillLevel, UserTeachSkill, UserLearnSkill } from '@/types';
 import { SKILL_TAXONOMY } from '@/lib/mockData';
 

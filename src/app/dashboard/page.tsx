@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { getProfile, getSession, saveProfile, signOut, Profile as AuthProfile } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/client';
 import { Navbar } from '@/components/Navbar';
@@ -14,6 +13,7 @@ import { TempChatView } from '@/components/TempChatView';
 import { WalletModal } from '@/components/WalletModal';
 import { AdminPanel } from '@/components/AdminPanel';
 import { ReviewModal } from '@/components/ReviewModal';
+import { isUserAdmin } from '@/lib/roles';
 import {
   INITIAL_TEACHERS,
   INITIAL_WALLET,
@@ -35,16 +35,110 @@ import {
   UserTeachSkill,
   UserLearnSkill,
 } from '@/types';
-import { Sparkles, ArrowRightLeft, BookOpen, User } from 'lucide-react';
+
+interface SupabaseSkillJoin {
+  skill_id: string;
+  skill_type: 'TEACH' | 'LEARN';
+  level?: 'beginner' | 'intermediate' | 'expert' | 'advanced';
+  goal?: string;
+  skills?: {
+    name?: string;
+    category?: string;
+  };
+}
+
+interface SupabaseProfileJoin {
+  id: string;
+  email?: string;
+  full_name?: string;
+  avatar_url?: string;
+  bio?: string;
+  city?: string;
+  country?: string;
+  timezone?: string;
+  languages?: string[];
+  phone_verified?: boolean;
+  is_onboarded?: boolean;
+  is_accepting_requests?: boolean;
+  strikes_count?: number;
+  reputation_score?: number;
+  user_skills?: SupabaseSkillJoin[];
+}
 
 export default function Dashboard() {
   const router = useRouter();
   const [authProfile, setAuthProfile] = useState<AuthProfile | null>(null);
+  const [userId, setUserId] = useState<string>('usr-current');
   const [isReady, setIsReady] = useState(false);
 
   // Global Platform State
   const [teachers, setTeachers] = useState<Profile[]>(INITIAL_TEACHERS);
-  const [isLoadingTeachers, setIsLoadingTeachers] = useState(true);
+  const [wallet, setWallet] = useState<Wallet>(INITIAL_WALLET);
+  const [offers, setOffers] = useState<Offer[]>(INITIAL_OFFERS);
+  const [sessions, setSessions] = useState<SessionLeg[]>(INITIAL_SESSIONS);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(INITIAL_CHAT_MESSAGES);
+  const [transactions, setTransactions] = useState<LedgerTransaction[]>([
+    {
+      id: 'tx-001',
+      referenceId: 'off-101',
+      type: 'HOLD',
+      amountPaise: 1800,
+      timestamp: 'Today, 14:15',
+      description: 'Escrow hold for Swap Leg 1 with Ravi',
+      idempotencyKey: 'idemp-hold-101',
+    },
+    {
+      id: 'tx-002',
+      referenceId: 'pay-rzp-001',
+      type: 'PURCHASE',
+      amountPaise: 20000,
+      timestamp: 'Yesterday, 19:30',
+      description: 'Razorpay UPI Skill Points Pack purchase (200 SP)',
+      idempotencyKey: 'idemp-rzp-200',
+    },
+  ]);
+
+  // UI Navigation State
+  const [activeTab, setActiveTab] = useState<'matches' | 'sessions' | 'chat' | 'admin'>('matches');
+  const [selectedMatchForModal, setSelectedMatchForModal] = useState<PeerMatch | null>(null);
+  const [isWalletOpen, setIsWalletOpen] = useState(false);
+  const [isEditSkillsOpen, setIsEditSkillsOpen] = useState(false);
+  const [sessionForReview, setSessionForReview] = useState<SessionLeg | null>(null);
+
+  // Synchronize live wallet balance and transactions from Supabase
+  useEffect(() => {
+    if (!userId || userId === 'usr-current') return;
+
+    fetch(`/api/wallet/balance?userId=${encodeURIComponent(userId)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.wallet) {
+          setWallet(data.wallet);
+        }
+        if (data.transactions && data.transactions.length > 0) {
+          setTransactions(data.transactions);
+        }
+      })
+      .catch((err) => console.error('Error fetching live wallet:', err));
+
+    fetch(`/api/offers?userId=${encodeURIComponent(userId)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.offers && data.offers.length > 0) {
+          setOffers((prev) => {
+            const incoming = data.offers.filter((o: Offer) => !prev.some((p) => p.id === o.id));
+            return [...incoming, ...prev];
+          });
+        }
+        if (data.sessions && data.sessions.length > 0) {
+          setSessions((prev) => {
+            const incoming = data.sessions.filter((s: SessionLeg) => !prev.some((p) => p.id === s.id));
+            return [...incoming, ...prev];
+          });
+        }
+      })
+      .catch((err) => console.error('Error fetching live offers:', err));
+  }, [userId]);
 
   // Fetch Real Users from Supabase
   useEffect(() => {
@@ -54,23 +148,23 @@ export default function Dashboard() {
         .from('profiles')
         .select(`
           *,
-          user_skills_teach (*, skill_taxonomy (*)),
-          user_skills_learn (*, skill_taxonomy (*))
+          user_skills (*, skills (*))
         `);
 
       if (error || !data) {
         console.error('Error fetching real users:', error);
-        setIsLoadingTeachers(false);
         return;
       }
 
-      const realTeachers: Profile[] = data.map((p: any) => {
-        const teachSkills = p.user_skills_teach || [];
-        const learnSkills = p.user_skills_learn || [];
+      const rows = data as unknown as SupabaseProfileJoin[];
+
+      const realTeachers: Profile[] = rows.map((p) => {
+        const teachSkills = (p.user_skills || []).filter((s) => s.skill_type === 'TEACH');
+        const learnSkills = (p.user_skills || []).filter((s) => s.skill_type === 'LEARN');
 
         return {
           id: p.id,
-          email: p.email,
+          email: p.email || 'user@example.com',
           fullName: p.full_name || 'Anonymous User',
           avatarUrl: p.avatar_url || '/avatars/avatar_3.jpg',
           bio: p.bio || 'SkillSwap member',
@@ -87,29 +181,28 @@ export default function Dashboard() {
           availability: {
             Mon: ['18:00-21:00'], Tue: ['19:00-21:00'], Thu: ['18:00-21:00'], Sat: ['10:00-14:00']
           },
-          teachSkills: teachSkills.map((t: any) => ({
+          teachSkills: teachSkills.map((t) => ({
             skillId: t.skill_id,
-            skillName: t.skill_taxonomy?.name || 'Unknown Skill',
-            category: t.skill_taxonomy?.category || 'Software & Tech',
+            skillName: t.skills?.name || 'Unknown Skill',
+            category: t.skills?.category || 'Software & Tech',
             level: t.level || 'expert',
-            yearsExperience: Number(t.years_experience) || 2,
-            hourlyRate: Number(t.hourly_rate) || 50,
-            allowedDurations: t.allowed_durations || [30, 60],
-            isVerified: !!t.is_verified
+            yearsExperience: 2,
+            hourlyRate: 50,
+            allowedDurations: [30, 60],
+            isVerified: true
           })),
-          learnSkills: learnSkills.map((l: any) => ({
+          learnSkills: learnSkills.map((l) => ({
             skillId: l.skill_id,
-            skillName: l.skill_taxonomy?.name || 'Unknown Skill',
-            category: l.skill_taxonomy?.category || 'Software & Tech',
-            targetLevel: l.target_level || 'intermediate',
+            skillName: l.skills?.name || 'Unknown Skill',
+            category: l.skills?.category || 'Software & Tech',
+            targetLevel: (l.level === 'advanced' ? 'expert' : l.level) || 'intermediate',
             goal: l.goal || ''
           }))
         };
       });
 
-      // Merge with INITIAL_TEACHERS (which is now empty) just in case
+      // Merge with INITIAL_TEACHERS just in case
       setTeachers([...INITIAL_TEACHERS, ...realTeachers]);
-      setIsLoadingTeachers(false);
     };
 
     fetchTeachers();
@@ -144,37 +237,6 @@ export default function Dashboard() {
       supabase.removeChannel(channel);
     };
   }, []);
-  const [wallet, setWallet] = useState<Wallet>(INITIAL_WALLET);
-  const [offers, setOffers] = useState<Offer[]>(INITIAL_OFFERS);
-  const [sessions, setSessions] = useState<SessionLeg[]>(INITIAL_SESSIONS);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(INITIAL_CHAT_MESSAGES);
-  const [transactions, setTransactions] = useState<LedgerTransaction[]>([
-    {
-      id: 'tx-001',
-      referenceId: 'off-101',
-      type: 'HOLD',
-      amountPaise: 1800,
-      timestamp: 'Today, 14:15',
-      description: 'Escrow hold for Swap Leg 1 with Ravi',
-      idempotencyKey: 'idemp-hold-101',
-    },
-    {
-      id: 'tx-002',
-      referenceId: 'pay-rzp-001',
-      type: 'PURCHASE',
-      amountPaise: 20000,
-      timestamp: 'Yesterday, 19:30',
-      description: 'Razorpay UPI Skill Points Pack purchase (200 SP)',
-      idempotencyKey: 'idemp-rzp-200',
-    },
-  ]);
-
-  // UI Navigation State
-  const [activeTab, setActiveTab] = useState<'matches' | 'sessions' | 'chat' | 'admin'>('matches');
-  const [selectedMatchForModal, setSelectedMatchForModal] = useState<PeerMatch | null>(null);
-  const [isWalletOpen, setIsWalletOpen] = useState(false);
-  const [isEditSkillsOpen, setIsEditSkillsOpen] = useState(false);
-  const [sessionForReview, setSessionForReview] = useState<SessionLeg | null>(null);
 
   // Authenticate and fetch onboarding profile
   useEffect(() => {
@@ -182,18 +244,19 @@ export default function Dashboard() {
       let session = getSession();
       const supabase = createClient();
 
-      if (!session) {
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUserId(user.id);
+          if (!session) {
             session = { email: user.email || '', provider: 'google' };
             if (typeof window !== 'undefined') {
               localStorage.setItem('ss_session', JSON.stringify(session));
             }
           }
-        } catch (e) {
-          // ignore
         }
+      } catch {
+        // ignore
       }
 
       if (!session) {
@@ -206,17 +269,21 @@ export default function Dashboard() {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
-            const { data: dbProfile } = await supabase
+            const { data: dbProfileData } = await supabase
               .from('profiles')
-              .select('*, user_skills_teach (*, skill_taxonomy (*)), user_skills_learn (*, skill_taxonomy (*))')
+              .select('*, user_skills (*, skills (*))')
               .eq('id', user.id)
               .single();
 
+            const dbProfile = dbProfileData as unknown as SupabaseProfileJoin;
+
             if (dbProfile && dbProfile.is_onboarded) {
-              const teachSkills = (dbProfile.user_skills_teach || [])
-                .map((s: any) => s.skill_taxonomy?.name || 'Skill');
-              const learnSkills = (dbProfile.user_skills_learn || [])
-                .map((s: any) => s.skill_taxonomy?.name || 'Skill');
+              const teachSkills = (dbProfile.user_skills || [])
+                .filter((s) => s.skill_type === 'TEACH')
+                .map((s) => s.skills?.name || 'Skill');
+              const learnSkills = (dbProfile.user_skills || [])
+                .filter((s) => s.skill_type === 'LEARN')
+                .map((s) => s.skills?.name || 'Skill');
 
               profile = {
                 name: dbProfile.full_name || 'Member',
@@ -235,7 +302,7 @@ export default function Dashboard() {
               saveProfile(profile);
             }
           }
-        } catch (e) {
+        } catch {
           // ignore
         }
       }
@@ -313,7 +380,7 @@ export default function Dashboard() {
     }));
 
     return {
-      id: 'usr-current',
+      id: userId,
       email: session?.email || 'user@example.com',
       fullName: authProfile.name,
       avatarUrl:
@@ -323,7 +390,7 @@ export default function Dashboard() {
       city: authProfile.city || 'Bengaluru',
       country: authProfile.country || 'IN',
       timezone: authProfile.timezone || 'Asia/Kolkata',
-      languages: authProfile.languages && authProfile.languages.length > 0 ? authProfile.languages : ['English'],
+      languages: authProfile.languages || ['English', 'Hindi'],
       phoneVerified: true,
       isOnboarded: true,
       isAcceptingRequests: authProfile.isAcceptingRequests !== undefined ? authProfile.isAcceptingRequests : true,
@@ -334,20 +401,20 @@ export default function Dashboard() {
       learnSkills,
       availability: authProfile.availability || defaultAvailability,
     };
-  }, [authProfile]);
+  }, [authProfile, userId]);
 
   // Compute live peer matches dynamically based on the onboarded skills
   const peerMatches = useMemo(() => {
     return computePeerMatches(currentUser, teachers);
   }, [currentUser, teachers]);
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     signOut();
-    router.push('/');
+    router.replace('/');
   };
 
   // Action: Create and submit new offer
-  const handleSubmitOffer = (data: {
+  const handleSubmitOffer = async (data: {
     type: OfferType;
     match: PeerMatch;
     proposerTeachSkill?: UserTeachSkill;
@@ -378,6 +445,65 @@ export default function Dashboard() {
           : undefined,
     });
 
+    // 1. Attempt server-side atomic offer creation & escrow hold via API
+    try {
+      const res = await fetch('/api/offers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          proposerId: currentUser.id,
+          proposerName: currentUser.fullName,
+          recipientId: data.match.teacher.id,
+          recipientName: data.match.teacher.fullName,
+          type: data.type,
+          quote,
+          message: data.message,
+          durationMinutes: data.durationMinutes,
+          chargedTokens: data.chargedTokens,
+          skillName: data.match.teacherOfferingSkill.skillName,
+          proposerSkillName: data.proposerTeachSkill?.skillName,
+        }),
+      });
+
+      const resData = await res.json();
+      if (res.ok && resData.success && resData.offer && resData.sessions) {
+        setOffers(prev => [resData.offer, ...prev]);
+        setSessions(prev => [...resData.sessions, ...prev]);
+
+        const holdPaise = data.chargedTokens * 100;
+        setWallet(prev => ({
+          ...prev,
+          availablePaise: Math.max(0, prev.availablePaise - holdPaise),
+          heldPaise: prev.heldPaise + holdPaise,
+        }));
+
+        const newTx: LedgerTransaction = {
+          id: `tx-${Date.now().toString().slice(-4)}`,
+          referenceId: resData.offer.id,
+          type: 'HOLD',
+          amountPaise: holdPaise,
+          timestamp: 'Just now',
+          description: `Escrow hold for ${data.type} proposal with ${data.match.teacher.fullName}`,
+          idempotencyKey: `idemp-hold-${resData.offer.id}`,
+        };
+        setTransactions(prev => [newTx, ...prev]);
+
+        const supabase = createClient();
+        supabase.channel('skillswap-events').send({
+          type: 'broadcast',
+          event: 'new_offer',
+          payload: { offer: resData.offer, sessions: resData.sessions },
+        });
+
+        setSelectedMatchForModal(null);
+        setActiveTab('sessions');
+        return;
+      }
+    } catch (err) {
+      console.warn('API offer endpoint fallback to optimistic state:', err);
+    }
+
+    // Fallback: local optimistic state
     const newOfferId = `off-${Date.now().toString().slice(-4)}`;
 
     const newOffer: Offer = {
@@ -496,35 +622,106 @@ export default function Dashboard() {
     setTransactions(prev => [newTx, ...prev]);
   };
 
-  // Action: Confirm session completion & release escrow
-  const handleConfirmSession = (sessionId: string) => {
+  // Action: Confirm session completion & release escrow (Dual Sign-off)
+  const handleConfirmSession = async (sessionId: string) => {
     const session = sessions.find(s => s.id === sessionId);
     if (!session) return;
 
+    const isTeacher = session.teacherId === currentUser.id;
+    const isLearner = session.learnerId === currentUser.id;
+
+    // Call server-side dual sign-off API
+    try {
+      const res = await fetch('/api/sessions/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          userId: currentUser.id,
+        }),
+      });
+
+      const resData = await res.json();
+      if (res.ok && resData.success) {
+        if (resData.settled) {
+          const chargedPaise = session.chargedTokens * 100;
+          const payoutPaise = Math.round(session.teacherPayoutTokens * 100);
+          setWallet(prev => ({
+            ...prev,
+            heldPaise: Math.max(0, prev.heldPaise - chargedPaise),
+            availablePaise: isTeacher ? prev.availablePaise + payoutPaise : prev.availablePaise,
+          }));
+          setSessions(prev =>
+            prev.map(s =>
+              s.id === sessionId
+                ? { ...s, status: 'SETTLED', teacherConfirmed: true, learnerConfirmed: true }
+                : s
+            )
+          );
+        } else {
+          setSessions(prev =>
+            prev.map(s =>
+              s.id === sessionId
+                ? {
+                    ...s,
+                    teacherConfirmed: isTeacher ? true : s.teacherConfirmed,
+                    learnerConfirmed: isLearner ? true : s.learnerConfirmed,
+                  }
+                : s
+            )
+          );
+        }
+        return;
+      }
+    } catch (err) {
+      console.warn('API session confirm failed, falling back to local state:', err);
+    }
+
+    const updatedTeacherConfirmed = isTeacher ? true : (session.teacherConfirmed || false);
+    const updatedLearnerConfirmed = isLearner ? true : (session.learnerConfirmed || false);
+
+    // If both parties haven't confirmed yet, only mark the current user's confirmation
+    if (!updatedTeacherConfirmed || !updatedLearnerConfirmed) {
+      setSessions(prev =>
+        prev.map(s =>
+          s.id === sessionId
+            ? {
+                ...s,
+                teacherConfirmed: updatedTeacherConfirmed,
+                learnerConfirmed: updatedLearnerConfirmed,
+              }
+            : s
+        )
+      );
+      return;
+    }
+
+    // Both parties have confirmed: complete the session and release escrow
     const chargedPaise = session.chargedTokens * 100;
     const feePaise = session.platformFeeTokens * 100;
     const payoutPaise = session.teacherPayoutTokens * 100;
 
-    setWallet(prev => {
-      const isLearner = session.learnerId === currentUser.id;
-      const isTeacher = session.teacherId === currentUser.id;
+    // 1. Release held escrow: subtract from held
+    // 2. If current user is the teacher, credit their available balance with the payout
+    setWallet(prev => ({
+      ...prev,
+      heldPaise: Math.max(0, prev.heldPaise - chargedPaise),
+      availablePaise: isTeacher ? prev.availablePaise + payoutPaise : prev.availablePaise,
+    }));
 
-      return {
-        ...prev,
-        heldPaise: isLearner ? Math.max(0, prev.heldPaise - chargedPaise) : prev.heldPaise,
-        availablePaise: isTeacher ? prev.availablePaise + payoutPaise : prev.availablePaise,
-        lifetimeEarnedPaise: isTeacher ? prev.lifetimeEarnedPaise + payoutPaise : prev.lifetimeEarnedPaise,
-        lifetimeSpentPaise: isLearner ? prev.lifetimeSpentPaise + chargedPaise : prev.lifetimeSpentPaise,
-      };
-    });
-
-    const settledSession: SessionLeg = { ...session, status: 'SETTLED', teacherConfirmed: true, learnerConfirmed: true };
+    // 3. Mark session as SETTLED
     setSessions(prev =>
-      prev.map(s => (s.id === sessionId ? settledSession : s))
+      prev.map(s =>
+        s.id === sessionId
+          ? {
+              ...s,
+              status: 'SETTLED',
+              teacherConfirmed: true,
+              learnerConfirmed: true,
+            }
+          : s
+      )
     );
-    setTimeout(() => {
-      setSessionForReview(settledSession);
-    }, 1200);
 
     const releaseTx: LedgerTransaction = {
       id: `tx-${Date.now().toString().slice(-4)}-rel`,
@@ -557,9 +754,23 @@ export default function Dashboard() {
   };
 
   // Action: Admin resolves dispute
-  const handleResolveDispute = (sessionId: string, resolution: 'REFUND' | 'RELEASE' | 'SPLIT') => {
+  const handleResolveDispute = async (sessionId: string, resolution: 'REFUND' | 'RELEASE' | 'SPLIT') => {
     const session = sessions.find(s => s.id === sessionId);
     if (!session) return;
+
+    try {
+      await fetch('/api/admin/dispute/resolve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          resolution,
+          adminEmail: currentUser.email,
+        }),
+      });
+    } catch (err) {
+      console.warn('Admin dispute API fallback:', err);
+    }
 
     const chargedPaise = session.chargedTokens * 100;
 
@@ -585,10 +796,10 @@ export default function Dashboard() {
   };
 
   // Action: Chat Messages
-  const handleSendMessage = (content: string, type: 'TEXT' | 'PROPOSE_TIME' = 'TEXT', metadata?: any) => {
+  const handleSendMessage = async (content: string, type: 'TEXT' | 'PROPOSE_TIME' = 'TEXT', metadata?: Record<string, unknown>) => {
     const newMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
-      threadId: 'off-101',
+      threadId: offers[0]?.id || 'off-101',
       senderId: currentUser.id,
       senderName: currentUser.fullName,
       content,
@@ -597,6 +808,22 @@ export default function Dashboard() {
       metadata,
     };
     setChatMessages(prev => [...prev, newMsg]);
+
+    try {
+      await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          offerId: offers[0]?.id,
+          senderId: currentUser.id,
+          content,
+          messageType: type,
+          metadata,
+        }),
+      });
+    } catch (err) {
+      console.warn('Chat persistence API error, relying on local/broadcast:', err);
+    }
 
     const supabase = createClient();
     supabase.channel('skillswap-events').send({
@@ -682,7 +909,7 @@ export default function Dashboard() {
           />
         )}
 
-        {activeTab === 'admin' && currentUser.email === 'elanghovansabareesh0921@gmail.com' && (
+        {activeTab === 'admin' && isUserAdmin(currentUser) && (
           <AdminPanel sessions={sessions} onResolveDispute={handleResolveDispute} />
         )}
 
@@ -728,7 +955,22 @@ export default function Dashboard() {
           session={sessionForReview}
           isOpen={!!sessionForReview}
           onClose={() => setSessionForReview(null)}
-          onSubmitReview={(sessionId, rating, feedback, tags) => {
+          onSubmitReview={async (sessionId, rating, feedback, tags) => {
+            try {
+              await fetch('/api/reviews', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  sessionId,
+                  reviewerId: currentUser.id,
+                  rating,
+                  feedback,
+                  tags,
+                }),
+              });
+            } catch (err) {
+              console.warn('Failed to save review to backend:', err);
+            }
             setSessionForReview(null);
           }}
         />

@@ -16,10 +16,8 @@ export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerM
     }
 
     // 1. Language intersection check (Hard filter: >= 1 common language)
-    const learnerLangs = learner.languages && learner.languages.length > 0 ? learner.languages : ['English'];
-    const teacherLangs = teacher.languages && teacher.languages.length > 0 ? teacher.languages : ['English'];
-    const commonLanguages = learnerLangs.filter(lang =>
-      teacherLangs.includes(lang)
+    const commonLanguages = learner.languages.filter(lang =>
+      teacher.languages.includes(lang)
     );
     if (commonLanguages.length === 0) {
       continue;
@@ -52,7 +50,6 @@ export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerM
 
     // 3. Reverse fit: Does teacher want to learn something learner can teach? (SWAP POTENTIAL)
     let isSwapMatch = false;
-    let reverseTeacherWant: UserLearnSkill | null = null;
     let reverseLearnerCanTeach: UserTeachSkill | null = null;
 
     for (const teacherWants of teacher.learnSkills) {
@@ -62,7 +59,6 @@ export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerM
       );
       if (learnerCan) {
         isSwapMatch = true;
-        reverseTeacherWant = teacherWants;
         reverseLearnerCanTeach = learnerCan;
         break;
       }

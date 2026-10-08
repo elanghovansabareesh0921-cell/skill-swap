@@ -11,7 +11,6 @@ import {
   ExternalLink, 
   ArrowRightLeft, 
   MessageSquare,
-  Lock,
   Check,
   Star
 } from 'lucide-react';
@@ -259,13 +258,36 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
                     <div className="flex items-center gap-2">
                       {session.status === 'SCHEDULED' && (
                         <>
-                          <button
-                            onClick={() => handleConfirmCompletion(session.id)}
-                            className="flex items-center gap-1.5 rounded-full bg-emerald-600 px-5 py-2.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-all shadow-xs cursor-pointer"
-                          >
-                            <CheckCircle2 className="h-4 w-4" />
-                            <span>Confirm Completed</span>
-                          </button>
+                          {/* Show partial confirmation status */}
+                          {(session.teacherConfirmed || session.learnerConfirmed) && !(session.teacherConfirmed && session.learnerConfirmed) && (
+                            <span className="inline-flex items-center gap-1.5 text-xs font-mono font-medium text-amber-700 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full">
+                              <Clock className="h-3.5 w-3.5" />
+                              <span>
+                                {session.teacherConfirmed && !session.learnerConfirmed
+                                  ? 'Teacher confirmed — awaiting learner'
+                                  : 'Learner confirmed — awaiting teacher'}
+                              </span>
+                            </span>
+                          )}
+
+                          {/* Show confirm button only if current user hasn't confirmed yet */}
+                          {!(isTeacher ? session.teacherConfirmed : session.learnerConfirmed) && (
+                            <button
+                              onClick={() => handleConfirmCompletion(session.id)}
+                              className="flex items-center gap-1.5 rounded-full bg-emerald-600 px-5 py-2.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-all shadow-xs cursor-pointer"
+                            >
+                              <CheckCircle2 className="h-4 w-4" />
+                              <span>Confirm Completed</span>
+                            </button>
+                          )}
+
+                          {/* Show confirmed badge if current user already confirmed but partner hasn't */}
+                          {(isTeacher ? session.teacherConfirmed : session.learnerConfirmed) && !(session.teacherConfirmed && session.learnerConfirmed) && (
+                            <span className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-emerald-700 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full">
+                              <Check className="h-3.5 w-3.5" />
+                              <span>You confirmed</span>
+                            </span>
+                          )}
 
                           <button
                             onClick={() => setSelectedDisputeSessionId(session.id)}

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import Image from 'next/image';
 import {
   Search,
   Filter,
@@ -13,7 +14,6 @@ import {
   ArrowRightLeft,
   Zap,
   Shield,
-  MoreHorizontal,
 } from 'lucide-react';
 import type { SkillSwap, SwapStatus } from '@/lib/admin/mockSwaps';
 
@@ -126,7 +126,6 @@ export default function SwapsDashboard() {
 
   const fetchSwaps = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
-    else setLoading(true);
 
     try {
       const params = new URLSearchParams();
@@ -149,8 +148,36 @@ export default function SwapsDashboard() {
   }, [statusFilter, searchQuery]);
 
   useEffect(() => {
-    fetchSwaps();
-  }, [fetchSwaps]);
+    let ignore = false;
+    async function load() {
+      try {
+        const params = new URLSearchParams();
+        if (statusFilter !== 'All') params.set('status', statusFilter);
+        if (searchQuery.trim()) params.set('search', searchQuery.trim());
+
+        const res = await fetch(`/api/admin/swaps?${params.toString()}`);
+        if (!res.ok) throw new Error('Failed to fetch swaps');
+
+        const data = await res.json();
+        if (!ignore) {
+          setSwaps(data.swaps);
+          setTotalCount(data.total);
+          setAllTotal(data.allTotal);
+        }
+      } catch (err) {
+        if (!ignore) console.error('Error fetching swaps:', err);
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+          setRefreshing(false);
+        }
+      }
+    }
+    load();
+    return () => {
+      ignore = true;
+    };
+  }, [statusFilter, searchQuery]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -310,9 +337,9 @@ export default function SwapsDashboard() {
               }`}
             >
               {tab}
-              {tab === 'All' && (
-                <span className="ml-1 text-[9px] opacity-60">({allTotal})</span>
-              )}
+              <span className="ml-1 text-[9px] opacity-60">
+                ({tab === 'All' ? allTotal : statusCounts[tab]})
+              </span>
             </button>
           ))}
         </div>
@@ -369,7 +396,7 @@ export default function SwapsDashboard() {
                     <th className="px-5 py-3.5 font-mono text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/50">
+                <tbody className="divide-y border-border/50">
                   {swaps.map((swap) => {
                     const statusCfg = STATUS_CONFIG[swap.status];
                     const actions = ACTIONS_FOR_STATUS[swap.status];
@@ -392,13 +419,13 @@ export default function SwapsDashboard() {
                           <div className="flex items-center gap-2.5">
                             <div className="h-8 w-8 rounded-full bg-accent/10 border border-border flex items-center justify-center text-[10px] font-bold text-accent overflow-hidden flex-shrink-0">
                               {swap.requester.avatar ? (
-                                <img
+                                <Image
                                   src={swap.requester.avatar}
                                   alt=""
+                                  width={32}
+                                  height={32}
+                                  unoptimized
                                   className="h-full w-full object-cover"
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                  }}
                                 />
                               ) : (
                                 swap.requester.name
@@ -430,13 +457,13 @@ export default function SwapsDashboard() {
                           <div className="flex items-center gap-2.5">
                             <div className="h-8 w-8 rounded-full bg-emerald-500/10 border border-border flex items-center justify-center text-[10px] font-bold text-emerald-700 dark:text-emerald-400 overflow-hidden flex-shrink-0">
                               {swap.provider.avatar ? (
-                                <img
+                                <Image
                                   src={swap.provider.avatar}
                                   alt=""
+                                  width={32}
+                                  height={32}
+                                  unoptimized
                                   className="h-full w-full object-cover"
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                  }}
                                 />
                               ) : (
                                 swap.provider.name

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getSession, signOut } from '@/lib/auth';
-import { ArrowRight, Sparkles, ShieldCheck, Zap, ArrowRightLeft, Lock, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Sparkles, ShieldCheck, Zap, ArrowRightLeft, Lock } from 'lucide-react';
 
 const steps = [
   {
@@ -28,7 +28,9 @@ export default function Landing() {
 
   useEffect(() => {
     const session = getSession();
-    setIsLoggedIn(!!session);
+    if (session) {
+      queueMicrotask(() => setIsLoggedIn(true));
+    }
   }, []);
 
   return (

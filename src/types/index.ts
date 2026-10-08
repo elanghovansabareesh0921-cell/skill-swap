@@ -47,6 +47,8 @@ export interface Profile {
   teachSkills: UserTeachSkill[];
   learnSkills: UserLearnSkill[];
   availability: Record<string, string[]>; // e.g. { "Mon": ["18:00-21:00"], "Wed": ["18:00-21:00"] }
+  role?: 'admin' | 'user';
+  isAdmin?: boolean;
 }
 
 export interface Wallet {

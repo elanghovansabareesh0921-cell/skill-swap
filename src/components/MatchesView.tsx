@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { 
   ArrowRightLeft, 
   Search, 
-  Sliders,
   Calendar,
   Sparkles,
-  Zap,
-  Check
+  Zap
 } from 'lucide-react';
 import { PeerMatch, Profile, SessionLeg } from '@/types';
 
@@ -93,9 +92,11 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
         <div className="relative rounded-2xl overflow-hidden min-h-[240px] flex flex-col justify-center p-6 sm:p-10 border border-[var(--color-border)]">
           {/* Background image & gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/30 z-10" />
-          <img 
+          <Image 
             src="/hero-banner.jpg" 
             alt="Workspace with notebook and laptop" 
+            fill
+            unoptimized
             className="absolute inset-0 w-full h-full object-cover grayscale-[30%]" 
           />
           
@@ -126,7 +127,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
             </h2>
             <select
               value={sortBy}
-              onChange={e => setSortBy(e.target.value as any)}
+              onChange={e => setSortBy(e.target.value as 'best' | 'rating' | 'rate-asc')}
               className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] bg-transparent hover:text-[var(--color-text)] transition-colors outline-none cursor-pointer pr-1"
             >
               <option value="best">Recommended</option>
@@ -179,7 +180,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
             </div>
           )}
           
-          {filteredMatches.map((match, idx) => {
+          {filteredMatches.map((match) => {
             // Determine card variant based on theme and index (to alternate slightly if desired, or just use CSS)
             // But per instructions: Dark theme cards: red and charcoal variants. Light theme cards: soft pink and warm taupe variants.
             // A simpler approach: use surface-2 with subtle accent border for swap, and normal surface for direct.
@@ -212,9 +213,12 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                 <div className="relative z-10">
                   {/* Card Header */}
                   <div className="flex items-start gap-3">
-                    <img
+                    <Image
                       src={match.teacher.avatarUrl}
                       alt={match.teacher.fullName}
+                      width={40}
+                      height={40}
+                      unoptimized
                       className="h-10 w-10 rounded-full object-cover border border-[var(--color-border)]"
                     />
                     <div>

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import SkillPicker from '@/components/SkillPicker';
 import { getSession, saveProfile, type Profile } from '@/lib/auth';
@@ -73,7 +74,7 @@ export default function Onboarding() {
               localStorage.setItem('ss_session', JSON.stringify(session));
             }
           }
-        } catch (e) {
+        } catch {
           // ignore
         }
       }
@@ -195,9 +196,12 @@ export default function Onboarding() {
               {/* Avatar Uploader */}
               <div className="flex items-center gap-5 p-4 rounded-2xl bg-mist-pure/60 border border-ink/8">
                 {f.avatar ? (
-                  <img
+                  <Image
                     src={f.avatar}
                     alt="Your profile picture"
+                    width={80}
+                    height={80}
+                    unoptimized
                     className="size-20 rounded-2xl object-cover border-2 border-lagoon shadow-sm"
                   />
                 ) : (
@@ -326,7 +330,7 @@ export default function Onboarding() {
                     }))
                   }
                 />
-                <span>I don't have any skills to teach right now (Learn-only mode)</span>
+                <span>I don&apos;t have any skills to teach right now (Learn-only mode)</span>
               </label>
 
               {!f.noTeach && (
@@ -364,7 +368,7 @@ export default function Onboarding() {
 
               {f.noTeach && (
                 <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 text-xs text-amber-900 dark:text-amber-300 leading-relaxed">
-                  <strong>Notice:</strong> In learn-only mode, you pay the teacher's full list price in skill points. You can add a teachable skill anytime later to unlock up to 70% swap discounts.
+                  <strong>Notice:</strong> In learn-only mode, you pay the teacher&apos;s full list price in skill points. You can add a teachable skill anytime later to unlock up to 70% swap discounts.
                 </div>
               )}
             </div>
