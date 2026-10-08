@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FcGoogle } from 'react-icons/fc';
 import { ArrowRightLeft, Sparkles, CheckCircle } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 import { getProfile, saveProfile, signInWithEmail, signUpWithEmail, signInWithProvider, DEFAULT_DEMO_PROFILE } from '@/lib/auth';
 
 const fieldClass =
@@ -15,6 +16,29 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
   const signup = mode === 'signup';
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  const [email, setEmail] = useState('');
+  const [notice, setNotice] = useState('');
+
+  async function sendPasswordReset() {
+    if (!email.trim()) {
+      setErr('Enter your account email first.');
+      return;
+    }
+    setBusy(true);
+    setErr('');
+    setNotice('');
+    try {
+      const supabase = createClient();
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent('/reset-password')}`;
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
+      if (error) throw error;
+      setNotice('If an account exists for that email, a password reset link has been sent.');
+    } catch (error: unknown) {
+      setErr(error instanceof Error ? error.message : 'Unable to request a password reset.');
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function run(fn: () => Promise<{ isOAuth: boolean } | void>) {
     setBusy(true);
@@ -164,6 +188,8 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
                   name="email"
                   type="email"
                   required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
                   placeholder="name@example.com"
                   autoComplete="email"
                   className={fieldClass}
@@ -184,6 +210,23 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
                 />
               </label>
             </div>
+
+            {!signup && (
+              <button
+                type="button"
+                onClick={sendPasswordReset}
+                disabled={busy}
+                className="text-xs font-semibold text-lagoon hover:text-lagoon-dark underline underline-offset-4 disabled:opacity-50"
+              >
+                Forgot password?
+              </button>
+            )}
+
+            {notice && (
+              <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-medium text-emerald-800">
+                {notice}
+              </div>
+            )}
 
             {signup && (
               <label className="flex items-start gap-3 text-xs text-ink/80 pt-1 cursor-pointer select-none">
