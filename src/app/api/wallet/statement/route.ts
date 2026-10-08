@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { checkAdminAccess } from '@/lib/admin/auth';
 
 interface StatementTxRow {
   id: string;
@@ -16,11 +17,21 @@ export async function GET() {
 
   try {
     const supabase = await createClient();
-    const { data } = await supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    const { isAdmin } = await checkAdminAccess();
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    let query = supabase
       .from('ledger_transactions')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(200);
+    if (!isAdmin) {
+      query = query.or(`source_wallet_id.eq.${user.id},dest_wallet_id.eq.${user.id}`);
+    }
+    const { data } = await query;
 
     const rows = (data || []) as StatementTxRow[];
 

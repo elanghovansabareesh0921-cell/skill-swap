@@ -157,13 +157,40 @@ export default function ProfilePage() {
                 skill_type?: string;
                 skills?: { name?: string };
               }
-              const userSkills = (dbProfile.user_skills || []) as SkillJoin[];
-              const teachSkills = userSkills
-                .filter((s) => s.skill_type === 'TEACH')
-                .map((s) => s.skills?.name || 'Skill');
-              const learnSkills = userSkills
-                .filter((s) => s.skill_type === 'LEARN')
-                .map((s) => s.skills?.name || 'Skill');
+              let teachSkills: string[] = [];
+              let learnSkills: string[] = [];
+
+              if (dbProfile.user_skills && Array.isArray(dbProfile.user_skills) && dbProfile.user_skills.length > 0) {
+                const userSkills = (dbProfile.user_skills || []) as SkillJoin[];
+                teachSkills = userSkills
+                  .filter((s) => s.skill_type === 'TEACH')
+                  .map((s) => s.skills?.name || 'Skill');
+                learnSkills = userSkills
+                  .filter((s) => s.skill_type === 'LEARN')
+                  .map((s) => s.skills?.name || 'Skill');
+              }
+
+              if (teachSkills.length === 0 && learnSkills.length === 0) {
+                try {
+                  const [teachRes, learnRes] = await Promise.all([
+                    supabase.from('user_skills_teach').select('*, skill_taxonomy(*)').eq('user_id', user.id),
+                    supabase.from('user_skills_learn').select('*, skill_taxonomy(*)').eq('user_id', user.id),
+                  ]);
+
+                  if (teachRes.data && teachRes.data.length > 0) {
+                    teachSkills = teachRes.data.map(
+                      (t: { skill_taxonomy?: { name?: string } }) => t.skill_taxonomy?.name || 'Skill'
+                    );
+                  }
+                  if (learnRes.data && learnRes.data.length > 0) {
+                    learnSkills = learnRes.data.map(
+                      (l: { skill_taxonomy?: { name?: string } }) => l.skill_taxonomy?.name || 'Skill'
+                    );
+                  }
+                } catch {
+                  // ignore
+                }
+              }
 
               saved = {
                 name: dbProfile.full_name || 'Member',
@@ -339,13 +366,14 @@ export default function ProfilePage() {
   };
 
   // Save changes
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaving(true);
     try {
-      saveProfile({
+      const updatedProfile = {
         ...profile,
         name: profile.name.trim() || 'Alex Chen',
-      });
+      };
+      await saveProfile(updatedProfile);
       confetti({
         particleCount: 50,
         spread: 60,
@@ -353,6 +381,8 @@ export default function ProfilePage() {
       });
       setSuccessToast(true);
       setTimeout(() => setSuccessToast(false), 4000);
+    } catch (err) {
+      console.error('Save profile error:', err);
     } finally {
       setSaving(false);
     }

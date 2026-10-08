@@ -172,4 +172,5 @@ export interface PeerMatch {
   swapSavingsPct?: number;
   teacherOfferingSkill: UserTeachSkill;
   matchingLearnSkill?: UserLearnSkill;
+  teacherDesiresSkill?: UserTeachSkill;
 }

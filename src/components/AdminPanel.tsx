@@ -112,7 +112,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
                     {session.skillName} ({session.chargedTokens} SP in Escrow)
                   </h3>
                   <p className="text-xs text-ink/70 mt-1">
-                    Dispute reason: <em>Partner was absent for scheduled slot after 15 minutes.</em>
+                    Dispute reason: <em>{session.disputeReason || 'No dispute reason specified.'}</em>
                   </p>
                 </div>
 

@@ -79,9 +79,70 @@ export async function POST(req: NextRequest) {
     // If Supabase credentials are not configured, return simulated payload
     if (!admin) {
       const fallbackOfferId = `off-${Date.now().toString().slice(-4)}`;
+      const fallbackOffer = {
+        id: fallbackOfferId,
+        type,
+        proposerId,
+        proposerName: proposerName || 'You',
+        recipientId,
+        recipientName: recipientName || 'Peer',
+        status: 'ACCEPTED',
+        message: message || '',
+        quote,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 48 * 3600000).toISOString(),
+      };
+      const fallbackSessions = [
+        {
+          id: `ses-${Date.now().toString().slice(-4)}-1`,
+          offerId: fallbackOfferId,
+          legIndex: 1,
+          teacherId: recipientId,
+          teacherName: recipientName || 'Peer',
+          learnerId: proposerId,
+          learnerName: proposerName || 'You',
+          skillName: skillName || 'Skill',
+          durationMinutes: durationMinutes || 60,
+          chargedTokens: quote.proposerLeg.chargedTokens,
+          platformFeeTokens: quote.proposerLeg.platformFeeTokens,
+          teacherPayoutTokens: quote.proposerLeg.teacherPayoutTokens,
+          scheduledStart: new Date(Date.now() + 2 * 3600000).toISOString(),
+          scheduledEnd: new Date(Date.now() + 3 * 3600000).toISOString(),
+          meetLink: 'https://meet.google.com/new',
+          status: 'SCHEDULED',
+          teacherConfirmed: false,
+          learnerConfirmed: false,
+        },
+        ...(type === 'SWAP' && quote.recipientLeg
+          ? [
+              {
+                id: `ses-${Date.now().toString().slice(-4)}-2`,
+                offerId: fallbackOfferId,
+                legIndex: 2,
+                teacherId: proposerId,
+                teacherName: proposerName || 'You',
+                learnerId: recipientId,
+                learnerName: recipientName || 'Peer',
+                skillName: proposerSkillName || 'Skill',
+                durationMinutes: durationMinutes || 60,
+                chargedTokens: quote.recipientLeg.chargedTokens,
+                platformFeeTokens: quote.recipientLeg.platformFeeTokens,
+                teacherPayoutTokens: quote.recipientLeg.teacherPayoutTokens,
+                scheduledStart: new Date(Date.now() + 26 * 3600000).toISOString(),
+                scheduledEnd: new Date(Date.now() + 27 * 3600000).toISOString(),
+                meetLink: 'https://meet.google.com/new',
+                status: 'SCHEDULED',
+                teacherConfirmed: false,
+                learnerConfirmed: false,
+              },
+            ]
+          : []),
+      ];
+
       return NextResponse.json({
         success: true,
-        offerId: fallbackOfferId,
+        offer: fallbackOffer,
+        sessions: fallbackSessions,
         message: 'Offer created in fallback mode',
       });
     }
@@ -147,13 +208,21 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // 4. Create Session Legs
+    // 4. Resolve taxonomy skills if available
+    const { data: taxonomy } = await admin.from('skill_taxonomy').select('id, name');
+    const taxMap = new Map((taxonomy || []).map(t => [t.name.toLowerCase().trim(), t.id]));
+    const skill1Id = skillName ? taxMap.get(skillName.toLowerCase().trim()) || null : null;
+    const skill2Id = proposerSkillName ? taxMap.get(proposerSkillName.toLowerCase().trim()) || null : null;
+
+    // 5. Create Session Legs
     const sessionLegsToInsert = [
       {
         offer_id: offerRecord.id,
         leg_index: 1,
         teacher_id: recipientId,
         learner_id: proposerId,
+        skill_id: skill1Id,
+        skill_name: skillName || 'Skill',
         duration_minutes: durationMinutes || 60,
         list_price_tokens: quote.proposerLeg.listPriceTokens,
         charged_tokens: quote.proposerLeg.chargedTokens,
@@ -174,6 +243,8 @@ export async function POST(req: NextRequest) {
         leg_index: 2,
         teacher_id: proposerId,
         learner_id: recipientId,
+        skill_id: skill2Id,
+        skill_name: proposerSkillName || 'Skill',
         duration_minutes: durationMinutes || 60,
         list_price_tokens: quote.recipientLeg.listPriceTokens,
         charged_tokens: quote.recipientLeg.chargedTokens,

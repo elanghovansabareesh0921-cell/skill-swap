@@ -79,3 +79,45 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const sessionId = searchParams.get('sessionId');
+    const userId = searchParams.get('userId');
+    const limit = parseInt(searchParams.get('limit') || '50', 10);
+
+    const admin = getSupabaseAdmin();
+    if (!admin) {
+      return NextResponse.json({ success: true, reviews: [] });
+    }
+
+    let query = admin
+      .from('reviews')
+      .select('*, reviewer:profiles!reviews_reviewer_id_fkey(id, full_name, avatar_url)')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (sessionId) {
+      query = query.eq('session_id', sessionId);
+    } else if (userId) {
+      query = query.or(`reviewee_id.eq.${userId},reviewer_id.eq.${userId}`);
+    }
+
+    const { data: reviews, error } = await query;
+
+    if (error) {
+      console.error('Error fetching reviews:', error);
+      return NextResponse.json({ error: 'Failed to retrieve reviews' }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      reviews: reviews || [],
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to retrieve reviews';
+    console.error('Reviews GET error:', err);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

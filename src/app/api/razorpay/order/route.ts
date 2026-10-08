@@ -1,11 +1,18 @@
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
+import { createClient } from '@/lib/supabase/server';
 
 // Helper to strip accidental quotes and trailing whitespace
 const cleanEnv = (val?: string) => val ? val.replace(/['"]/g, '').trim() : undefined;
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     // Fallback to NEXT_PUBLIC key if RAZORPAY_KEY_ID is missing
     const key_id = cleanEnv(process.env.RAZORPAY_KEY_ID) || cleanEnv(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID);
     const key_secret = cleanEnv(process.env.RAZORPAY_KEY_SECRET);
@@ -34,6 +41,7 @@ export async function POST(request: Request) {
       amount: amountPaise,
       currency: 'INR',
       receipt: `rcpt_${Date.now()}`,
+      notes: { user_id: user.id, amount_tokens: String(amountTokens) },
     };
 
     const order = await razorpay.orders.create(options);

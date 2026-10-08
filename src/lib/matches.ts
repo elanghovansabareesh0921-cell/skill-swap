@@ -141,6 +141,7 @@ export function computePeerMatches(learner: Profile, teachers: Profile[]): PeerM
       swapSavingsPct,
       teacherOfferingSkill: matchedTeachSkill,
       matchingLearnSkill: matchedLearnSkill || undefined,
+      teacherDesiresSkill: reverseLearnerCanTeach || undefined,
     });
   }
 

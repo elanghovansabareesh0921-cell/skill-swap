@@ -25,7 +25,13 @@ export type Profile = {
   availability?: Record<string, string[]>;
 };
 
-export type Session = { email: string; provider: "google" | "github" | "email" };
+export type Session = {
+  email: string;
+  provider?: "google" | "github" | "email";
+  userId?: string;
+  token?: string;
+  expiresAt?: number;
+};
 
 const read = <T>(k: string): T | null => {
   if (typeof window === "undefined") return null;
@@ -44,15 +50,34 @@ export const saveProfile = async (p: Profile) => {
   // Sync to Supabase in the background
   try {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    let userId: string | null = null;
+    let email: string | null = null;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        userId = user.id;
+        email = user.email || null;
+      }
+    } catch {
+      // ignore
+    }
+
+    if (!userId || !email) {
+      const sess = getSession();
+      if (sess) {
+        userId = sess.userId || (sess as unknown as { user?: { id?: string } })?.user?.id || null;
+        email = sess.email || (sess as unknown as { user?: { email?: string } })?.user?.email || null;
+      }
+    }
     
-    if (user) {
+    if (userId && email) {
       await fetch('/api/profile/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user.id,
-          email: user.email,
+          userId,
+          email,
           profile: p
         })
       });

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   X, 
   ArrowRightLeft, 
@@ -38,20 +38,48 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
   onSubmitOffer,
   onOpenWallet,
 }) => {
-  const [offerType, setOfferType] = useState<OfferType>(match.isSwapMatch ? 'SWAP' : 'DIRECT');
+  const hasTeachSkills = Boolean(currentUser.teachSkills && currentUser.teachSkills.length > 0);
+
+  // Auto-detect matching teach skill if teacher desires one
+  const matchedInitialSkill = useMemo(() => {
+    if (!hasTeachSkills) return undefined;
+    if (match.teacherDesiresSkill) {
+      const found = currentUser.teachSkills.find(
+        s => s.skillId === match.teacherDesiresSkill?.skillId ||
+             s.skillName.toLowerCase().trim() === match.teacherDesiresSkill?.skillName.toLowerCase().trim()
+      );
+      if (found) return found;
+    }
+    return currentUser.teachSkills[0];
+  }, [currentUser.teachSkills, match.teacherDesiresSkill, hasTeachSkills]);
+
+  const [offerType, setOfferType] = useState<OfferType>(
+    match.isSwapMatch && hasTeachSkills ? 'SWAP' : 'DIRECT'
+  );
   const [duration, setDuration] = useState<number>(60);
-  const [selectedTeachSkill, setSelectedTeachSkill] = useState<UserTeachSkill>(currentUser.teachSkills[0]);
+  const [selectedTeachSkill, setSelectedTeachSkill] = useState<UserTeachSkill | undefined>(matchedInitialSkill);
   const [message, setMessage] = useState<string>('');
   const [quoteTimer, setQuoteTimer] = useState<number>(600); // 10 minutes
 
   useEffect(() => {
     if (!isOpen) return;
-    queueMicrotask(() => setQuoteTimer(600));
+    queueMicrotask(() => {
+      setQuoteTimer(600);
+      if (hasTeachSkills && matchedInitialSkill) {
+        setSelectedTeachSkill(matchedInitialSkill);
+        if (match.isSwapMatch) {
+          setOfferType('SWAP');
+        }
+      } else {
+        setOfferType('DIRECT');
+        setSelectedTeachSkill(undefined);
+      }
+    });
     const interval = setInterval(() => {
       setQuoteTimer(prev => (prev > 0 ? prev - 1 : 600));
     }, 1000);
     return () => clearInterval(interval);
-  }, [isOpen]);
+  }, [isOpen, hasTeachSkills, matchedInitialSkill, match.isSwapMatch]);
 
   if (!isOpen) return null;
 
@@ -92,6 +120,10 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
   const handleSend = () => {
     if (!isSufficientFunds) {
       onOpenWallet();
+      return;
+    }
+
+    if (offerType === 'SWAP' && !selectedTeachSkill) {
       return;
     }
 
@@ -143,11 +175,14 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
         <div className="mt-5 grid grid-cols-2 gap-3">
           <button
             type="button"
-            onClick={() => setOfferType('SWAP')}
-            className={`flex flex-col items-start rounded-2xl p-4 border transition-all text-left cursor-pointer ${
-              offerType === 'SWAP'
-                ? 'border-lagoon bg-lagoon/6 shadow-xs'
-                : 'border-ink/10 bg-mist-pure/60 text-ink/60 hover:border-ink/20'
+            disabled={!hasTeachSkills}
+            onClick={() => hasTeachSkills && setOfferType('SWAP')}
+            className={`flex flex-col items-start rounded-2xl p-4 border transition-all text-left ${
+              !hasTeachSkills
+                ? 'opacity-50 cursor-not-allowed border-ink/10 bg-mist-pure/30'
+                : offerType === 'SWAP'
+                ? 'border-lagoon bg-lagoon/6 shadow-xs cursor-pointer'
+                : 'border-ink/10 bg-mist-pure/60 text-ink/60 hover:border-ink/20 cursor-pointer'
             }`}
           >
             <div className="flex w-full items-center justify-between mb-1">
@@ -156,14 +191,16 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
                 Mutual Swap
               </span>
               <span className="text-[10px] rounded-full bg-emerald-500/15 text-emerald-800 px-2 py-0.2 font-mono font-bold">
-                RECOMMENDED
+                {hasTeachSkills ? 'RECOMMENDED' : 'SKILLS NEEDED'}
               </span>
             </div>
             <div className="text-xl font-bold font-mono text-ink mt-0.5">
-              {match.swapPriceTokens ?? quote.proposerLeg.chargedTokens} SP
+              {hasTeachSkills ? (match.swapPriceTokens ?? quote.proposerLeg.chargedTokens) : '—'} SP
             </div>
             <p className="text-[11px] text-ink/65 mt-1 leading-snug">
-              You teach {selectedTeachSkill?.skillName || 'a skill'}, they teach you {match.teacherOfferingSkill.skillName}. Up to 70% in-kind savings.
+              {hasTeachSkills
+                ? `You teach ${selectedTeachSkill?.skillName || 'a skill'}, they teach you ${match.teacherOfferingSkill.skillName}. Up to 70% in-kind savings.`
+                : 'Add teaching skills to your profile to unlock 70% mutual swap discounts.'}
             </p>
           </button>
 
@@ -192,7 +229,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
         </div>
 
         {/* Swap Leg Configuration */}
-        {offerType === 'SWAP' && (
+        {offerType === 'SWAP' && hasTeachSkills && (
           <div className="mt-4 rounded-2xl border border-ink/8 bg-mist p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-bold uppercase tracking-wider text-ink/60 font-mono">
@@ -217,7 +254,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
               <div className="p-3.5 rounded-xl border border-ink/8 bg-mist-pure/95 shadow-xs">
                 <span className="text-[10px] font-mono uppercase text-amber-700 dark:text-saffron font-bold">Leg 2: You Teach</span>
                 <select
-                  value={selectedTeachSkill?.skillId}
+                  value={selectedTeachSkill?.skillId || ''}
                   onChange={e => {
                     const found = currentUser.teachSkills.find(s => s.skillId === e.target.value);
                     if (found) setSelectedTeachSkill(found);

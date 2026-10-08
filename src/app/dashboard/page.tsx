@@ -144,6 +144,8 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchTeachers = async () => {
       const supabase = createClient();
+      
+      let rows: SupabaseProfileJoin[] = [];
       const { data, error } = await supabase
         .from('profiles')
         .select(`
@@ -151,16 +153,96 @@ export default function Dashboard() {
           user_skills (*, skills (*))
         `);
 
-      if (error || !data) {
-        console.error('Error fetching real users:', error);
-        return;
+      if (!error && data) {
+        rows = data as unknown as SupabaseProfileJoin[];
+      } else {
+        const { data: rawProfiles } = await supabase.from('profiles').select('*');
+        if (rawProfiles) {
+          rows = rawProfiles as unknown as SupabaseProfileJoin[];
+        }
       }
 
-      const rows = data as unknown as SupabaseProfileJoin[];
+      if (rows.length === 0) return;
+
+      // Also query user_skills_teach and user_skills_learn in case dual schema is used
+      const teachByUserId: Record<string, Array<{ skillId: string; skillName: string; category: string; level: string }>> = {};
+      const learnByUserId: Record<string, Array<{ skillId: string; skillName: string; category: string; targetLevel: string; goal: string }>> = {};
+
+      try {
+        const [teachRes, learnRes] = await Promise.all([
+          supabase.from('user_skills_teach').select('*, skill_taxonomy(*)'),
+          supabase.from('user_skills_learn').select('*, skill_taxonomy(*)'),
+        ]);
+
+        if (teachRes.data) {
+          teachRes.data.forEach((t: { user_id: string; skill_id: string; level?: string; skill_taxonomy?: { name?: string; category?: string } }) => {
+            if (!teachByUserId[t.user_id]) teachByUserId[t.user_id] = [];
+            teachByUserId[t.user_id].push({
+              skillId: t.skill_id,
+              skillName: t.skill_taxonomy?.name || 'Skill',
+              category: t.skill_taxonomy?.category || 'Software & Tech',
+              level: t.level || 'expert',
+            });
+          });
+        }
+
+        if (learnRes.data) {
+          learnRes.data.forEach((l: { user_id: string; skill_id: string; target_level?: string; goal?: string; skill_taxonomy?: { name?: string; category?: string } }) => {
+            if (!learnByUserId[l.user_id]) learnByUserId[l.user_id] = [];
+            learnByUserId[l.user_id].push({
+              skillId: l.skill_id,
+              skillName: l.skill_taxonomy?.name || 'Skill',
+              category: l.skill_taxonomy?.category || 'Software & Tech',
+              targetLevel: l.target_level || 'intermediate',
+              goal: l.goal || '',
+            });
+          });
+        }
+      } catch {
+        // ignore
+      }
 
       const realTeachers: Profile[] = rows.map((p) => {
-        const teachSkills = (p.user_skills || []).filter((s) => s.skill_type === 'TEACH');
-        const learnSkills = (p.user_skills || []).filter((s) => s.skill_type === 'LEARN');
+        const legacyTeach = (p.user_skills || []).filter((s) => s.skill_type === 'TEACH');
+        const legacyLearn = (p.user_skills || []).filter((s) => s.skill_type === 'LEARN');
+
+        const teachSkills = legacyTeach.length > 0
+          ? legacyTeach.map((t) => ({
+              skillId: t.skill_id,
+              skillName: t.skills?.name || 'Unknown Skill',
+              category: t.skills?.category || 'Software & Tech',
+              level: t.level || 'expert',
+              yearsExperience: 2,
+              hourlyRate: 50,
+              allowedDurations: [30, 60],
+              isVerified: true,
+            }))
+          : (teachByUserId[p.id] || []).map((t) => ({
+              skillId: t.skillId,
+              skillName: t.skillName,
+              category: t.category,
+              level: (t.level as 'beginner' | 'intermediate' | 'advanced' | 'expert') || 'expert',
+              yearsExperience: 2,
+              hourlyRate: 50,
+              allowedDurations: [30, 60],
+              isVerified: true,
+            }));
+
+        const learnSkills = legacyLearn.length > 0
+          ? legacyLearn.map((l) => ({
+              skillId: l.skill_id,
+              skillName: l.skills?.name || 'Unknown Skill',
+              category: l.skills?.category || 'Software & Tech',
+              targetLevel: ((l.level === 'advanced' ? 'expert' : l.level) || 'intermediate') as 'beginner' | 'intermediate' | 'expert',
+              goal: l.goal || '',
+            }))
+          : (learnByUserId[p.id] || []).map((l) => ({
+              skillId: l.skillId,
+              skillName: l.skillName,
+              category: l.category,
+              targetLevel: ((l.targetLevel === 'advanced' ? 'expert' : l.targetLevel) || 'intermediate') as 'beginner' | 'intermediate' | 'expert',
+              goal: l.goal,
+            }));
 
         return {
           id: p.id,
@@ -181,28 +263,13 @@ export default function Dashboard() {
           availability: {
             Mon: ['18:00-21:00'], Tue: ['19:00-21:00'], Thu: ['18:00-21:00'], Sat: ['10:00-14:00']
           },
-          teachSkills: teachSkills.map((t) => ({
-            skillId: t.skill_id,
-            skillName: t.skills?.name || 'Unknown Skill',
-            category: t.skills?.category || 'Software & Tech',
-            level: t.level || 'expert',
-            yearsExperience: 2,
-            hourlyRate: 50,
-            allowedDurations: [30, 60],
-            isVerified: true
-          })),
-          learnSkills: learnSkills.map((l) => ({
-            skillId: l.skill_id,
-            skillName: l.skills?.name || 'Unknown Skill',
-            category: l.skills?.category || 'Software & Tech',
-            targetLevel: (l.level === 'advanced' ? 'expert' : l.level) || 'intermediate',
-            goal: l.goal || ''
-          }))
+          teachSkills,
+          learnSkills,
         };
       });
 
-      // Merge with INITIAL_TEACHERS just in case
-      setTeachers([...INITIAL_TEACHERS, ...realTeachers]);
+      const validRealTeachers = realTeachers.filter(t => t.teachSkills.length > 0 || t.learnSkills.length > 0);
+      setTeachers([...INITIAL_TEACHERS, ...validRealTeachers]);
     };
 
     fetchTeachers();
@@ -278,12 +345,33 @@ export default function Dashboard() {
             const dbProfile = dbProfileData as unknown as SupabaseProfileJoin;
 
             if (dbProfile && dbProfile.is_onboarded) {
-              const teachSkills = (dbProfile.user_skills || [])
+              let teachSkills = (dbProfile.user_skills || [])
                 .filter((s) => s.skill_type === 'TEACH')
                 .map((s) => s.skills?.name || 'Skill');
-              const learnSkills = (dbProfile.user_skills || [])
+              let learnSkills = (dbProfile.user_skills || [])
                 .filter((s) => s.skill_type === 'LEARN')
                 .map((s) => s.skills?.name || 'Skill');
+
+              if (teachSkills.length === 0 && learnSkills.length === 0) {
+                try {
+                  const [teachRes, learnRes] = await Promise.all([
+                    supabase.from('user_skills_teach').select('*, skill_taxonomy(*)').eq('user_id', user.id),
+                    supabase.from('user_skills_learn').select('*, skill_taxonomy(*)').eq('user_id', user.id),
+                  ]);
+                  if (teachRes.data && teachRes.data.length > 0) {
+                    teachSkills = teachRes.data.map(
+                      (t: { skill_taxonomy?: { name?: string } }) => t.skill_taxonomy?.name || 'Skill'
+                    );
+                  }
+                  if (learnRes.data && learnRes.data.length > 0) {
+                    learnSkills = learnRes.data.map(
+                      (l: { skill_taxonomy?: { name?: string } }) => l.skill_taxonomy?.name || 'Skill'
+                    );
+                  }
+                } catch {
+                  // ignore
+                }
+              }
 
               profile = {
                 name: dbProfile.full_name || 'Member',
@@ -651,13 +739,20 @@ export default function Dashboard() {
             heldPaise: Math.max(0, prev.heldPaise - chargedPaise),
             availablePaise: isTeacher ? prev.availablePaise + payoutPaise : prev.availablePaise,
           }));
+          const settledSession: SessionLeg = {
+            ...session,
+            status: 'SETTLED',
+            teacherConfirmed: true,
+            learnerConfirmed: true,
+          };
           setSessions(prev =>
             prev.map(s =>
               s.id === sessionId
-                ? { ...s, status: 'SETTLED', teacherConfirmed: true, learnerConfirmed: true }
+                ? settledSession
                 : s
             )
           );
+          setSessionForReview(settledSession);
         } else {
           setSessions(prev =>
             prev.map(s =>
@@ -710,15 +805,17 @@ export default function Dashboard() {
     }));
 
     // 3. Mark session as SETTLED
+    const settledSession: SessionLeg = {
+      ...session,
+      status: 'SETTLED',
+      teacherConfirmed: true,
+      learnerConfirmed: true,
+    };
+
     setSessions(prev =>
       prev.map(s =>
         s.id === sessionId
-          ? {
-              ...s,
-              status: 'SETTLED',
-              teacherConfirmed: true,
-              learnerConfirmed: true,
-            }
+          ? settledSession
           : s
       )
     );
@@ -744,10 +841,25 @@ export default function Dashboard() {
     };
 
     setTransactions(prev => [releaseTx, feeTx, ...prev]);
+    setSessionForReview(settledSession);
   };
 
   // Action: Dispute a session
-  const handleDisputeSession = (sessionId: string, reason: string) => {
+  const handleDisputeSession = async (sessionId: string, reason: string) => {
+    try {
+      await fetch('/api/sessions/dispute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          userId: currentUser.id,
+          reason,
+        }),
+      });
+    } catch (err) {
+      console.warn('API dispute failed, updating local state:', err);
+    }
+
     setSessions(prev =>
       prev.map(s => (s.id === sessionId ? { ...s, status: 'DISPUTED', disputeReason: reason } : s))
     );

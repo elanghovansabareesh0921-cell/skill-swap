@@ -1,6 +1,7 @@
 import React from 'react';
 import { ShieldCheck, Download } from 'lucide-react';
-import { createClient } from '@/lib/supabase/server';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { checkAdminAccess } from '@/lib/admin/auth';
 
 interface AuditLogItem {
   id: string;
@@ -32,44 +33,49 @@ export default async function AdminAuditPage() {
   let fetchError: string | null = null;
 
   try {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('ledger_transactions')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(50);
-
-    if (error) {
-      fetchError = error.message;
+    const { isAdmin } = await checkAdminAccess();
+    const supabase = isAdmin ? getSupabaseAdmin() : null;
+    if (!supabase) {
+      fetchError = 'Unable to access the administrator ledger';
     } else {
-      const rows = (data || []) as LedgerTxRow[];
-      auditLogs = rows.map((tx) => ({
-        id: tx.id,
-        timestamp: tx.created_at
-          ? new Date(tx.created_at).toLocaleString('en-IN', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-              timeZoneName: 'short',
-            })
-          : 'Unknown',
-        event: tx.transaction_type || 'UNKNOWN',
-        actor: tx.transaction_type === 'PURCHASE'
-          ? 'Razorpay Gateway Hook'
-          : tx.transaction_type === 'HOLD'
-          ? 'System Automated Engine'
-          : tx.transaction_type === 'RELEASE'
-          ? 'Dual Confirmation Engine'
-          : tx.transaction_type === 'FEE'
-          ? 'Platform Fee Engine'
-          : 'System',
-        details: tx.metadata?.description || `Transaction ${tx.reference_id || tx.id}`,
-        status: tx.transaction_type === 'PURCHASE' || tx.transaction_type === 'HOLD' ? 'VERIFIED' : 'SETTLED',
-        amountPaise: tx.amount_paise || 0,
-      }));
+      const { data, error } = await supabase
+        .from('ledger_transactions')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) {
+        fetchError = error.message;
+      } else {
+        const rows = (data || []) as LedgerTxRow[];
+        auditLogs = rows.map((tx) => ({
+          id: tx.id,
+          timestamp: tx.created_at
+            ? new Date(tx.created_at).toLocaleString('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZoneName: 'short',
+              })
+            : 'Unknown',
+          event: tx.transaction_type || 'UNKNOWN',
+          actor: tx.transaction_type === 'PURCHASE'
+            ? 'Razorpay Gateway Hook'
+            : tx.transaction_type === 'HOLD'
+            ? 'System Automated Engine'
+            : tx.transaction_type === 'RELEASE'
+            ? 'Dual Confirmation Engine'
+            : tx.transaction_type === 'FEE'
+            ? 'Platform Fee Engine'
+            : 'System',
+          details: tx.metadata?.description || `Transaction ${tx.reference_id || tx.id}`,
+          status: tx.transaction_type === 'PURCHASE' || tx.transaction_type === 'HOLD' ? 'VERIFIED' : 'SETTLED',
+          amountPaise: tx.amount_paise || 0,
+        }));
+      }
     }
   } catch (e: unknown) {
     fetchError = e instanceof Error ? e.message : 'Failed to connect to database';

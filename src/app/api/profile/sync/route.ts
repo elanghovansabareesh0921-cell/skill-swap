@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: NextRequest) {
   try {
@@ -7,6 +8,15 @@ export async function POST(req: NextRequest) {
 
     if (!userId || !email || !profile) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const authClient = await createClient();
+    const { data: { user } } = await authClient.auth.getUser();
+    if (user && user.id !== userId) {
+      return NextResponse.json({ error: 'Cannot update another user profile' }, { status: 403 });
+    }
+    if (!user && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     const supabaseAdmin = getSupabaseAdmin();
@@ -116,6 +126,68 @@ export async function POST(req: NextRequest) {
           });
         }
       }
+    }
+
+    // 6. Also sync to unified public.skills and public.user_skills if present in DB
+    try {
+      await supabaseAdmin.from('user_skills').delete().eq('user_id', userId);
+      const { data: legacySkills } = await supabaseAdmin.from('skills').select('id, name');
+      const legacySkillMap = new Map((legacySkills || []).map((s) => [s.name.toLowerCase().trim(), s.id]));
+
+      if (profile.teach && profile.teach.length > 0 && !profile.noTeach) {
+        for (const skillName of profile.teach) {
+          const cleanName = (skillName as string).trim();
+          let skillId = legacySkillMap.get(cleanName.toLowerCase());
+          if (!skillId) {
+            const { data: newSk } = await supabaseAdmin
+              .from('skills')
+              .insert({ name: cleanName, category: 'Other' })
+              .select('id')
+              .single();
+            if (newSk) {
+              skillId = newSk.id;
+              legacySkillMap.set(cleanName.toLowerCase(), skillId);
+            }
+          }
+          if (skillId) {
+            await supabaseAdmin.from('user_skills').insert({
+              user_id: userId,
+              skill_id: skillId,
+              skill_type: 'TEACH',
+              level: 'advanced',
+            });
+          }
+        }
+      }
+
+      if (profile.learn && profile.learn.length > 0) {
+        for (const skillName of profile.learn) {
+          const cleanName = (skillName as string).trim();
+          let skillId = legacySkillMap.get(cleanName.toLowerCase());
+          if (!skillId) {
+            const { data: newSk } = await supabaseAdmin
+              .from('skills')
+              .insert({ name: cleanName, category: 'Other' })
+              .select('id')
+              .single();
+            if (newSk) {
+              skillId = newSk.id;
+              legacySkillMap.set(cleanName.toLowerCase(), skillId);
+            }
+          }
+          if (skillId) {
+            await supabaseAdmin.from('user_skills').insert({
+              user_id: userId,
+              skill_id: skillId,
+              skill_type: 'LEARN',
+              level: 'beginner',
+              goal: 'Looking to learn ' + cleanName,
+            });
+          }
+        }
+      }
+    } catch {
+      // Ignore if user_skills table is not present
     }
 
     return NextResponse.json({ success: true });

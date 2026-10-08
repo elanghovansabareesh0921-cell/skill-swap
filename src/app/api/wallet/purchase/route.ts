@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
+import { createClient } from '@/lib/supabase/server';
 
 const cleanEnv = (val?: string) => val ? val.replace(/['"]/g, '').trim() : undefined;
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const key_id = cleanEnv(process.env.RAZORPAY_KEY_ID) || cleanEnv(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID);
     const key_secret = cleanEnv(process.env.RAZORPAY_KEY_SECRET);
 
@@ -35,6 +42,7 @@ export async function POST(request: Request) {
       amount: amountPaise,
       currency: 'INR',
       receipt: `rcpt_${Date.now()}`,
+      notes: { user_id: user.id, amount_tokens: String(amountTokens) },
     });
 
     return NextResponse.json({

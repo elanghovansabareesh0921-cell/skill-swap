@@ -102,7 +102,8 @@ CREATE TABLE IF NOT EXISTS public.sessions (
     leg_index INT NOT NULL,
     teacher_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     learner_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    skill_id UUID NOT NULL REFERENCES public.skill_taxonomy(id),
+    skill_id UUID REFERENCES public.skill_taxonomy(id) ON DELETE SET NULL,
+    skill_name TEXT NOT NULL DEFAULT 'Skill',
     duration_minutes INT NOT NULL,
     list_price_tokens INT NOT NULL,
     charged_tokens INT NOT NULL,
@@ -208,6 +209,9 @@ ON CONFLICT (name) DO NOTHING;
 
 -- 8. Row Level Security (RLS) Setup
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.skill_taxonomy ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_skills_teach ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_skills_learn ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.wallets ENABLE ROW LEVEL SECURITY;
@@ -222,6 +226,18 @@ CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles
     FOR SELECT USING (true);
 CREATE POLICY "Users can update own profile" ON public.profiles
     FOR UPDATE USING (auth.uid() = id);
+
+-- Skill Taxonomy & User Teach/Learn Skills
+CREATE POLICY "Public skill taxonomy viewable" ON public.skill_taxonomy
+    FOR SELECT USING (true);
+CREATE POLICY "Public user teach skills viewable" ON public.user_skills_teach
+    FOR SELECT USING (true);
+CREATE POLICY "Users can manage own teach skills" ON public.user_skills_teach
+    FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Public user learn skills viewable" ON public.user_skills_learn
+    FOR SELECT USING (true);
+CREATE POLICY "Users can manage own learn skills" ON public.user_skills_learn
+    FOR ALL USING (auth.uid() = user_id);
 
 -- Skills: Public viewable, authenticated can insert
 CREATE POLICY "Public skills viewable" ON public.skills
