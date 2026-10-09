@@ -39,6 +39,49 @@ export async function GET(request: Request) {
     );
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: dbProfile } = await supabase
+            .from('profiles')
+            .select('id, full_name, is_onboarded')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          // Derive name from user email or OAuth metadata
+          const emailPrefix = user.email ? user.email.split('@')[0] : '';
+          const cleanedPrefix = emailPrefix.replace(/[._-]+/g, ' ').trim();
+          const derivedNameFromEmail = cleanedPrefix
+            .split(' ')
+            .filter(Boolean)
+            .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+            .join(' ');
+
+          const providerName = (user.user_metadata?.full_name || user.user_metadata?.name || '').trim();
+          const preferredName = providerName || derivedNameFromEmail || 'Member';
+          const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || '/avatars/avatar_1.jpg';
+
+          if (!dbProfile) {
+            await supabase.from('profiles').insert({
+              id: user.id,
+              email: user.email,
+              full_name: preferredName,
+              avatar_url: avatarUrl,
+              is_onboarded: false,
+            });
+            return NextResponse.redirect(`${origin}/onboarding`);
+          } else if (!dbProfile.is_onboarded) {
+            if (!dbProfile.full_name) {
+              await supabase.from('profiles').update({
+                full_name: preferredName,
+              }).eq('id', user.id);
+            }
+            return NextResponse.redirect(`${origin}/onboarding`);
+          }
+        }
+      } catch (profileErr) {
+        console.warn('OAuth callback profile initialization warning:', profileErr);
+      }
       return NextResponse.redirect(`${origin}${next}`);
     } else {
       console.error('OAuth exchangeCodeForSession error:', error);

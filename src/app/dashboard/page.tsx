@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { getProfile, getSession, saveProfile, signOut, Profile as AuthProfile } from '@/lib/auth';
+import { getProfile, getSession, saveProfile, signOut, deriveNameFromEmail, Profile as AuthProfile } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/client';
 import { Navbar } from '@/components/Navbar';
 import { EditSkillsModal } from '@/components/EditSkillsModal';
@@ -226,7 +226,7 @@ export default function Dashboard() {
               const learnSkills = learnRows.map((skill) => skill.skill_taxonomy?.name || 'Skill');
 
               profile = {
-                name: dbProfile.full_name || 'Member',
+                name: dbProfile.full_name || deriveNameFromEmail(user.email) || 'Member',
                 avatar: dbProfile.avatar_url || '',
                 sex: 'other',
                 dob: '1998-01-01',
@@ -299,7 +299,7 @@ export default function Dashboard() {
       return {
         id: userId,
         email: authEmail,
-        fullName: 'Member',
+        fullName: deriveNameFromEmail(authEmail) || 'Member',
         avatarUrl: '/avatars/avatar_1.jpg',
         bio: 'SkillSwap member',
         city: 'Bengaluru',
@@ -348,7 +348,7 @@ export default function Dashboard() {
     return {
       id: userId,
       email: authEmail,
-      fullName: authProfile.name,
+      fullName: authProfile.name || deriveNameFromEmail(authEmail) || 'Member',
       avatarUrl:
         authProfile.avatar ||
         '/avatars/avatar_5.jpg',

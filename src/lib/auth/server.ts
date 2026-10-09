@@ -8,6 +8,7 @@ import { isAdminIdentity } from '@/lib/auth/admin-policy';
 export interface AuthenticatedUser {
   id: string;
   email: string | null;
+  user_metadata?: Record<string, unknown>;
 }
 
 export type AuthResult = AuthenticatedUser | NextResponse<{ error: string }>;
@@ -47,7 +48,7 @@ async function getRequestUser(req: Request): Promise<AuthUserResult> {
 export async function requireUser(req: Request): Promise<AuthResult> {
   const user = await getRequestUser(req);
   if (user instanceof NextResponse) return user;
-  return { id: user.id, email: user.email ?? null };
+  return { id: user.id, email: user.email ?? null, user_metadata: user.user_metadata };
 }
 
 export async function isServerAdmin(user: User): Promise<boolean> {

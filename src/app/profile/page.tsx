@@ -29,6 +29,7 @@ import {
 import confetti from 'canvas-confetti';
 import {
   saveProfile,
+  deriveNameFromEmail,
   Profile as AuthProfile
 } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/client';
@@ -174,7 +175,7 @@ export default function ProfilePage() {
       const teachSkills = teachRows.map((skill) => skill.skill_taxonomy?.name || '').filter(Boolean);
       const learnSkills = learnRows.map((skill) => skill.skill_taxonomy?.name || '').filter(Boolean);
       const saved: AuthProfile = {
-        name: dbProfile.full_name || '',
+        name: dbProfile.full_name || deriveNameFromEmail(user.email) || '',
         avatar: dbProfile.avatar_url || '/avatars/avatar_1.jpg',
         sex: '',
         dob: '',

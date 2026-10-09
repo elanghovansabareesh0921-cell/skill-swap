@@ -37,6 +37,18 @@ export type Session = {
   expiresAt?: number;
 };
 
+export function deriveNameFromEmail(email?: string | null): string {
+  if (!email) return '';
+  const username = email.split('@')[0] || '';
+  const cleaned = username.replace(/[._-]+/g, ' ').trim();
+  const titleCased = cleaned
+    .split(' ')
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ');
+  return titleCased || username;
+}
+
 const read = <T>(k: string): T | null => {
   if (typeof window === "undefined") return null;
   try {

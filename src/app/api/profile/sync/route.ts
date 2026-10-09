@@ -73,14 +73,31 @@ export async function POST(req: NextRequest) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
+    const emailPrefix = user.email ? user.email.split('@')[0] : '';
+    const cleanedPrefix = emailPrefix.replace(/[._-]+/g, ' ').trim();
+    const derivedNameFromEmail = cleanedPrefix
+      .split(' ')
+      .filter(Boolean)
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(' ');
+    const userMeta = (user.user_metadata || {}) as Record<string, unknown>;
+    const metaFullName = typeof userMeta.full_name === 'string' ? userMeta.full_name : '';
+    const metaName = typeof userMeta.name === 'string' ? userMeta.name : '';
+    const metaAvatar = typeof userMeta.avatar_url === 'string'
+      ? userMeta.avatar_url
+      : typeof userMeta.picture === 'string'
+        ? userMeta.picture
+        : '';
+    const fallbackName = (metaFullName || metaName || derivedNameFromEmail || 'Member').trim();
+
     // 1. Upsert Profile
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .upsert({
         id: user.id,
         email: user.email,
-        full_name: profileName || user.email.split('@')[0],
-        avatar_url: profileAvatar || '/avatars/avatar_2.jpg',
+        full_name: profileName || fallbackName,
+        avatar_url: profileAvatar || metaAvatar || '/avatars/avatar_2.jpg',
         bio: profileBio || 'SkillSwap Member',
         languages: stringArray(profile.languages).length > 0 ? stringArray(profile.languages) : ['English'],
         city: stringValue(profile.city) || 'Global',

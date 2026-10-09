@@ -73,8 +73,41 @@ export default function Onboarding() {
         const supabase = createClient();
         const { data: { user }, error } = await supabase.auth.getUser();
         if (cancelled) return;
-        if (error || !user) router.replace('/login');
-        else setReady(true);
+        if (error || !user) {
+          router.replace('/login');
+          return;
+        }
+
+        // Fetch existing db profile if already initialized
+        const { data: dbProfile } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url, city, country, bio')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        // Pull name: check dbProfile, OAuth provider metadata, or derive from email
+        const emailPrefix = user.email ? user.email.split('@')[0] : '';
+        const cleanedPrefix = emailPrefix.replace(/[._-]+/g, ' ').trim();
+        const derivedName = cleanedPrefix
+          .split(' ')
+          .filter(Boolean)
+          .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+          .join(' ');
+
+        const oauthName = (user.user_metadata?.full_name || user.user_metadata?.name || '').trim();
+        const autoName = dbProfile?.full_name || oauthName || derivedName || '';
+        const autoAvatar = dbProfile?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
+
+        setF(prev => ({
+          ...prev,
+          name: prev.name || autoName,
+          avatar: prev.avatar || autoAvatar,
+          city: prev.city || dbProfile?.city || '',
+          country: prev.country || dbProfile?.country || '',
+          bio: prev.bio || dbProfile?.bio || '',
+        }));
+
+        setReady(true);
       } catch {
         if (!cancelled) router.replace('/login');
       }
@@ -249,15 +282,18 @@ export default function Onboarding() {
 
               <div>
                 <label className="text-xs font-semibold text-ink block">
-                  Full name
+                  Full name / Display name
                   <input
                     value={f.name}
                     onChange={e => set('name', e.target.value)}
-                    placeholder="e.g. Asha Sharma"
+                    placeholder="Enter your preferred full name"
                     autoComplete="name"
                     className={fieldClass}
                   />
                 </label>
+                <p className="mt-1 text-[11px] text-ink/50">
+                  Suggested from your account email. You can freely change or customize your name.
+                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
