@@ -102,7 +102,6 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
           
           <div className="relative z-20 space-y-3 w-full">
             <div className="text-[10px] uppercase tracking-widest text-white/80 font-bold flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[var(--color-accent)]" /> 
               YOUR LEARNING JOURNEY
             </div>
             
