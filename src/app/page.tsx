@@ -181,7 +181,7 @@ export default function Landing() {
                   </div>
                   <div>
                     <h3 className="font-display text-sm font-bold text-ink">Python Async & FastApi</h3>
-                    <p className="text-[11px] text-ink/60">Taught by Ravi Kumar • 60 mins</p>
+                    <p className="text-[11px] text-ink/60">Taught by Verified Peer • 60 mins</p>
                   </div>
                 </div>
                 <span className="rounded-full bg-lagoon/10 border border-lagoon/20 px-2.5 py-0.5 text-[10px] font-mono font-bold text-lagoon dark:text-teal-300">

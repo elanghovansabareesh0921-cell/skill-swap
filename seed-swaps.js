@@ -46,8 +46,8 @@ const seedProfiles = [
     is_onboarded: true,
   },
   {
-    email: 'ravi.kumar@example.com',
-    full_name: 'Ravi Kumar',
+    email: 'vikram.sharma@example.com',
+    full_name: 'Vikram Sharma',
     bio: 'Python developer, data science enthusiast.',
     city: 'Bengaluru',
     country: 'IN',

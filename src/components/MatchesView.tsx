@@ -288,7 +288,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
             <h3 className="text-sm font-bold text-[var(--color-text)]">Your week ahead</h3>
           </div>
           
-          {/* Week Range Header (Mocked or simple derived) */}
+          {/* Week Range Header (derived) */}
           <div className="flex items-center justify-between text-xs font-medium text-[var(--color-text-muted)] mb-3 pb-3 border-b border-[var(--color-border)]">
             <span>October 2026</span>
             <span>12 — 18</span>

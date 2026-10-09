@@ -205,7 +205,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
                       </h3>
 
                       <p className="text-xs text-ink/65 flex items-center gap-2">
-                        <span>Partner: <strong className="text-ink">{isTeacher ? 'Learner (Ravi)' : 'Teacher (Ravi)'}</strong></span>
+                        <span>Partner: <strong className="text-ink">{isTeacher ? (session.learnerName || 'Learner') : (session.teacherName || 'Teacher')}</strong></span>
                         <span>•</span>
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3 text-ink/40" />

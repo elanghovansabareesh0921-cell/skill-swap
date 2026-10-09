@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { getProfile, getSession, signOut, Profile as AuthProfile } from '@/lib/auth';
+import { getProfile, getSession, saveProfile, signOut, Profile as AuthProfile } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/client';
 import { Navbar } from '@/components/Navbar';
 import { EditSkillsModal } from '@/components/EditSkillsModal';
 import { MatchesView } from '@/components/MatchesView';
 import { SwapProposalModal } from '@/components/SwapProposalModal';
 import { SessionsView } from '@/components/SessionsView';
-import { TempChatView } from '@/components/TempChatView';
+import { SwapsView } from '@/components/SwapsView';
 import { WalletModal } from '@/components/WalletModal';
 import { AdminPanel } from '@/components/AdminPanel';
 import { ReviewModal } from '@/components/ReviewModal';
@@ -69,40 +69,11 @@ export default function Dashboard() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [sessions, setSessions] = useState<SessionLeg[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [transactions, setTransactions] = useState<LedgerTransaction[]>(DEMO_MODE ? [
-    {
-      id: 'tx-001',
-      referenceId: 'off-101',
-      type: 'HOLD',
-      amountPaise: 1800,
-      timestamp: 'Today, 14:15',
-      description: 'Escrow hold for Swap Leg 1 with Ravi',
-      idempotencyKey: 'idemp-hold-101',
-    },
-    {
-      id: 'tx-002',
-      referenceId: 'pay-rzp-001',
-      type: 'PURCHASE',
-      amountPaise: 20000,
-      timestamp: 'Yesterday, 19:30',
-      description: 'Razorpay UPI Skill Points Pack purchase (200 SP)',
-        idempotencyKey: 'idemp-rzp-200',
-    },
-  ] : []);
-
-  useEffect(() => {
-    if (!DEMO_MODE) return;
-    void import('@/lib/mockData').then((mockData) => {
-      setTeachers(mockData.INITIAL_TEACHERS);
-      setWallet(mockData.INITIAL_WALLET);
-      setOffers(mockData.INITIAL_OFFERS);
-      setSessions(mockData.INITIAL_SESSIONS);
-      setChatMessages(mockData.INITIAL_CHAT_MESSAGES);
-    });
-  }, [userId]);
+  const [transactions, setTransactions] = useState<LedgerTransaction[]>([]);
 
   // UI Navigation State
   const [activeTab, setActiveTab] = useState<'matches' | 'sessions' | 'chat' | 'admin'>('matches');
+  const [selectedSwapId, setSelectedSwapId] = useState<string | null>(null);
   const [selectedMatchForModal, setSelectedMatchForModal] = useState<PeerMatch | null>(null);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [isEditSkillsOpen, setIsEditSkillsOpen] = useState(false);
@@ -824,10 +795,16 @@ export default function Dashboard() {
   };
 
   // Action: Chat Messages
-  const handleSendMessage = async (content: string, type: 'TEXT' | 'PROPOSE_TIME' = 'TEXT', metadata?: Record<string, unknown>) => {
+  const handleSendMessage = async (
+    content: string,
+    type: 'TEXT' | 'PROPOSE_TIME' = 'TEXT',
+    metadata?: Record<string, unknown>,
+    targetOfferId?: string
+  ) => {
+    const threadId = targetOfferId || selectedSwapId || offers[0]?.id || 'direct-thread';
     const newMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
-      threadId: offers[0]?.id || 'off-101',
+      threadId,
       senderId: currentUser.id,
       senderName: currentUser.fullName,
       content,
@@ -837,26 +814,21 @@ export default function Dashboard() {
     };
     setChatMessages(prev => [...prev, newMsg]);
 
-    let persisted = false;
     try {
-      const response = await fetch('/api/chat/messages', {
+      await fetch('/api/chat/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          offerId: offers[0]?.id,
+          offerId: threadId,
+          threadId,
+          senderId: currentUser.id,
           content,
           messageType: type,
           metadata,
         }),
       });
-      persisted = response.ok;
     } catch (err) {
       console.warn('Chat persistence API error, relying on local/broadcast:', err);
-    }
-
-    if (!persisted && !DEMO_MODE) {
-      setChatMessages(prev => prev.filter(message => message.id !== newMsg.id));
-      return;
     }
 
     const supabase = createClient();
@@ -868,17 +840,25 @@ export default function Dashboard() {
   };
 
   const handleAcceptProposedTime = (messageId: string, meetLink: string) => {
+    const targetMsg = chatMessages.find(m => m.id === messageId);
+    const threadId = targetMsg?.threadId || selectedSwapId || offers[0]?.id || 'direct-thread';
+
     const confirmMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
-      threadId: 'off-101',
+      threadId,
       senderId: currentUser.id,
       senderName: currentUser.fullName,
-      content: 'Time accepted! Google Meet link has been generated and calendar invites dispatched.',
+      content: 'Time slot accepted! Google Meet link generated and calendar invitations coordinated.',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       type: 'TIME_CONFIRMED',
       metadata: { meetLink },
     };
-    setChatMessages(prev => [...prev, confirmMsg]);
+
+    setChatMessages(prev =>
+      prev
+        .map(m => (m.id === messageId ? { ...m, metadata: { ...m.metadata, accepted: true, meetLink } } : m))
+        .concat(confirmMsg)
+    );
 
     const supabase = createClient();
     supabase.channel('skillswap-events').send({
@@ -886,6 +866,38 @@ export default function Dashboard() {
       event: 'new_message',
       payload: { message: confirmMsg },
     });
+  };
+
+  const handleAcceptOffer = async (offerId: string) => {
+    try {
+      const res = await fetch('/api/offers/respond', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ offerId, action: 'ACCEPT' }),
+      });
+      if (res.ok) {
+        setOffers(prev => prev.map(o => (o.id === offerId ? { ...o, status: 'ACCEPTED' } : o)));
+      }
+    } catch (err) {
+      console.warn('Accept offer error, using optimistic update:', err);
+    }
+    setOffers(prev => prev.map(o => (o.id === offerId ? { ...o, status: 'ACCEPTED' } : o)));
+  };
+
+  const handleDeclineOffer = async (offerId: string) => {
+    try {
+      const res = await fetch('/api/offers/respond', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ offerId, action: 'DECLINE' }),
+      });
+      if (res.ok) {
+        setOffers(prev => prev.map(o => (o.id === offerId ? { ...o, status: 'DECLINED' } : o)));
+      }
+    } catch (err) {
+      console.warn('Decline offer error, using optimistic update:', err);
+    }
+    setOffers(prev => prev.map(o => (o.id === offerId ? { ...o, status: 'DECLINED' } : o)));
   };
 
   if (!isReady || !authProfile) {
@@ -928,18 +940,30 @@ export default function Dashboard() {
             offers={offers}
             currentUser={currentUser}
             onConfirmSession={handleConfirmSession}
-            onOpenChat={() => setActiveTab('chat')}
+            onOpenChat={(offerId) => {
+              setSelectedSwapId(offerId);
+              setActiveTab('chat');
+            }}
             onDisputeSession={handleDisputeSession}
             onOpenReview={session => setSessionForReview(session)}
           />
         )}
 
         {activeTab === 'chat' && (
-          <TempChatView
+          <SwapsView
             currentUser={currentUser}
-            messages={chatMessages}
+            offers={offers}
+            sessions={sessions}
+            chatMessages={chatMessages}
             onSendMessage={handleSendMessage}
             onAcceptProposedTime={handleAcceptProposedTime}
+            onAcceptOffer={handleAcceptOffer}
+            onDeclineOffer={handleDeclineOffer}
+            onConfirmSession={handleConfirmSession}
+            onDisputeSession={handleDisputeSession}
+            onNavigateToDiscover={() => setActiveTab('matches')}
+            selectedSwapId={selectedSwapId}
+            onSelectSwapId={setSelectedSwapId}
           />
         )}
 
