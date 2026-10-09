@@ -14,7 +14,7 @@ export interface UserTeachSkill {
   category: string;
   level: SkillLevel;
   yearsExperience: number;
-  hourlyRate: number; // in Skill Points (1 SP = ₹1)
+  hourlyRate: number; // in Skill Points (1 SP = SP1)
   allowedDurations: number[]; // e.g. [30, 45, 60, 90]
   isVerified?: boolean;
 }

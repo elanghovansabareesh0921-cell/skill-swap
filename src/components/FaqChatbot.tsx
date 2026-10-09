@@ -53,8 +53,8 @@ const FAQ_KNOWLEDGE_BASE: FaqArticle[] = [
     id: 'art-tokens',
     category: 'Wallet & Currency',
     title: 'What is the skill point value and how do I top up?',
-    excerpt: '1 Skill Point = ₹1.00 INR. Buy packs via Razorpay (UPI, Google Pay, Cards, Netbanking).',
-    content: 'SkillSwap skill points have a guaranteed **1:1 parity** with the Indian Rupee (1 SP = ₹1.00) and are stored in integer paise for precision. You can top up your wallet in standard packs (50, 100, 250, 500, 1000) or any custom amount starting at ₹50.'
+    excerpt: '1 Skill Point = SP1.00 INR. Buy packs via Razorpay (UPI, Google Pay, Cards, Netbanking).',
+    content: 'SkillSwap skill points have a guaranteed **1:1 parity** with the Indian Rupee (1 SP = SP1.00) and are stored in integer paise for precision. You can top up your wallet in standard packs (50, 100, 250, 500, 1000) or any custom amount starting at SP50.'
   },
   {
     id: 'art-admin',

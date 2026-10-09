@@ -102,7 +102,7 @@ export const SessionsView: React.FC<SessionsViewProps> = ({
           <div className="mt-2 text-3xl font-extrabold text-emerald-700 font-mono">
             {totalEscrowTokens} SP
           </div>
-          <div className="text-[11px] text-ink/50 mt-1 font-mono">₹{totalEscrowTokens}.00 backed by double-entry ledger</div>
+          <div className="text-[11px] text-ink/50 mt-1 font-mono">SP{totalEscrowTokens}.00 backed by double-entry ledger</div>
         </div>
 
         <div className="glass-panel rounded-3xl p-6 spatial-card border border-ink/8">

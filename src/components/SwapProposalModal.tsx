@@ -320,7 +320,7 @@ export const SwapProposalModal: React.FC<SwapProposalModalProps> = ({
                 <Lock className="h-3.5 w-3.5 text-lagoon" />
                 <span>Skill Points Held in Escrow:</span>
                 <strong className="text-ink font-mono font-bold text-sm">{tokensNeeded} SP</strong>
-                <span className="text-[10px] text-ink/50 font-mono">(₹{tokensNeeded}.00)</span>
+                <span className="text-[10px] text-ink/50 font-mono">(SP{tokensNeeded}.00)</span>
               </div>
               <div className="text-[11px] text-ink/55">
                 Wallet Balance: <strong className="text-ink font-mono">{availableTokens} SP</strong>

@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
     if (!amountTokens || typeof amountTokens !== 'number' || amountTokens < 50 || amountTokens > 10000) {
       return NextResponse.json(
-        { error: 'Token purchase amount must be between 50 and 10,000 Tokens (₹50 to ₹10,000).' },
+        { error: 'Token purchase amount must be between 50 and 10,000 Tokens (SP50 to SP10,000).' },
         { status: 400 }
       );
     }

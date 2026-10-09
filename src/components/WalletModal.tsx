@@ -163,7 +163,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
             </div>
             <div>
               <h2 className="text-lg font-bold font-display text-ink">SkillSwap Wallet & Escrow</h2>
-              <p className="text-xs text-ink/60 font-mono">1 Skill Point = ₹1.00 (Backed by double-entry ledger)</p>
+              <p className="text-xs text-ink/60 font-mono">1 Skill Point = SP1.00 (Backed by double-entry ledger)</p>
             </div>
           </div>
           <button
@@ -183,7 +183,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
               <div className="text-[11px] font-mono text-white/60 uppercase tracking-wider">AVAILABLE BALANCE</div>
               <div className="mt-1 text-4xl font-extrabold font-mono tracking-tight text-white flex items-baseline gap-2">
                 <span>{availableTokens}</span>
-                <span className="text-sm font-sans font-semibold text-lagoon-light">SP (₹{availableTokens})</span>
+                <span className="text-sm font-sans font-semibold text-lagoon-light">SP (SP{availableTokens})</span>
               </div>
             </div>
 
@@ -202,7 +202,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
             </div>
             <div>
               <span className="text-white/60 text-[10px] uppercase block">Lifetime Transacted</span>
-              <span className="text-white font-bold text-sm">₹{earnedTokens + spentTokens}</span>
+              <span className="text-white font-bold text-sm">SP{earnedTokens + spentTokens}</span>
             </div>
           </div>
         </div>
@@ -234,15 +234,15 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                 }`}
               >
                 <div className="font-mono text-sm font-bold">{amount}SP</div>
-                <div className="text-[10px] opacity-70">₹{amount}</div>
+                <div className="text-[10px] opacity-70">SP{amount}</div>
               </button>
             ))}
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-ink block mb-1">Or custom amount (Min ₹50)</label>
+            <label className="text-xs font-semibold text-ink block mb-1">Or custom amount (Min SP50)</label>
             <div className="relative">
-              <span className="absolute left-3.5 top-2.5 font-mono text-sm text-ink/50">₹</span>
+              <span className="absolute left-3.5 top-2.5 font-mono text-sm text-ink/50">SP</span>
               <input
                 type="number"
                 min="50"
@@ -268,7 +268,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
             <span>
               {isProcessing
                 ? 'Processing Razorpay Order...'
-                : `Add ${customAmount ? customAmount : selectedPack} SP (₹${customAmount ? customAmount : selectedPack})`}
+                : `Add ${customAmount ? customAmount : selectedPack} SP (SP${customAmount ? customAmount : selectedPack})`}
             </span>
           </button>
         </div>

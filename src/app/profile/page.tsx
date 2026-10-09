@@ -927,7 +927,7 @@ export default function ProfilePage() {
                         className="w-full accent-lagoon cursor-pointer"
                       />
                       <p className="text-[11px] text-ink-muted mt-2">
-                        1 Skill Point (SP) = ₹1 parity. Standard peer rate is 50 SP/hr.
+                        1 Skill Point (SP) = SP1 parity. Standard peer rate is 50 SP/hr.
                       </p>
                     </div>
 

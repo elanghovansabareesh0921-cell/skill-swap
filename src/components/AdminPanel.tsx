@@ -60,19 +60,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ sessions, onResolveDispu
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="glass-panel rounded-3xl p-5 border border-ink/8 spatial-card">
           <div className="text-[11px] font-mono text-ink/60 uppercase">Total SP GMV</div>
-          <div className="mt-1 text-2xl font-black text-ink font-mono">₹84,250</div>
+          <div className="mt-1 text-2xl font-black text-ink font-mono">SP84,250</div>
           <div className="text-[10px] text-emerald-700 mt-0.5 font-medium">+14% this week</div>
         </div>
 
         <div className="glass-panel rounded-3xl p-5 border border-ink/8 spatial-card">
           <div className="text-[11px] font-mono text-ink/60 uppercase">Platform Fees Retained</div>
-          <div className="mt-1 text-2xl font-black text-lagoon font-mono">₹8,425</div>
+          <div className="mt-1 text-2xl font-black text-lagoon font-mono">SP8,425</div>
           <div className="text-[10px] text-ink/50 mt-0.5">10% statutory retention</div>
         </div>
 
         <div className="glass-panel rounded-3xl p-5 border border-ink/8 spatial-card">
           <div className="text-[11px] font-mono text-ink/60 uppercase">Escrow in Transit</div>
-          <div className="mt-1 text-2xl font-black text-amber-700 dark:text-saffron font-mono">₹3,240</div>
+          <div className="mt-1 text-2xl font-black text-amber-700 dark:text-saffron font-mono">SP3,240</div>
           <div className="text-[10px] text-ink/50 mt-0.5">Locked across active legs</div>
         </div>
 

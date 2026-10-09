@@ -159,7 +159,7 @@ export default function Landing() {
               </span>
               <span className="flex items-center gap-1.5 font-medium">
                 <Lock className="h-4 w-4 text-lagoon" />
-                1 Skill Point = ₹1 Guaranteed
+                1 Skill Point = SP1 Guaranteed
               </span>
               <span className="flex items-center gap-1.5 font-medium">
                 <Zap className="h-4 w-4 text-saffron" />
@@ -194,7 +194,7 @@ export default function Landing() {
                 <div>
                   <div className="flex justify-between text-xs font-mono text-ink/70 mb-2">
                     <span>Direct Learn (List Price)</span>
-                    <span className="text-ink font-bold">60 SP (₹60)</span>
+                    <span className="text-ink font-bold">60 SP (SP60)</span>
                   </div>
                   <div className="h-3 w-full rounded-full bg-ink/5 overflow-hidden">
                     <div className="h-full w-full bg-ink/10 rounded-full" />
@@ -207,7 +207,7 @@ export default function Landing() {
                       <ArrowRightLeft className="h-3 w-3" />
                       Swap: You teach him Figma UI
                     </span>
-                    <span className="font-extrabold text-ink text-sm">18 SP (₹18)</span>
+                    <span className="font-extrabold text-ink text-sm">18 SP (SP18)</span>
                   </div>
                   <div className="h-3 w-full rounded-full bg-ink/5 overflow-hidden">
                     <div className="h-full w-[30%] bg-saffron rounded-full shadow-lg shadow-saffron/40" />
@@ -223,7 +223,7 @@ export default function Landing() {
                 </div>
                 <div className="text-right">
                   <div className="text-ink/60 text-[11px]">Rate in INR</div>
-                  <div className="text-ink font-mono font-bold text-base">₹18 only</div>
+                  <div className="text-ink font-mono font-bold text-base">SP18 only</div>
                 </div>
               </div>
 

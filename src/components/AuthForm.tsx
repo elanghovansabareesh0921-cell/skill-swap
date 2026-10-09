@@ -133,7 +133,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
         </div>
 
         <div className="relative z-10 text-xs text-white/50 font-mono">
-          1 Skill Point = ₹1 • Closed-loop escrow network
+          1 Skill Point = SP1 • Closed-loop escrow network
         </div>
       </aside>
 
